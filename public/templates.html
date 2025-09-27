@@ -84,40 +84,18 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="js/auth.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
-        // Initialize Supabase client
-        const { createClient } = supabase;
-        const supabaseClient = createClient(
-            CONFIG.SUPABASE_URL,
-            CONFIG.SUPABASE_ANON_KEY
-        );
-
         let currentTemplate = null;
         let templates = [];
 
         // Check authentication and load templates
         document.addEventListener('DOMContentLoaded', async () => {
-            await checkAuth();
-            await loadTemplates();
+            if (FlexiAuth.init()) {
+                await loadTemplates();
+            }
         });
-
-        async function checkAuth() {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
-            }
-
-            if (user) {
-                document.getElementById('navUser').style.display = 'flex';
-                document.getElementById('userInfo').textContent = user.email;
-            } else {
-                document.getElementById('navUser').style.display = 'none';
-            }
-        }
 
         async function loadTemplates() {
             try {

@@ -140,30 +140,26 @@
         </div>
     </div>
 
+    <script src="js/auth.js"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        // Initialize Supabase client
-        const { createClient } = supabase;
-        const supabaseClient = createClient(
-            CONFIG.SUPABASE_URL,
-            CONFIG.SUPABASE_ANON_KEY
-        );
-
         let currentGeneration = null;
+        let supabaseClient;
 
         // Check authentication on page load
-        checkAuth();
-
-        async function checkAuth() {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check session-based auth first
+            if (!FlexiAuth.init()) {
+                return; // Will redirect to login
             }
 
-            document.getElementById('userInfo').textContent = user.email;
-        }
+            // Initialize Supabase for this page's database operations
+            const { createClient } = supabase;
+            supabaseClient = createClient(
+                CONFIG.SUPABASE_URL,
+                CONFIG.SUPABASE_ANON_KEY
+            );
+        });
 
         // Handle form submission
         document.getElementById('generateForm').addEventListener('submit', async (e) => {

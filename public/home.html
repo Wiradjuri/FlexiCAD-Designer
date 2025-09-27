@@ -78,46 +78,13 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="js/auth.js"></script>
     <script>
-        // Initialize Supabase client
-        const { createClient } = supabase;
-        const supabaseClient = createClient(
-            window.FlexiCADConfig.supabase.url,
-            window.FlexiCADConfig.supabase.anonKey
-        );
-
-        // Check authentication on page load
-        checkAuth();
-
-        async function checkAuth() {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
-            }
-
-            // Display user info
-            document.getElementById('userInfo').textContent = user.email;
-        }
-
-        async function handleLogout() {
-            try {
-                const { error } = await supabaseClient.auth.signOut();
-                if (error) throw error;
-                
-                window.location.href = 'login.html';
-            } catch (error) {
-                console.error('Error logging out:', error);
-                alert('Error logging out. Please try again.');
-            }
-        }
-
-        // Listen for auth state changes
-        supabaseClient.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_OUT') {
-                window.location.href = 'login.html';
+        // Initialize authentication for this page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication and set up UI
+            if (FlexiAuth.init()) {
+                console.log('User authenticated successfully');
             }
         });
     </script>

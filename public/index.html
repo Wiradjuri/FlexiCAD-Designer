@@ -167,8 +167,11 @@
                 
                 if (result.error) throw new Error(result.error.message);
                 
-                // Store user info in sessionStorage for this session
+                // Store user info and session token in sessionStorage
                 sessionStorage.setItem('flexicad_user', JSON.stringify(result.data.user));
+                if (result.sessionToken) {
+                    sessionStorage.setItem('flexicad_session_token', result.sessionToken);
+                }
                 
                 showMessage('Login successful! Redirecting...', 'success');
                 setTimeout(() => {

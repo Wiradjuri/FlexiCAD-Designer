@@ -116,35 +116,31 @@
         </div>
     </div>
 
+    <script src="js/auth.js"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        // Initialize Supabase client
-        const { createClient } = supabase;
-        const supabaseClient = createClient(
-            CONFIG.SUPABASE_URL,
-            CONFIG.SUPABASE_ANON_KEY
-        );
-
+        // For My Designs page, we need both session check AND Supabase client for database operations
         let designs = [];
         let currentDesign = null;
         let designToDelete = null;
+        let supabaseClient;
 
         // Check authentication and load designs
         document.addEventListener('DOMContentLoaded', async () => {
-            await checkAuth();
-            await loadDesigns();
-        });
-
-        async function checkAuth() {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
+            // First check session-based auth
+            if (!FlexiAuth.init()) {
+                return; // Will redirect to login
             }
 
-            document.getElementById('userInfo').textContent = user.email;
-        }
+            // Initialize Supabase client for database operations with current user's credentials
+            const { createClient } = supabase;
+            supabaseClient = createClient(
+                CONFIG.SUPABASE_URL,
+                CONFIG.SUPABASE_ANON_KEY
+            );
+
+            await loadDesigns();
+        });
 
         async function loadDesigns() {
             showLoading();
