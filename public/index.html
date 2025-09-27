@@ -57,10 +57,80 @@
                     <input type="password" id="confirmPassword" class="form-input" minlength="6" required>
                 </div>
                 <button type="submit" class="btn btn-primary w-full">
-                    <span class="btn-text">Create Account</span>
+                    <span class="btn-text">Create Account & Subscribe</span>
                     <div class="spinner hidden"></div>
                 </button>
             </form>
+
+            <!-- Pricing Section (shown only for registration) -->
+            <div id="pricingSection" class="pricing-section">
+                <h2 class="pricing-title">Choose Your Plan</h2>
+                <p class="pricing-subtitle">Select a subscription plan to get started with FlexiCAD Designer</p>
+                <div class="pricing-cards">
+                    <div class="plan-card selected" data-plan="monthly">
+                        <div class="plan-header">
+                            <h3 class="plan-name">Monthly Plan</h3>
+                            <div class="plan-price">
+                                <span class="currency">$</span>
+                                <span class="amount">10</span>
+                                <span class="period">/month</span>
+                            </div>
+                        </div>
+                        <div class="plan-features">
+                            <div class="feature">
+                                <span class="feature-icon">✓</span>
+                                <span class="feature-text">Unlimited AI generations</span>
+                            </div>
+                            <div class="feature">
+                                <span class="feature-icon">✓</span>
+                                <span class="feature-text">Access to all templates</span>
+                            </div>
+                            <div class="feature">
+                                <span class="feature-icon">✓</span>
+                                <span class="feature-text">Save unlimited designs</span>
+                            </div>
+                            <div class="feature">
+                                <span class="feature-icon">✓</span>
+                                <span class="feature-text">24/7 support</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="plan-card" data-plan="yearly">
+                        <div class="plan-header">
+                            <h3 class="plan-name">Yearly Plan</h3>
+                            <div class="plan-price">
+                                <span class="currency">$</span>
+                                <span class="amount">50</span>
+                                <span class="period">/year</span>
+                            </div>
+                            <div class="plan-savings">Save $70/year!</div>
+                        </div>
+                        <div class="plan-features">
+                            <div class="feature">
+                                <span class="feature-icon">✓</span>
+                                <span class="feature-text">Unlimited AI generations</span>
+                            </div>
+                            <div class="feature">
+                                <span class="feature-icon">✓</span>
+                                <span class="feature-text">Access to all templates</span>
+                            </div>
+                            <div class="feature">
+                                <span class="feature-icon">✓</span>
+                                <span class="feature-text">Save unlimited designs</span>
+                            </div>
+                            <div class="feature">
+                                <span class="feature-icon">✓</span>
+                                <span class="feature-text">Priority 24/7 support</span>
+                            </div>
+                            <div class="feature">
+                                <span class="feature-icon">✓</span>
+                                <span class="feature-text">Early access to new features</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div id="authMessage" class="hidden"></div>
             
@@ -76,51 +146,49 @@
     </div>
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config/env-config.js"></script>
+    <script src="config/config.js"></script>
+    <script src="js/flexicad-auth.js"></script>
     <script>
-        // Use proxy-based authentication instead of direct Supabase calls
-        console.log('Using proxy-based authentication');
-
-        // Proxy authentication functions
-        async function makeAuthRequest(action, data = {}) {
-            try {
-                console.log('Making auth request:', action, data);
-                
-                const response = await fetch('/.netlify/functions/auth-proxy', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action,
-                        ...data
-                    })
-                });
-
-                console.log('Response status:', response.status);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('HTTP Error:', response.status, errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+        // Initialize authentication
+        let currentPlan = 'monthly';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize auth system
+            await window.flexicadAuth.init();
+            
+            // Check URL parameters for status messages
+            const urlStatus = window.flexicadAuth.checkURLParams();
+            if (urlStatus) {
+                if (urlStatus.type === 'checkout_success') {
+                    showMessage(urlStatus.message, 'success');
+                    
+                    // Auto-switch to login tab and populate email if we have it
+                    const registrationEmail = sessionStorage.getItem('flexicad_registration_email');
+                    if (registrationEmail) {
+                        setTimeout(() => {
+                            document.querySelector('[data-tab="login"]').click();
+                            document.getElementById('loginEmail').value = registrationEmail;
+                            showMessage('Your account has been created! Please log in with your credentials.', 'info');
+                        }, 3000);
+                    }
+                } else if (urlStatus.type === 'checkout_cancelled') {
+                    showMessage(urlStatus.message, 'error');
+                } else if (urlStatus.type === 'auth_required') {
+                    showMessage(urlStatus.message, 'info');
                 }
-
-                const result = await response.json();
-                console.log('Auth result:', result);
-                return result;
-            } catch (error) {
-                console.error('Auth request failed:', error);
-                return { error: { message: error.message } };
             }
-        }
+        });
 
-        // Check if user is already logged in
-        checkAuthStatus();
-
-        async function checkAuthStatus() {
-            // For proxy-based auth, we'll skip the automatic redirect
-            // Users will need to manually log in each session
-            console.log('Proxy-based auth - session check skipped');
-        }
+        // Plan selection functionality
+        document.querySelectorAll('.plan-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                currentPlan = card.dataset.plan;
+                console.log('Selected plan:', currentPlan);
+            });
+        });
 
         // Tab switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -136,11 +204,13 @@
                 if (tab === 'login') {
                     document.getElementById('loginForm').classList.remove('hidden');
                     document.getElementById('registerForm').classList.add('hidden');
-                    console.log('Showing login form, hiding register form');
+                    document.getElementById('pricingSection').classList.add('hidden');
+                    console.log('Showing login form');
                 } else if (tab === 'register') {
                     document.getElementById('registerForm').classList.remove('hidden'); 
                     document.getElementById('loginForm').classList.add('hidden');
-                    console.log('Showing register form, hiding login form');
+                    document.getElementById('pricingSection').classList.remove('hidden');
+                    console.log('Showing register form with pricing');
                 }
                 
                 // Clear messages
@@ -160,19 +230,13 @@
             clearMessage();
             
             try {
-                const result = await makeAuthRequest('signin', {
-                    email: email,
-                    password: password
-                });
+                const result = await window.flexicadAuth.login(email, password);
                 
-                if (result.error) throw new Error(result.error.message);
-                
-                // Store user info and session token in sessionStorage
-                sessionStorage.setItem('flexicad_user', JSON.stringify(result.data.user));
-                if (result.sessionToken) {
-                    sessionStorage.setItem('flexicad_session_token', result.sessionToken);
+                if (!result.success) {
+                    throw new Error(result.error);
                 }
                 
+                // In payment-first system, all logged in users should be paid
                 showMessage('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
                     window.location.href = 'home.html';
@@ -182,13 +246,15 @@
                 let errorMessage = error.message;
                 
                 // Provide more helpful error messages
-                if (error.message.includes('Email not confirmed')) {
-                    errorMessage = 'Please check your email and click the confirmation link before logging in.';
-                    showResendButton(email); // Show resend button for confirmation issues
-                } else if (error.message.includes('Invalid login credentials')) {
+                if (error.message.includes('Invalid login credentials')) {
                     errorMessage = 'Invalid email or password. Please check your credentials and try again.';
-                } else if (error.message.includes('signup')) {
-                    errorMessage = 'Account not found. Please register first or check your email address.';
+                } else if (error.message.includes('Email not confirmed')) {
+                    errorMessage = 'Please check your email and click the confirmation link before logging in.';
+                    showResendButton(email);
+                } else if (error.message.includes('Account access issue')) {
+                    errorMessage = 'There seems to be an issue with your account. Please contact support for assistance.';
+                } else if (error.message.includes('too many requests') || error.message.includes('rate limit')) {
+                    errorMessage = 'Too many login attempts. Please wait a moment and try again.';
                 }
                 
                 showMessage(errorMessage, 'error');
@@ -211,54 +277,69 @@
                 return;
             }
             
-            setLoadingState(submitBtn, true);
+            if (!currentPlan) {
+                showMessage('Please select a subscription plan', 'error');
+                return;
+            }
+
+            // Validate password strength
+            if (password.length < 6) {
+                showMessage('Password must be at least 6 characters long', 'error');
+                return;
+            }
+            
+            setLoadingState(submitBtn, true, 'Creating checkout session...');
             clearMessage();
             
             try {
-                const result = await makeAuthRequest('signup', {
-                    email: email,
-                    password: password
-                });
+                console.log('🎯 Starting payment-first registration');
                 
-                if (result.error) throw new Error(result.error.message);
+                const result = await window.flexicadAuth.register(email, password, currentPlan);
                 
-                if (result.data.user && !result.data.session) {
-                    showMessage('Registration successful! Please check your email to verify your account.', 'success');
-                    // Switch to login tab after successful registration
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
+                
+                // If we reach this point, the user is being redirected to Stripe
+                showMessage(result.message || 'Redirecting to secure payment...', 'success');
+                
+            } catch (error) {
+                console.error('Registration error:', error);
+                let errorMessage = error.message;
+                
+                // Handle specific error cases
+                if (errorMessage.includes('already linked to a paid FlexiCAD account')) {
+                    showMessage(errorMessage + ' Please use the login form instead.', 'error');
+                    
+                    // Auto-switch to login tab and populate email
                     setTimeout(() => {
                         document.querySelector('[data-tab="login"]').click();
                         document.getElementById('loginEmail').value = email;
-                    }, 2000);
+                        document.getElementById('loginEmail').focus();
+                    }, 3000);
+                } else if (errorMessage.includes('Invalid email format')) {
+                    showMessage('Please enter a valid email address', 'error');
                 } else {
-                    // Store user info for this session
-                    sessionStorage.setItem('flexicad_user', JSON.stringify(result.data.user));
-                    
-                    showMessage('Registration successful! Redirecting...', 'success');
-                    setTimeout(() => {
-                        window.location.href = 'home.html';
-                    }, 1000);
+                    showMessage(errorMessage, 'error');
                 }
-                
-            } catch (error) {
-                showMessage(error.message, 'error');
             } finally {
                 setLoadingState(submitBtn, false);
             }
         });
 
-        function setLoadingState(button, loading) {
+        function setLoadingState(button, loading, customText = null) {
             const btnText = button.querySelector('.btn-text');
             const spinner = button.querySelector('.spinner');
             
             if (loading) {
                 button.classList.add('btn-loading');
                 button.disabled = true;
-                btnText.textContent = 'Loading...';
+                btnText.textContent = customText || 'Loading...';
                 spinner.classList.remove('hidden');
             } else {
                 button.classList.remove('btn-loading');
                 button.disabled = false;
-                btnText.textContent = button.form.id === 'loginForm' ? 'Sign In' : 'Create Account';
+                btnText.textContent = button.form.id === 'loginForm' ? 'Sign In' : 'Create Account & Subscribe';
                 spinner.classList.add('hidden');
             }
         }
@@ -295,18 +376,26 @@
                 spinner.classList.remove('hidden');
                 
                 try {
-                    const { error } = await supabaseClient.auth.resend({
-                        type: 'signup',
-                        email: email
+                    // Since we're using proxy auth, we need to call the proxy endpoint
+                    const result = await fetch('/.netlify/functions/auth-proxy', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: 'resend',
+                            email: email
+                        })
                     });
                     
-                    if (error) throw error;
-                    
-                    showMessage('Confirmation email sent! Please check your inbox.', 'success');
-                    resendSection.classList.add('hidden');
-                    
+                    if (result.ok) {
+                        showMessage('Confirmation email sent! Please check your inbox.', 'success');
+                        resendSection.classList.add('hidden');
+                    } else {
+                        throw new Error('Failed to send confirmation email');
+                    }
                 } catch (error) {
-                    showMessage(`Failed to resend email: ${error.message}`, 'error');
+                    showMessage('Failed to resend confirmation email. Please try again later.', 'error');
                 } finally {
                     // Reset button state
                     newResendBtn.disabled = false;

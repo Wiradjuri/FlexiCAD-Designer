@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - FlexiCAD Designer</title>
     <link rel="stylesheet" href="css/dark-theme.css">
+    <script src="https://js.stripe.com/v3/"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -23,8 +24,63 @@
             <p>Join FlexiCAD Designer and start creating amazing 3D designs with AI</p>
         </div>
 
-        <div class="auth-container">
+        <!-- Subscription Pricing Section -->
+        <div class="pricing-section">
+            <h2 class="pricing-title">Choose Your Plan</h2>
+            <div class="pricing-cards">
+                <div class="pricing-card" data-plan="monthly">
+                    <div class="pricing-header">
+                        <h3>Monthly Plan</h3>
+                        <div class="price">
+                            <span class="currency">$</span>
+                            <span class="amount">10</span>
+                            <span class="period">/month</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✅ Unlimited AI design generations</li>
+                        <li>✅ Access to all templates</li>
+                        <li>✅ Save and organize your designs</li>
+                        <li>✅ Export to .scad files</li>
+                        <li>✅ Community support</li>
+                    </ul>
+                    <button class="btn-pricing" onclick="selectPlan('monthly', 10)">
+                        Select Monthly
+                    </button>
+                </div>
+
+                <div class="pricing-card featured" data-plan="yearly">
+                    <div class="featured-badge">Best Value</div>
+                    <div class="pricing-header">
+                        <h3>Yearly Plan</h3>
+                        <div class="price">
+                            <span class="currency">$</span>
+                            <span class="amount">50</span>
+                            <span class="period">/year</span>
+                        </div>
+                        <div class="savings">Save $70 per year!</div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✅ Unlimited AI design generations</li>
+                        <li>✅ Access to all templates</li>
+                        <li>✅ Save and organize your designs</li>
+                        <li>✅ Export to .scad files</li>
+                        <li>✅ Priority support</li>
+                        <li>✅ Early access to new features</li>
+                    </ul>
+                    <button class="btn-pricing featured" onclick="selectPlan('yearly', 50)">
+                        Select Yearly
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-container" id="registrationForm" style="display: none;">
             <div class="card auth-card">
+                <div class="selected-plan-info">
+                    <p>Selected Plan: <span id="selectedPlanName"></span> - <span id="selectedPlanPrice"></span></p>
+                    <button type="button" class="btn-link" onclick="changePlan()">Change Plan</button>
+                </div>
                 <div class="card-body">
                     <form id="registerForm" class="auth-form">
                         <div class="form-group">
@@ -71,10 +127,49 @@
         </div>
     </main>
 
+    <script src="config/env-config.js"></script>
     <script src="config/config.js"></script>
     <script>
         // Initialize Supabase client
         const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+        
+        // Initialize Stripe
+        const stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
+        
+        // Plan selection variables
+        let selectedPlan = null;
+        let selectedPrice = 0;
+        let userEmail = null;
+        let userId = null;
+
+        // Plan selection functions
+        function selectPlan(planType, price) {
+            selectedPlan = planType;
+            selectedPrice = price;
+            
+            // Update UI
+            document.getElementById('selectedPlanName').textContent = planType.charAt(0).toUpperCase() + planType.slice(1);
+            document.getElementById('selectedPlanPrice').textContent = `$${price}/${planType === 'monthly' ? 'month' : 'year'}`;
+            
+            // Hide pricing section and show registration form
+            document.querySelector('.pricing-section').style.display = 'none';
+            document.getElementById('registrationForm').style.display = 'block';
+            
+            // Update the register button text
+            document.querySelector('.btn-text').textContent = `Create Account & Pay $${price}`;
+            
+            console.log(`Selected plan: ${planType} - $${price}`);
+        }
+
+        function changePlan() {
+            // Show pricing section and hide registration form
+            document.querySelector('.pricing-section').style.display = 'block';
+            document.getElementById('registrationForm').style.display = 'none';
+            
+            // Reset selection
+            selectedPlan = null;
+            selectedPrice = 0;
+        }
 
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -95,34 +190,75 @@
             setLoadingState(true);
             
             try {
-                const { data, error } = await supabase.auth.signUp({
-                    email: email,
-                    password: password,
-                    options: {
-                        emailRedirectTo: window.location.origin + '/home.html'
-                    }
+                // PAYMENT-FIRST FLOW: NO supabase.auth.signUp() here!
+                // Go directly to Stripe checkout - account will be created by webhook after payment
+                
+                console.log('Starting payment-first registration for:', { plan: selectedPlan, email: email });
+                
+                // Update button to show payment processing
+                document.querySelector('.btn-text').textContent = 'Creating checkout session...';
+
+                // Create Stripe checkout session WITHOUT creating Supabase account
+                const response = await fetch('/.netlify/functions/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                        plan: selectedPlan
+                    })
                 });
-                
-                if (error) {
-                    throw error;
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to create checkout session');
                 }
+
+                const { sessionId, url } = await response.json();
                 
-                // Registration successful
-                showSuccessMessage();
+                if (!url) {
+                    throw new Error('No checkout URL returned');
+                }
+
+                // Store registration email for success page
+                sessionStorage.setItem('flexicad_registration_email', email);
                 
-                // Redirect to home page after a short delay
-                setTimeout(() => {
-                    window.location.href = 'home.html';
-                }, 2000);
+                // Update button text and redirect to Stripe
+                document.querySelector('.btn-text').textContent = 'Redirecting to Payment...';
+                
+                console.log('✅ Redirecting to Stripe checkout:', url);
+                
+                // Redirect to Stripe Checkout (no Supabase account created yet)
+                window.location.href = url;
                 
             } catch (error) {
                 console.error('Registration error:', error);
-                showErrorMessage(getErrorMessage(error));
+                
+                let errorMessage = error.message;
+                
+                // Handle specific error cases for better UX
+                if (errorMessage.includes('already linked to a paid FlexiCAD account')) {
+                    errorMessage = 'This email is already registered. Please use the login page instead.';
+                } else if (errorMessage.includes('Invalid email format')) {
+                    errorMessage = 'Please enter a valid email address.';
+                } else if (errorMessage.includes('Failed to create checkout session')) {
+                    errorMessage = 'Unable to process registration. Please try again.';
+                }
+                
+                showErrorMessage(errorMessage);
                 setLoadingState(false);
             }
         });
 
         function validateForm(email, password, confirmPassword) {
+            // Check if plan is selected
+            if (!selectedPlan || !selectedPrice) {
+                showErrorMessage('Please select a subscription plan before creating your account.');
+                return false;
+            }
+            
             if (!email) {
                 showErrorMessage('Please enter your email address.');
                 return false;
@@ -179,8 +315,10 @@
             errorDiv.style.display = 'block';
         }
 
-        function showSuccessMessage() {
+        function showSuccessMessage(message = 'Registration successful! Redirecting to home...') {
             const successDiv = document.getElementById('successMessage');
+            const successP = successDiv.querySelector('p');
+            successP.textContent = message;
             successDiv.style.display = 'block';
         }
 
@@ -262,6 +400,188 @@
 
         .w-full {
             width: 100%;
+        }
+
+        /* Pricing Styles */
+        .pricing-section {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .pricing-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .pricing-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .pricing-card:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 150, 136, 0.2);
+        }
+
+        .pricing-card.featured {
+            border-color: var(--accent-color);
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(0, 150, 136, 0.1) 100%);
+        }
+
+        .featured-badge {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .pricing-header {
+            margin-bottom: 2rem;
+        }
+
+        .pricing-header h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .price {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .currency {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .amount {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .period {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+        }
+
+        .savings {
+            color: var(--success-color, #4CAF50);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .pricing-features li {
+            padding: 0.5rem 0;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .btn-pricing {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-pricing:hover {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .btn-pricing.featured {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .btn-pricing.featured:hover {
+            background: #00a89c;
+            border-color: #00a89c;
+        }
+
+        .selected-plan-info {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .selected-plan-info p {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .btn-link {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .btn-link:hover {
+            color: #00a89c;
+        }
+
+        @media (max-width: 768px) {
+            .pricing-cards {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .pricing-card {
+                padding: 1.5rem;
+            }
+
+            .amount {
+                font-size: 2.5rem;
+            }
         }
 
         .btn-spinner {

@@ -51,6 +51,13 @@ exports.handler = async (event, context) => {
         }
         break;
       
+      case 'resend':
+        result = await supabase.auth.resend({
+          type: 'signup',
+          email
+        });
+        break;
+      
       case 'test':
         // Simple connection test
         result = { 

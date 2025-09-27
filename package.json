@@ -5,12 +5,15 @@
   "main": "public/index.html",
   "scripts": {
     "dev": "netlify dev",
-    "build": "node build-config.js",
-    "deploy": "netlify deploy --prod"
+    "build": "node build-config.js && node build-env-config.js",
+    "build:env": "node build-env-config.js",
+    "deploy": "npm run build && netlify deploy --prod"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.0",
-    "openai": "^4.20.0"
+    "dotenv": "^17.2.2",
+    "openai": "^4.20.0",
+    "stripe": "^14.10.0"
   },
   "devDependencies": {
     "netlify-cli": "^17.10.1",

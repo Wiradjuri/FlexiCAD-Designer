@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Success - FlexiCAD Designer</title>
+    <link rel="stylesheet" href="css/dark-theme.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-brand">FlexiCAD Designer</div>
+            <ul class="nav-menu">
+                <li><a href="home.html" class="nav-link">Dashboard</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="success-container">
+            <div class="card success-card">
+                <div class="success-icon">✅</div>
+                <h1>Payment Successful!</h1>
+                <p class="success-message">
+                    Thank you for subscribing to FlexiCAD Designer! Your payment was successful and our webhook is creating your account. Please wait a moment...
+                </p>
+                
+                <div id="loadingState" style="margin: 20px 0;">
+                    <div style="display: inline-flex; align-items: center; gap: 10px; color: #60a5fa;">
+                        <div style="width: 20px; height: 20px; border: 2px solid #333; border-top: 2px solid #60a5fa; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <span>Webhook creating your Supabase account...</span>
+                    </div>
+                </div>
+                
+                <div class="subscription-details" id="subscriptionDetails" style="display: none;">
+                    <h3>✅ Account Created Successfully!</h3>
+                    <div id="planInfo">
+                        <p><strong>Email:</strong> <span id="userEmail">Loading...</span></p>
+                        <p><strong>Plan:</strong> <span id="userPlan">Loading...</span></p>
+                        <p><strong>Status:</strong> <span style="color: #4ade80;">Active & Paid (via webhook)</span></p>
+                    </div>
+                </div>
+
+                <div class="next-steps">
+                    <h3>What's Next?</h3>
+                    <ul>
+                        <li>🤖 Generate unlimited AI designs</li>
+                        <li>📚 Access all design templates</li>
+                        <li>💾 Save and organize your projects</li>
+                        <li>🔧 Export designs to OpenSCAD format</li>
+                    </ul>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="home.html" class="btn btn-primary">Go to Dashboard</a>
+                    <a href="ai.html" class="btn btn-secondary">Start Creating</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="config/config.js"></script>
+    <script>
+        // Payment-first webhook account verification
+        let checkAttempts = 0;
+        const maxAttempts = 20; // 100 seconds total
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionId = urlParams.get('session_id');
+            const checkoutStatus = urlParams.get('checkout');
+
+            console.log('Payment success page loaded', { sessionId, checkoutStatus });
+
+            if (checkoutStatus === 'success' && sessionId) {
+                // Start checking for webhook account creation
+                setTimeout(checkWebhookAccountCreation, 3000);
+            } else {
+                showError('Invalid payment session');
+            }
+        });
+        
+        async function checkWebhookAccountCreation() {
+            checkAttempts++;
+            console.log(`Checking webhook account creation (attempt ${checkAttempts}/${maxAttempts})`);
+            
+            try {
+                const registrationEmail = sessionStorage.getItem('flexicad_registration_email');
+                
+                if (registrationEmail) {
+                    // Check if webhook has created the account
+                    const response = await fetch('/.netlify/functions/check-database?type=payment_first_validation');
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        if (data.payment_first_validation && data.payment_first_validation.paid_profiles > 0) {
+                            console.log('✅ Webhook account creation successful!');
+                            showAccountCreated(registrationEmail);
+                            return;
+                        }
+                    }
+                }
+                
+                // Continue checking if not ready yet
+                if (checkAttempts < maxAttempts) {
+                    setTimeout(checkWebhookAccountCreation, 5000);
+                } else {
+                    showError('Account creation is taking longer than expected. Please try logging in or contact support.');
+                }
+                
+            } catch (error) {
+                console.error('Error checking webhook status:', error);
+                
+                if (checkAttempts < maxAttempts) {
+                    setTimeout(checkWebhookAccountCreation, 5000);
+                } else {
+                    showError('Unable to verify account creation. Please try logging in.');
+                }
+            }
+        }
+        
+        function showAccountCreated(email) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('subscriptionDetails').style.display = 'block';
+            
+            document.getElementById('userEmail').textContent = email;
+            document.getElementById('userPlan').textContent = 'Premium Plan';
+            
+            // Clear registration email from storage
+            sessionStorage.removeItem('flexicad_registration_email');
+        }
+        
+        function showError(message) {
+            document.getElementById('loadingState').innerHTML = `
+                <div style="color: #ef4444; padding: 20px; text-align: center;">
+                    ⚠️ ${message}
+                    <br><br>
+                    <a href="/index.html" style="color: #60a5fa; text-decoration: underline;">Try Login</a>
+                </div>
+            `;
+        }
+    </script>
+
+    <style>
+        .success-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 60vh;
+            padding: 2rem 0;
+        }
+
+        .success-card {
+            max-width: 600px;
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .success-card h1 {
+            color: var(--success-color, #4CAF50);
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+        }
+
+        .success-message {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .subscription-details {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .subscription-details h3 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .next-steps {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .next-steps h3 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .next-steps ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .next-steps li {
+            padding: 0.5rem 0;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #00a89c;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            .success-card {
+                padding: 2rem;
+                margin: 1rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .success-card h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</body>
+</html>

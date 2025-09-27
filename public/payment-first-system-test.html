@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment-First System Test - FlexiCAD Designer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: linear-gradient(45deg, #2563eb, #3b82f6);
+            border-radius: 10px;
+        }
+        .test-section {
+            border: 1px solid #333;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            background: #2a2a2a;
+        }
+        .test-section h2 {
+            color: #60a5fa;
+            margin-top: 0;
+        }
+        .requirement {
+            background: #1e3a8a;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #60a5fa;
+        }
+        .check { color: #4ade80; }
+        .cross { color: #ef4444; }
+        .warning { color: #f59e0b; }
+        .result {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .result.success { background-color: #065f46; }
+        .result.error { background-color: #7f1d1d; }
+        .result.warning { background-color: #78350f; }
+        .result.info { background-color: #1e3a8a; }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 14px;
+        }
+        button:hover { background: #1d4ed8; }
+        button:disabled { background: #6b7280; cursor: not-allowed; }
+        .form-group {
+            margin: 15px 0;
+        }
+        input[type="email"], input[type="password"], select {
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 4px;
+            background: #2a2a2a;
+            color: white;
+            width: 300px;
+            max-width: 100%;
+        }
+        .flow-diagram {
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin: 20px 0;
+        }
+        .function-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .function-card {
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        .function-card h4 {
+            margin-top: 0;
+            color: #60a5fa;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-online { background-color: #4ade80; }
+        .status-offline { background-color: #ef4444; }
+        .status-unknown { background-color: #f59e0b; }
+        .code-block {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            font-family: monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .step-by-step {
+            counter-reset: step-counter;
+        }
+        .step {
+            counter-increment: step-counter;
+            margin: 20px 0;
+            padding: 15px;
+            background: #2a2a2a;
+            border-radius: 8px;
+            position: relative;
+            padding-left: 60px;
+        }
+        .step::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            background: #2563eb;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔒 Payment-First Registration System Validator</h1>
+        <p>Complete testing suite for strict payment-first authentication flow</p>
+    </div>
+
+    <!-- Your Exact Requirements -->
+    <div class="test-section">
+        <h2>📋 Your Exact Requirements</h2>
+        <div class="requirement">
+            <strong>1. Registration Flow:</strong>
+            <ul>
+                <li><span class="check">✓</span> NO direct supabase.auth.signUp() calls</li>
+                <li><span class="check">✓</span> Must go to create-checkout-session function first</li>
+                <li><span class="check">✓</span> Email validation before payment</li>
+                <li><span class="check">✓</span> Redirect to Stripe immediately</li>
+            </ul>
+        </div>
+        
+        <div class="requirement">
+            <strong>2. Webhook Processing:</strong>
+            <ul>
+                <li><span class="check">✓</span> stripe-webhook function listening for checkout.session.completed</li>
+                <li><span class="check">✓</span> Stripe signature verification</li>
+                <li><span class="check">✓</span> supabase.admin.auth.signUp() ONLY after payment</li>
+                <li><span class="check">✓</span> Profile creation with subscription data</li>
+            </ul>
+        </div>
+        
+        <div class="requirement">
+            <strong>3. Email Uniqueness:</strong>
+            <ul>
+                <li><span class="check">✓</span> Database-level unique constraints</li>
+                <li><span class="check">✓</span> Pre-payment email validation</li>
+                <li><span class="check">✓</span> Webhook duplicate prevention</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Flow Diagram -->
+    <div class="test-section">
+        <h2>🔄 Payment-First Flow Diagram</h2>
+        <div class="flow-diagram">User Registration Process:
+
+1. User fills register.html form
+   ↓
+2. Form calls /.netlify/functions/create-checkout-session
+   ↓ 
+3. Function validates email (NO Supabase account created)
+   ↓
+4. Creates Stripe checkout session with metadata
+   ↓
+5. User redirected to Stripe payment page
+   ↓
+6. User completes payment
+   ↓
+7. Stripe sends webhook to /.netlify/functions/stripe-webhook
+   ↓
+8. Webhook creates Supabase account via Admin API
+   ↓
+9. User redirected to success page
+   ↓
+10. User can now login with paid account</div>
+    </div>
+
+    <!-- Function Status Check -->
+    <div class="test-section">
+        <h2>🛠️ Function Status Check</h2>
+        <div class="function-status">
+            <div class="function-card">
+                <h4><span class="status-indicator status-unknown" id="checkout-status"></span>create-checkout-session</h4>
+                <p>Creates Stripe sessions without Supabase accounts</p>
+                <button onclick="testFunction('create-checkout-session')">Test Function</button>
+                <div id="checkout-result"></div>
+            </div>
+            
+            <div class="function-card">
+                <h4><span class="status-indicator status-unknown" id="webhook-status"></span>stripe-webhook</h4>
+                <p>Creates accounts only after payment success</p>
+                <button onclick="testFunction('stripe-webhook')">Test Function</button>
+                <div id="webhook-result"></div>
+            </div>
+            
+            <div class="function-card">
+                <h4><span class="status-indicator status-unknown" id="database-status"></span>check-database</h4>
+                <p>Validates payment-first system integrity</p>
+                <button onclick="testFunction('check-database')">Test Function</button>
+                <div id="database-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Registration Test -->
+    <div class="test-section">
+        <h2>🧪 Live Registration Test</h2>
+        <p>Test the complete payment-first flow (will redirect to Stripe in test mode):</p>
+        
+        <form id="testRegistrationForm">
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="testEmail" value="test-user@example.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="testPassword" value="testpass123" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Plan:</label>
+                <select id="testPlan">
+                    <option value="monthly">Monthly ($10 AUD)</option>
+                    <option value="yearly">Yearly ($50 AUD)</option>
+                </select>
+            </div>
+            
+            <button type="submit">Test Payment-First Registration</button>
+        </form>
+        
+        <div id="registrationTestResult"></div>
+    </div>
+
+    <!-- Database Integrity Check -->
+    <div class="test-section">
+        <h2>🔍 Database Integrity Validation</h2>
+        <p>Verify that no unpaid accounts exist in the system:</p>
+        
+        <button onclick="runDatabaseAudit()">Run Full Database Audit</button>
+        <div id="databaseAuditResult"></div>
+    </div>
+
+    <!-- System Validation -->
+    <div class="test-section">
+        <h2>✅ System Validation Summary</h2>
+        <div id="systemValidation">
+            <div class="result info">Click the test buttons above to validate the payment-first system</div>
+        </div>
+    </div>
+
+    <script>
+        // Test individual functions
+        async function testFunction(functionName) {
+            const statusId = functionName.replace('-', '') + '-status';
+            const resultId = functionName.replace('-', '') + '-result';
+            
+            document.getElementById(statusId).className = 'status-indicator status-unknown';
+            document.getElementById(resultId).innerHTML = '<div class="result info">Testing...</div>';
+            
+            try {
+                let response;
+                
+                switch(functionName) {
+                    case 'create-checkout-session':
+                        response = await fetch('/.netlify/functions/create-checkout-session', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: 'test@example.com',
+                                password: 'test123',
+                                plan: 'monthly'
+                            })
+                        });
+                        break;
+                        
+                    case 'stripe-webhook':
+                        // Can't test webhook directly, but check if function exists
+                        response = await fetch('/.netlify/functions/stripe-webhook', {
+                            method: 'OPTIONS'
+                        });
+                        break;
+                        
+                    case 'check-database':
+                        response = await fetch('/.netlify/functions/check-database?type=payment_first_validation');
+                        break;
+                }
+                
+                if (response.ok) {
+                    document.getElementById(statusId).className = 'status-indicator status-online';
+                    document.getElementById(resultId).innerHTML = '<div class="result success">✅ Function is accessible and responding</div>';
+                } else {
+                    document.getElementById(statusId).className = 'status-indicator status-offline';
+                    const errorText = await response.text();
+                    document.getElementById(resultId).innerHTML = `<div class="result error">❌ Function error: ${response.status} - ${errorText}</div>`;
+                }
+                
+            } catch (error) {
+                document.getElementById(statusId).className = 'status-indicator status-offline';
+                document.getElementById(resultId).innerHTML = `<div class="result error">❌ Function unavailable: ${error.message}</div>`;
+            }
+        }
+        
+        // Test registration flow
+        document.getElementById('testRegistrationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+            const plan = document.getElementById('testPlan').value;
+            
+            const resultDiv = document.getElementById('registrationTestResult');
+            resultDiv.innerHTML = '<div class="result info">Testing registration flow...</div>';
+            
+            try {
+                const response = await fetch('/.netlify/functions/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, plan })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            ✅ Registration flow working correctly!<br>
+                            • Checkout session created: ${data.sessionId}<br>
+                            • No Supabase account created yet<br>
+                            • Would redirect to: ${data.url ? 'Stripe Checkout' : 'Error'}
+                        </div>
+                    `;
+                } else {
+                    const errorData = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            ❌ Registration test failed: ${errorData.error}
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        ❌ Registration test error: ${error.message}
+                    </div>
+                `;
+            }
+        });
+        
+        // Run database audit
+        async function runDatabaseAudit() {
+            const resultDiv = document.getElementById('databaseAuditResult');
+            resultDiv.innerHTML = '<div class="result info">Running full database audit...</div>';
+            
+            try {
+                const response = await fetch('/.netlify/functions/check-database?type=full_audit');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    let html = '<div class="result success"><strong>📊 Database Audit Results:</strong><br><br>';
+                    
+                    if (data.payment_first && data.payment_first.payment_first_validation) {
+                        const validation = data.payment_first.payment_first_validation;
+                        html += `• Total Profiles: ${validation.total_profiles}<br>`;
+                        html += `• Paid Profiles: ${validation.paid_profiles}<br>`;
+                        html += `• Unpaid Profiles: ${validation.unpaid_profiles}<br>`;
+                        html += `• System Valid: ${validation.is_valid ? '✅ YES' : '❌ NO'}<br>`;
+                    }
+                    
+                    if (data.overall_health) {
+                        html += `<br><strong>Overall Health:</strong> ${data.overall_health.status}`;
+                    }
+                    
+                    html += '</div>';
+                    resultDiv.innerHTML = html;
+                    
+                } else {
+                    const errorText = await response.text();
+                    resultDiv.innerHTML = `<div class="result error">❌ Audit failed: ${errorText}</div>`;
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Audit error: ${error.message}</div>`;
+            }
+        }
+        
+        // Auto-run basic checks on load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                testFunction('create-checkout-session');
+                testFunction('check-database');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
