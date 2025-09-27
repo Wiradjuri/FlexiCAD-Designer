@@ -17,6 +17,108 @@
       "name": "Adjustable Phone Stand",
       "description": "Sleek phone stand with adjustable angle for desk use and cable management",
       "category": "Accessories"
+    },
+    {
+      "id": "control-panel",
+      "name": "Control Panel",
+      "description": "Button and dial interface panel for electronics projects",
+      "category": "Electronics"
+    },
+    {
+      "id": "cup-holder",
+      "name": "Universal Car Cup Holder Insert",
+      "description": "Adjustable car cup holder with spring-loaded grips for multiple cup sizes",
+      "category": "Automotive"
+    },
+    {
+      "id": "dice-tower",
+      "name": "Dice Tower",
+      "description": "Gaming dice randomizer tower with internal ramps for fair rolling",
+      "category": "Gaming"
+    },
+    {
+      "id": "drone-frame",
+      "name": "Drone Frame",
+      "description": "Lightweight quadcopter frame for custom drone builds",
+      "category": "Drones"
+    },
+    {
+      "id": "electronic-enclosure",
+      "name": "Electronic Enclosure",
+      "description": "General purpose electronics project enclosure with mounting features",
+      "category": "Electronics"
+    },
+    {
+      "id": "headphone-stand",
+      "name": "Headphone Stand",
+      "description": "Desk organizer stand for headphones with cable management",
+      "category": "Accessories"
+    },
+    {
+      "id": "license-plate-frame",
+      "name": "License Plate Frame",
+      "description": "Custom automotive license plate frame with personalization options",
+      "category": "Automotive"
+    },
+    {
+      "id": "pen-holder",
+      "name": "Pen Holder",
+      "description": "Desktop organizer for pens, pencils, and office supplies",
+      "category": "Office"
+    },
+    {
+      "id": "phone-mount",
+      "name": "Phone Mount",
+      "description": "Universal phone mounting solution for cars, desks, or walls",
+      "category": "Accessories"
+    },
+    {
+      "id": "plant-pot",
+      "name": "Plant Pot",
+      "description": "Decorative planter pot with drainage for small plants and succulents",
+      "category": "Home & Garden"
+    },
+    {
+      "id": "precision-bearing",
+      "name": "Precision Bearing",
+      "description": "3D printable bearing with ball races for mechanical projects",
+      "category": "Mechanical"
+    },
+    {
+      "id": "prosthetic-hand",
+      "name": "Prosthetic Hand",
+      "description": "Functional prosthetic hand design for assistive technology applications",
+      "category": "Medical"
+    },
+    {
+      "id": "raspberry-pi-case",
+      "name": "Raspberry Pi Case",
+      "description": "Protective enclosure for Raspberry Pi boards with GPIO access",
+      "category": "Electronics"
+    },
+    {
+      "id": "robotic-gripper",
+      "name": "Robotic Gripper",
+      "description": "Servo-controlled gripper mechanism for robotics projects",
+      "category": "Robotics"
+    },
+    {
+      "id": "storage-box",
+      "name": "Storage Box",
+      "description": "Modular storage container with lid for organizing small parts",
+      "category": "Storage"
+    },
+    {
+      "id": "switch-holder",
+      "name": "Switch Holder",
+      "description": "Mounting solution for electrical switches and control interfaces",
+      "category": "Electronics"
+    },
+    {
+      "id": "tool-holder",
+      "name": "Tool Holder",
+      "description": "Workshop organizer for tools and hardware with customizable slots",
+      "category": "Workshop"
     }
   ]
 }
