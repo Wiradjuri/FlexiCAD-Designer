@@ -708,9 +708,23 @@ class FlexiCADAuth {
             error: urlParams.get('error')
         };
     }
+
+    // Get current user data
+    getUser() {
+        return this.user;
+    }
+
+    // Get session token (simplified - returns user data from session storage)
+    getSessionToken() {
+        const userData = sessionStorage.getItem('flexicad_user');
+        return userData ? JSON.parse(userData) : null;
+    }
 }
 
 // Global instance
 window.flexicadAuth = new FlexiCADAuth();
+
+// Also create the FlexiAuth alias for backward compatibility
+window.FlexiAuth = window.flexicadAuth;
 
 // Note: Manual initialization required - call window.flexicadAuth.init() from your page
