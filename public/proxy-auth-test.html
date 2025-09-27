@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proxy Auth Test</title>
+    <link rel="stylesheet" href="css/dark-theme.css">
+</head>
+<body>
+    <div class="container" style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1>Authentication via Netlify Proxy</h1>
+        <p>This bypasses browser CORS restrictions by using server-side authentication.</p>
+        
+        <div class="form-group">
+            <button onclick="testConnection()" class="btn btn-secondary">Test Server Connection</button>
+        </div>
+
+        <div class="form-group">
+            <h3>Sign Up Test</h3>
+            <input type="email" id="email" class="form-input" placeholder="test@example.com" value="test@example.com">
+            <input type="password" id="password" class="form-input" placeholder="password123" value="password123">
+            <button onclick="testSignUp()" class="btn btn-primary">Test Sign Up via Proxy</button>
+        </div>
+
+        <div class="form-group">
+            <h3>Sign In Test</h3>
+            <input type="email" id="loginEmail" class="form-input" placeholder="test@example.com" value="test@example.com">
+            <input type="password" id="loginPassword" class="form-input" placeholder="password123" value="password123">
+            <button onclick="testSignIn()" class="btn btn-primary">Test Sign In via Proxy</button>
+        </div>
+
+        <div id="result" style="margin-top: 20px; padding: 20px; border: 1px solid #333; background: #1a1a1a; color: #fff;"></div>
+    </div>
+
+    <script>
+        async function makeAuthRequest(action, data = {}) {
+            try {
+                const response = await fetch('/.netlify/functions/auth-proxy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action,
+                        ...data
+                    })
+                });
+
+                const result = await response.json();
+                return result;
+            } catch (error) {
+                console.error('Auth request failed:', error);
+                return { error: { message: error.message } };
+            }
+        }
+
+        async function testConnection() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing server connection...';
+            
+            const result = await makeAuthRequest('test');
+            
+            if (result.error) {
+                resultDiv.innerHTML = `<span style="color: #ff4444;">❌ Server test failed: ${result.error.message}</span>`;
+            } else {
+                resultDiv.innerHTML = `<span style="color: #44ff44;">✅ Server connection works!</span><br>${result.data.message}`;
+            }
+        }
+
+        async function testSignUp() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = 'Testing sign up via proxy...';
+            
+            const result = await makeAuthRequest('signup', { email, password });
+            
+            if (result.error) {
+                resultDiv.innerHTML = `<span style="color: #ff4444;">❌ Sign up failed: ${result.error.message}</span>`;
+            } else {
+                resultDiv.innerHTML = `<span style="color: #44ff44;">✅ Sign up successful!</span><br>
+                                     User: ${result.data.user?.email || 'Created'}<br>
+                                     <small>Check email for confirmation if enabled</small>`;
+            }
+        }
+
+        async function testSignIn() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = 'Testing sign in via proxy...';
+            
+            const result = await makeAuthRequest('signin', { email, password });
+            
+            if (result.error) {
+                resultDiv.innerHTML = `<span style="color: #ff4444;">❌ Sign in failed: ${result.error.message}</span>`;
+            } else {
+                resultDiv.innerHTML = `<span style="color: #44ff44;">✅ Sign in successful!</span><br>
+                                     Welcome ${result.data.user?.email}`;
+            }
+        }
+    </script>
+</body>
+</html>

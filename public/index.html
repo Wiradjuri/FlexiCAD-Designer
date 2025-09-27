@@ -76,40 +76,50 @@
     </div>
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="config/config.js"></script>
     <script>
-        // Initialize Supabase client with better error handling
-        const { createClient } = supabase;
-        
-        console.log('Initializing Supabase with URL:', CONFIG.SUPABASE_URL);
-        
-        const supabaseClient = createClient(
-            CONFIG.SUPABASE_URL,
-            CONFIG.SUPABASE_ANON_KEY,
-            {
-                auth: {
-                    persistSession: true,
-                    autoRefreshToken: true,
-                    detectSessionInUrl: true,
-                    flowType: 'pkce'
-                },
-                global: {
+        // Use proxy-based authentication instead of direct Supabase calls
+        console.log('Using proxy-based authentication');
+
+        // Proxy authentication functions
+        async function makeAuthRequest(action, data = {}) {
+            try {
+                console.log('Making auth request:', action, data);
+                
+                const response = await fetch('/.netlify/functions/auth-proxy', {
+                    method: 'POST',
                     headers: {
-                        'Access-Control-Allow-Origin': '*',
-                        'Access-Control-Allow-Headers': '*'
-                    }
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action,
+                        ...data
+                    })
+                });
+
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('HTTP Error:', response.status, errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
+
+                const result = await response.json();
+                console.log('Auth result:', result);
+                return result;
+            } catch (error) {
+                console.error('Auth request failed:', error);
+                return { error: { message: error.message } };
             }
-        );
+        }
 
         // Check if user is already logged in
         checkAuthStatus();
 
         async function checkAuthStatus() {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            if (user) {
-                window.location.href = 'home.html';
-            }
+            // For proxy-based auth, we'll skip the automatic redirect
+            // Users will need to manually log in each session
+            console.log('Proxy-based auth - session check skipped');
         }
 
         // Tab switching
@@ -150,12 +160,15 @@
             clearMessage();
             
             try {
-                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                const result = await makeAuthRequest('signin', {
                     email: email,
-                    password: password,
+                    password: password
                 });
                 
-                if (error) throw error;
+                if (result.error) throw new Error(result.error.message);
+                
+                // Store user info in sessionStorage for this session
+                sessionStorage.setItem('flexicad_user', JSON.stringify(result.data.user));
                 
                 showMessage('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
@@ -199,14 +212,14 @@
             clearMessage();
             
             try {
-                const { data, error } = await supabaseClient.auth.signUp({
+                const result = await makeAuthRequest('signup', {
                     email: email,
-                    password: password,
+                    password: password
                 });
                 
-                if (error) throw error;
+                if (result.error) throw new Error(result.error.message);
                 
-                if (data.user && !data.session) {
+                if (result.data.user && !result.data.session) {
                     showMessage('Registration successful! Please check your email to verify your account.', 'success');
                     // Switch to login tab after successful registration
                     setTimeout(() => {
@@ -214,6 +227,9 @@
                         document.getElementById('loginEmail').value = email;
                     }, 2000);
                 } else {
+                    // Store user info for this session
+                    sessionStorage.setItem('flexicad_user', JSON.stringify(result.data.user));
+                    
                     showMessage('Registration successful! Redirecting...', 'success');
                     setTimeout(() => {
                         window.location.href = 'home.html';
