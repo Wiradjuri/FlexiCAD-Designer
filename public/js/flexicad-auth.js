@@ -714,10 +714,26 @@ class FlexiCADAuth {
         return this.user;
     }
 
-    // Get session token (simplified - returns user data from session storage)
-    getSessionToken() {
-        const userData = sessionStorage.getItem('flexicad_user');
-        return userData ? JSON.parse(userData) : null;
+    // Get session token (returns the actual JWT token from Supabase session)
+    async getSessionToken() {
+        if (!this.supabaseClient) {
+            console.error('Supabase client not initialized');
+            return null;
+        }
+        
+        try {
+            const { data: { session }, error } = await this.supabaseClient.auth.getSession();
+            
+            if (error) {
+                console.error('Error getting session token:', error);
+                return null;
+            }
+            
+            return session?.access_token || null;
+        } catch (error) {
+            console.error('Failed to get session token:', error);
+            return null;
+        }
     }
 }
 

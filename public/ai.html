@@ -217,13 +217,18 @@
                     return;
                 }
 
-                const sessionToken = FlexiAuth.getSessionToken();
+                const sessionToken = await FlexiAuth.getSessionToken();
+                
+                if (!sessionToken) {
+                    console.error('No session token available');
+                    throw new Error('Authentication session expired. Please login again.');
+                }
 
                 const response = await fetch('/.netlify/functions/generate-template', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${sessionToken || ''}`
+                        'Authorization': `Bearer ${sessionToken}`
                     },
                     body: JSON.stringify({ prompt, name })
                 });
@@ -282,7 +287,12 @@
                     return;
                 }
                 
-                const sessionToken = FlexiAuth.getSessionToken();
+                const sessionToken = await FlexiAuth.getSessionToken();
+                
+                if (!sessionToken) {
+                    console.log('AutoSave skipped: No session token');
+                    return;
+                }
                 console.log('AutoSave: Attempting to save design...');
                 
                 // Auto-save to server
@@ -319,8 +329,9 @@
             
             try {
                 const userData = FlexiAuth.getUser();
-                const sessionToken = FlexiAuth.getSessionToken();
-                if (!userData) {
+                const sessionToken = await FlexiAuth.getSessionToken();
+                
+                if (!userData || !sessionToken) {
                     alert('Authentication required');
                     return;
                 }
@@ -451,8 +462,8 @@
         }
 
         // Use the FlexiAuth logout function
-        function handleLogout() {
-            FlexiAuth.logout();
+        async function handleLogout() {
+            await FlexiAuth.logout();
         }
 
     </script>
