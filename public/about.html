@@ -68,26 +68,37 @@
             </div>
         </div>
 
+        <!-- Contact & Support Section -->
         <div class="card">
-        </div class="card-title">Contact & Support</div>
+            <div class="card-title">📞 Contact & Support</div>
             <div class="card-description">
-                Need help or have questions? Reach out to our support team at 
-                <a href="mailto:admin@flexicad.com">admin@flexicad.com</a>
+                Need help or have questions? Our support team is here to help you create amazing 3D designs.
+                <br><br>
+                <strong>Email:</strong> <a href="mailto:admin@flexicad.com">admin@flexicad.com</a>
+                <br>
+                <strong>Response Time:</strong> Within 24 hours
             </div>
-            <div class="card-title">Get Started</div>
+        </div>
+
+        <!-- Get Started Section -->
+        <div class="card card-featured">
+            <div class="card-title card-title-featured">🚀 Get Started Today</div>
             <div class="card-description">
-                Ready to create your first AI-generated 3D design? Start with our template library or jump straight into the AI generator.
+                Ready to create your first AI-generated 3D design? Choose your path and start building incredible models in minutes.
             </div>
-            <div class="card-actions mt-2">
-                <a href="ai.html" class="btn btn-primary" id="getStartedBtn">Try AI Generator</a>
-                <a href="templates.html" class="btn btn-secondary">Browse Templates</a>
+            <div class="card-actions card-actions-spaced mt-3">
+                <a href="ai.html" class="btn btn-primary" id="getStartedBtn">
+                    🤖 Try AI Generator
+                </a>
+                <a href="templates.html" class="btn btn-secondary">
+                    📚 Browse Templates
+                </a>
             </div>
         </div>
     </div>
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="config/env-config.js"></script>
-    <script src="config/config.js"></script>
+    <script src="js/secure-config-loader.js"></script>
     <script src="js/flexicad-auth.js"></script>
     <script>
         // Simple auth check - redirect to AI generator if logged in, login page if not

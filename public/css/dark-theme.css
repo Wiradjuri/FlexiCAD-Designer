@@ -848,3 +848,18 @@ body {
     font-size: 2rem;
   }
 }
+
+/* About Page Special Styles */
+.card-featured {
+  border: 2px solid var(--text-accent) !important;
+  background: linear-gradient(135deg, rgba(88, 166, 255, 0.1) 0%, rgba(88, 166, 255, 0.05) 100%) !important;
+}
+
+.card-title-featured {
+  color: var(--text-accent) !important;
+}
+
+.card-actions-spaced .btn {
+  margin-right: 10px;
+  margin-bottom: 10px;
+}

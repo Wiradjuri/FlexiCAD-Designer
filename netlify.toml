@@ -12,6 +12,22 @@
   to = "/.netlify/functions/:splat"
   status = 200
 
+# SECURITY: Block access to config files containing API keys
+[[redirects]]
+  from = "/config/*"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/*.env"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/env-*"
+  to = "/404.html"
+  status = 404
+
 # SPA fallback for client-side routing (removed invalid conditions)
 [[redirects]]
   from = "/*"

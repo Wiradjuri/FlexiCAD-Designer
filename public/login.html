@@ -65,65 +65,69 @@
     </main>
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="config/env-config.js"></script>
-    <script src="config/config.js"></script>
+    <script src="js/secure-config-loader.js"></script>
     <script src="js/flexicad-auth.js"></script>
     <script>
-        // Initialize Supabase client
-        const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+        // Wait for config to load before initializing Supabase
+        async function initializeAuth() {
+            await CONFIG.waitForLoad();
+            
+            // Initialize Supabase client
+            const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            
-            // Hide previous messages
-            hideMessages();
-            
-            // Validate form
-            if (!validateForm(email, password)) {
-                return;
-            }
-            
-            // Show loading state
-            setLoadingState(true);
-            
-            try {
-                // Use FlexiCAD auth system with payment verification
-                const loginResult = await window.flexicadAuth.login(email, password);
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+                
+                // Hide previous messages
+                hideMessages();
+                
+                // Validate form
+                if (!validateForm(email, password)) {
+                    return;
+                }
+                
+                // Show loading state
+                setLoadingState(true);
+                
+                try {
+                    // Use FlexiCAD auth system with payment verification
+                    const loginResult = await window.flexicadAuth.login(email, password);
 
-                if (!loginResult.success) {
-                    // Check if it's a payment issue
-                    if (loginResult.error === 'PAYMENT_REQUIRED' && loginResult.redirect) {
-                        console.log('🚨 Payment required - redirecting to payment page');
-                        window.location.href = loginResult.redirect;
-                        return;
+                    if (!loginResult.success) {
+                        // Check if it's a payment issue
+                        if (loginResult.error === 'PAYMENT_REQUIRED' && loginResult.redirect) {
+                            console.log('🚨 Payment required - redirecting to payment page');
+                            window.location.href = loginResult.redirect;
+                            return;
+                        }
+
+                        // Other login errors
+                        throw new Error(loginResult.error || 'Login failed');
                     }
 
-                    // Other login errors
-                    throw new Error(loginResult.error || 'Login failed');
-                }
+                    console.log('✅ Login successful with payment verification');
 
-                console.log('✅ Login successful with payment verification');
-
-                // Login successful - show success and redirect
-                showSuccessMessage();
-                    
+                    // Login successful - show success and redirect
+                    showSuccessMessage();
+                        
                     // Redirect to home page
                     setTimeout(() => {
                         window.location.href = 'home.html';
                     }, 1000);
-                } else {
-                    throw new Error('Login failed. Please try again.');
+                    
+                } catch (error) {
+                    console.error('Login error:', error);
+                    showErrorMessage(getErrorMessage(error));
+                    setLoadingState(false);
                 }
-                
-            } catch (error) {
-                console.error('Login error:', error);
-                showErrorMessage(getErrorMessage(error));
-                setLoadingState(false);
-            }
-        });
+            });
+        }
+
+        // Initialize when page loads
+        initializeAuth();
 
         function validateForm(email, password) {
             if (!email) {

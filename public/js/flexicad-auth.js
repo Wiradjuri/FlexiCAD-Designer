@@ -56,102 +56,42 @@ class FlexiCADAuth {
         }
     }
 
-    // Initialize Supabase client with comprehensive config detection
+    // Initialize Supabase client with secure config loading
     async initializeSupabase() {
         try {
-            // Wait and retry logic for config loading
-            let retries = 0;
-            const maxRetries = 10;
-            const retryDelay = 200; // Increased delay
+            console.log('🔧 Waiting for secure configuration...');
             
-            while (retries < maxRetries) {
-                console.log(`🔧 Checking script dependencies... (attempt ${retries + 1})`);
-                console.log('Supabase available:', typeof window.supabase);
-                
-                // Check multiple possible config names
-                const configOptions = [
-                    'flexicadConfig',
-                    'FlexiCADConfig', 
-                    'flexiCADConfig',
-                    'FLEXICAD_CONFIG',
-                    'CONFIG'
-                ];
-                
-                let foundConfig = null;
-                for (const configName of configOptions) {
-                    if (window[configName] && window[configName].SUPABASE_URL) {
-                        foundConfig = window[configName];
-                        console.log(`✅ Found config as window.${configName}`);
-                        break;
+            // Wait for CONFIG to load from secure endpoint
+            if (window.CONFIG && typeof window.CONFIG.waitForLoad === 'function') {
+                await window.CONFIG.waitForLoad();
+            } else {
+                throw new Error('Secure config loader not available');
+            }
+            
+            console.log('✅ Secure configuration loaded');
+            
+            // Verify required config values are present
+            if (!window.CONFIG.SUPABASE_URL || !window.CONFIG.SUPABASE_ANON_KEY) {
+                throw new Error('Missing required Supabase configuration');
+            }
+            
+            // Verify Supabase library is available
+            if (typeof window.supabase === 'undefined') {
+                throw new Error('Supabase client library not available');
+            }
+
+            // Create Supabase client with secure config
+            this.supabaseClient = window.supabase.createClient(
+                window.CONFIG.SUPABASE_URL, 
+                window.CONFIG.SUPABASE_ANON_KEY, 
+                {
+                    auth: {
+                        autoRefreshToken: true,
+                        persistSession: true,
+                        detectSessionInUrl: true
                     }
                 }
-                
-                console.log('Config search results:');
-                configOptions.forEach(name => {
-                    console.log(`  window.${name}:`, typeof window[name], window[name] ? '✓' : '✗');
-                });
-                
-                // Also check all window properties containing 'config'
-                const allConfigKeys = Object.keys(window).filter(key => 
-                    key.toLowerCase().includes('config')
-                );
-                console.log('All config-related keys:', allConfigKeys);
-                
-                if (typeof window.supabase !== 'undefined' && foundConfig) {
-                    // Use the found config
-                    window.flexicadConfig = foundConfig;
-                    console.log('✅ Config successfully mapped');
-                    break;
-                }
-                
-                retries++;
-                if (retries >= maxRetries) {
-                    console.error('❌ Max retries reached. Debug info:', {
-                        supabase: typeof window.supabase,
-                        allWindowKeys: Object.keys(window).slice(0, 20), // First 20 keys
-                        configKeys: allConfigKeys,
-                        windowObject: window
-                    });
-                    throw new Error('FlexiCAD configuration not found after multiple attempts. Config may not be loading properly.');
-                }
-                
-                await new Promise(resolve => setTimeout(resolve, retryDelay));
-            }
-            
-            console.log('Final config object:', window.flexicadConfig);
-            
-            if (typeof window.supabase === 'undefined') {
-                throw new Error('Supabase library not loaded. Please include the Supabase CDN script.');
-            }
-
-            if (!window.flexicadConfig || (!window.flexicadConfig.SUPABASE_URL && !window.flexicadConfig.supabase)) {
-                throw new Error('Supabase configuration missing from config object');
-            }
-
-            // Support both direct CONFIG format and nested supabase format
-            let supabaseUrl, supabaseAnonKey;
-            
-            if (window.flexicadConfig.SUPABASE_URL) {
-                // Direct CONFIG format
-                supabaseUrl = window.flexicadConfig.SUPABASE_URL;
-                supabaseAnonKey = window.flexicadConfig.SUPABASE_ANON_KEY;
-            } else if (window.flexicadConfig.supabase) {
-                // Nested supabase format
-                supabaseUrl = window.flexicadConfig.supabase.url;
-                supabaseAnonKey = window.flexicadConfig.supabase.anonKey;
-            }
-            
-            if (!supabaseUrl || !supabaseAnonKey) {
-                throw new Error('Supabase configuration is incomplete. Please check config.js');
-            }
-
-            this.supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
-                auth: {
-                    autoRefreshToken: true,
-                    persistSession: true,
-                    detectSessionInUrl: true
-                }
-            });
+            );
 
             console.log('✅ Supabase client initialized successfully');
             return this.supabaseClient;
