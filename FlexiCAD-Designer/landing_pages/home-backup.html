@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home - FlexiCAD Designer</title>
+  
+  <!-- Dark Theme Styles -->
+  <link rel="stylesheet" href="css/dark-theme.css">
+  
+  <!-- Configuration -->
+  <script src="config/config.js"></script>
+  
+  <!-- Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    /* Page-specific styles */
+    .designs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+    
+    .design-card {
+      transition: transform 0.2s ease;
+    }
+    
+    .design-card:hover {
+      transform: translateY(-2px);
+    }
+    
+    .design-preview {
+      height: 160px;
+      background: var(--bg-primary);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-input);
+      color: var(--text-muted);
+    }
+    
+    .design-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .design-meta {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+    
+    .design-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .search-bar {
+      margin-bottom: 24px;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+  <style>
+    /* Page-specific styles */
+    .designs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+    
+    .design-card {
+      transition: transform 0.2s ease;
+    }
+    
+    .design-card:hover {
+      transform: translateY(-2px);
+    }
+    
+    .design-preview {
+      height: 160px;
+      background: var(--bg-primary);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-input);
+      color: var(--text-muted);
+    }
+    
+    .design-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .design-meta {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+    
+    .design-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .search-bar {
+      margin-bottom: 24px;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+    
+    .empty-state h3 {
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header class="nav">
+      <div><a href="index.html"><strong>FlexiCAD Designer</strong></a></div>
+      <div>
+        <a href="home.html" class="active">My Designs</a>
+        <a href="templates.html">Templates</a>
+        <a href="ai.html">AI Generator</a>
+        <span id="userEmail" class="text-muted"></span>
+        <button onclick="logout()" class="btn-secondary btn-small">Logout</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <h1>My Designs</h1>
+      <p class="text-secondary">Manage and organize your OpenSCAD designs</p>
+    </section>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search designs..." oninput="filterDesigns()">
+    </div>
+
+    <div id="designsContainer">
+      <div class="empty-state">
+        <h3>No designs yet</h3>
+        <p>Start creating with our <a href="ai.html">AI Generator</a> or browse <a href="templates.html">Templates</a></p>
+      </div>
+    </div>
+  </div>
+  <header class="header">
+    <div class="container">
+      <nav class="nav">
+        <div class="logo">FlexiCAD Designer</div>
+        
+        <ul class="nav-links">
+          <li><a href="home.html" class="active">Home</a></li>
+          <li><a href="templates.html">Templates</a></li>
+          <li><a href="ai.html">AI Generator</a></li>
+          <li><a href="my-designs.html">My Designs</a></li>
+        </ul>
+        
+        <div class="user-menu">
+          <span class="user-email" id="user-email">Loading...</span>
+          <button class="btn-logout" id="logout-btn">Logout</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="container">
+      <section class="hero-section">
+        <h1>Welcome to FlexiCAD Designer</h1>
+        <p>Your professional OpenSCAD code generation platform. Create precise, parametric designs for 3D printing and manufacturing with AI-powered tools and comprehensive template library.</p>
+      </section>
+
+      <div class="content-grid">
+        <div class="card">
+          <h2>About the Developer</h2>
+          <p>FlexiCAD Designer is built by engineers for engineers. We understand the challenges of creating precise parametric designs and have developed tools that streamline the CAD workflow.</p>
+          
+          <ul class="feature-list">
+            <li>Industry experience in manufacturing and 3D printing</li>
+            <li>Focus on practical, real-world applications</li>
+            <li>Commitment to code quality and precision</li>
+            <li>Continuous improvement based on user feedback</li>
+          </ul>
+          
+          <div class="card-actions">
+            <a href="#" class="btn btn-secondary">Learn More</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>What FlexiCAD Designer Is</h2>
+          <p>A professional platform that combines AI-powered OpenSCAD generation with curated parametric templates, designed for engineers, makers, and manufacturers who need reliable CAD code.</p>
+          
+          <ul class="feature-list">
+            <li>AI generates complete, compilable OpenSCAD files</li>
+            <li>Professional template library with parametric designs</li>
+            <li>Design history and version management</li>
+            <li>No placeholders or incomplete code</li>
+            <li>Production-ready output for manufacturing</li>
+          </ul>
+          
+          <div class="card-actions">
+            <a href="ai.html" class="btn btn-primary">Start Generating</a>
+            <a href="templates.html" class="btn btn-secondary">Browse Templates</a>
+          </div>
+        </div>
+      </div>
+
+      <section class="stats-section">
+        <h2>Platform Statistics</h2>
+        <div class="stats-grid">
+          <div class="stat">
+            <span class="stat-number" id="template-count">19+</span>
+            <span class="stat-label">Professional Templates</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number" id="user-design-count">0</span>
+            <span class="stat-label">Your Generated Designs</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">100%</span>
+            <span class="stat-label">Compilable Code</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">0s</span>
+            <span class="stat-label">Generation Time</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    // FlexiCAD Designer - Home Page Module
+    class FlexiCADHome {
+      constructor() {
+        this.config = window.FlexiCADConfig;
+        this.supabase = null;
+        this.user = null;
+        this.init();
+      }
+
+      init() {
+        // Initialize Supabase client
+        if (window.supabase && this.config.supabase && 
+            this.config.supabase.url && this.config.supabase.anonKey &&
+            this.config.supabase.url.trim() !== '' && this.config.supabase.anonKey.trim() !== '') {
+          this.supabase = window.supabase.createClient(
+            this.config.supabase.url,
+            this.config.supabase.anonKey
+          );
+        }
+
+        // Check authentication and load user data
+        this.checkAuth();
+        this.setupEventListeners();
+      }
+
+      async checkAuth() {
+        // Check for demo mode first
+        const demoMode = localStorage.getItem('flexicad_demo_mode');
+        if (demoMode === 'true') {
+          const demoUser = JSON.parse(localStorage.getItem('flexicad_demo_user') || '{}');
+          this.user = {
+            email: demoUser.email || 'demo@flexicad.com',
+            id: demoUser.id || 'demo-user-id'
+          };
+          this.updateUI();
+          this.loadDemoStats();
+          return;
+        }
+
+        if (!this.supabase) {
+          this.redirectToLogin();
+          return;
+        }
+
+        try {
+          const { data: { user }, error } = await this.supabase.auth.getUser();
+          
+          if (error || !user) {
+            this.redirectToLogin();
+            return;
+          }
+
+          this.user = user;
+          this.updateUI();
+          this.loadUserStats();
+          
+        } catch (error) {
+          console.error('Auth check failed:', error);
+          this.redirectToLogin();
+        }
+      }
+
+      updateUI() {
+        if (this.user) {
+          document.getElementById('user-email').textContent = this.user.email;
+        }
+      }
+
+      async loadUserStats() {
+        if (!this.supabase || !this.user) return;
+
+        try {
+          // Load user's design count
+          const { count, error } = await this.supabase
+            .from('ai_designs')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', this.user.id);
+
+          if (!error && count !== null) {
+            document.getElementById('user-design-count').textContent = count;
+          }
+        } catch (error) {
+          console.error('Failed to load user stats:', error);
+        }
+      }
+
+      loadDemoStats() {
+        // Set demo stats
+        document.getElementById('user-design-count').textContent = '3';
+        
+        // Show demo mode indicator
+        const userEmail = document.getElementById('user-email');
+        if (userEmail) {
+          userEmail.innerHTML = 'demo@flexicad.com <span style="background: #fbbf24; color: #92400e; padding: 2px 6px; border-radius: 4px; font-size: 0.7em; margin-left: 8px;">DEMO</span>';
+        }
+      }
+
+      setupEventListeners() {
+        // Logout button
+        document.getElementById('logout-btn').addEventListener('click', () => {
+          this.handleLogout();
+        });
+      }
+
+      async handleLogout() {
+        // Clear demo mode data
+        localStorage.removeItem('flexicad_demo_mode');
+        localStorage.removeItem('flexicad_demo_user');
+
+        if (!this.supabase) {
+          this.redirectToLogin();
+          return;
+        }
+
+        try {
+          const { error } = await this.supabase.auth.signOut();
+          if (error) throw error;
+          
+          this.redirectToLogin();
+        } catch (error) {
+          console.error('Logout failed:', error);
+          // Redirect anyway to clear local state
+          this.redirectToLogin();
+        }
+      }
+
+      redirectToLogin() {
+        window.location.href = 'index.html';
+      }
+    }
+
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => new FlexiCADHome());
+    } else {
+      new FlexiCADHome();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>FlexiCAD Designer - Debug</title>
+  <script src="config/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <style>
+    body { font-family: system-ui; margin: 20px; background: #0e0f12; color: #e9eef6; }
+    .debug-section { background: #16181d; padding: 20px; margin: 10px 0; border-radius: 8px; }
+    .success { color: #4fcc4f; }
+    .error { color: #ff4f4f; }
+    .warning { color: #ffa500; }
+    pre { background: #0a0b0d; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    button { padding: 10px 20px; margin: 10px 5px 0 0; border: none; border-radius: 4px; cursor: pointer; }
+    .success-btn { background: #4fcc4f; color: white; }
+    .error-btn { background: #ff4f4f; color: white; }
+    input { padding: 8px; margin: 5px; border: 1px solid #2b2f39; background: #0f1116; color: #e9eef6; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>🔧 FlexiCAD Designer - Configuration Debug</h1>
+  
+  <div class="debug-section">
+    <h2>Configuration Status</h2>
+    <div id="configStatus"></div>
+  </div>
+
+  <div class="debug-section">
+    <h2>Supabase Connection Test</h2>
+    <div id="supabaseStatus"></div>
+    <button onclick="testSupabaseConnection()" class="success-btn">Test Connection</button>
+  </div>
+
+  <div class="debug-section">
+    <h2>Authentication Test</h2>
+    <div>
+      <input type="email" id="testEmail" placeholder="test@example.com" value="test@flexicad.com">
+      <input type="password" id="testPassword" placeholder="password" value="testpassword123">
+      <br>
+      <button onclick="testSignUp()" class="success-btn">Test Sign Up</button>
+      <button onclick="testSignIn()" class="success-btn">Test Sign In</button>
+      <button onclick="testSignOut()" class="error-btn">Test Sign Out</button>
+    </div>
+    <div id="authStatus"></div>
+  </div>
+
+  <div class="debug-section">
+    <h2>Stripe Configuration</h2>
+    <div id="stripeStatus"></div>
+  </div>
+
+  <div class="debug-section">
+    <h2>Function Tests</h2>
+    <button onclick="testFunction('list-objects')" class="success-btn">Test List Objects</button>
+    <button onclick="testFunction('create-checkout-session')" class="success-btn">Test Checkout</button>
+    <div id="functionStatus"></div>
+  </div>
+
+  <script>
+    let supabase = null;
+    
+    // Initialize on load
+    window.addEventListener('load', () => {
+      checkConfiguration();
+      initSupabase();
+    });
+
+    function checkConfiguration() {
+      const status = document.getElementById('configStatus');
+      const cfg = window.AppConfig;
+      
+      let html = '<h3>Configuration Values:</h3><pre>';
+      html += JSON.stringify(cfg, null, 2);
+      html += '</pre>';
+      
+      // Check required values
+      const checks = [
+        { name: 'Supabase URL', value: cfg?.supabase?.url, required: true },
+        { name: 'Supabase Anon Key', value: cfg?.supabase?.anonKey, required: true },
+        { name: 'Stripe Publishable Key', value: cfg?.stripe?.publishableKey, required: true },
+        { name: 'Monthly Price ID', value: cfg?.stripe?.priceIds?.monthly, required: true },
+        { name: 'Yearly Price ID', value: cfg?.stripe?.priceIds?.yearly, required: true }
+      ];
+
+      html += '<h3>Configuration Checks:</h3>';
+      checks.forEach(check => {
+        const hasValue = check.value && check.value !== '' && !check.value.includes('process.env');
+        const className = hasValue ? 'success' : 'error';
+        html += `<div class="${className}">`;
+        html += `${check.name}: ${hasValue ? '✅ Configured' : '❌ Missing/Invalid'}`;
+        if (hasValue) {
+          html += ` (${check.value.substring(0, 20)}...)`;
+        }
+        html += `</div>`;
+      });
+      
+      status.innerHTML = html;
+    }
+
+    function initSupabase() {
+      const cfg = window.AppConfig;
+      const status = document.getElementById('supabaseStatus');
+      
+      if (!cfg?.supabase?.url || !cfg?.supabase?.anonKey || 
+          cfg.supabase.url.trim() === '' || cfg.supabase.anonKey.trim() === '') {
+        status.innerHTML = '<div class="error">❌ Supabase configuration missing</div>';
+        return;
+      }
+      
+      if (!window.supabase?.createClient) {
+        status.innerHTML = '<div class="error">❌ Supabase library not loaded</div>';
+        return;
+      }
+      
+      try {
+        supabase = window.supabase.createClient(cfg.supabase.url, cfg.supabase.anonKey);
+        status.innerHTML = '<div class="success">✅ Supabase client initialized</div>';
+      } catch (error) {
+        status.innerHTML = `<div class="error">❌ Error initializing Supabase: ${error.message}</div>`;
+      }
+    }
+
+    async function testSupabaseConnection() {
+      const status = document.getElementById('supabaseStatus');
+      if (!supabase) {
+        status.innerHTML += '<div class="error">❌ Supabase not initialized</div>';
+        return;
+      }
+      
+      try {
+        // Test basic connection
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        status.innerHTML += '<div class="success">✅ Supabase connection successful</div>';
+        status.innerHTML += `<div>Current session: ${data.session ? 'Logged in' : 'Not logged in'}</div>`;
+      } catch (error) {
+        status.innerHTML += `<div class="error">❌ Connection test failed: ${error.message}</div>`;
+      }
+    }
+
+    async function testSignUp() {
+      const authStatus = document.getElementById('authStatus');
+      if (!supabase) {
+        authStatus.innerHTML = '<div class="error">❌ Supabase not initialized</div>';
+        return;
+      }
+      
+      const email = document.getElementById('testEmail').value;
+      const password = document.getElementById('testPassword').value;
+      
+      try {
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        authStatus.innerHTML = '<div class="success">✅ Sign up successful</div>';
+        authStatus.innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+      } catch (error) {
+        authStatus.innerHTML = `<div class="error">❌ Sign up failed: ${error.message}</div>`;
+      }
+    }
+
+    async function testSignIn() {
+      const authStatus = document.getElementById('authStatus');
+      if (!supabase) {
+        authStatus.innerHTML = '<div class="error">❌ Supabase not initialized</div>';
+        return;
+      }
+      
+      const email = document.getElementById('testEmail').value;
+      const password = document.getElementById('testPassword').value;
+      
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        authStatus.innerHTML = '<div class="success">✅ Sign in successful</div>';
+        authStatus.innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+      } catch (error) {
+        authStatus.innerHTML = `<div class="error">❌ Sign in failed: ${error.message}</div>`;
+      }
+    }
+
+    async function testSignOut() {
+      const authStatus = document.getElementById('authStatus');
+      if (!supabase) {
+        authStatus.innerHTML = '<div class="error">❌ Supabase not initialized</div>';
+        return;
+      }
+      
+      try {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+        authStatus.innerHTML = '<div class="success">✅ Sign out successful</div>';
+      } catch (error) {
+        authStatus.innerHTML = `<div class="error">❌ Sign out failed: ${error.message}</div>`;
+      }
+    }
+
+    async function testFunction(functionName) {
+      const status = document.getElementById('functionStatus');
+      status.innerHTML = `<div>Testing ${functionName}...</div>`;
+      
+      try {
+        let url = `/.netlify/functions/${functionName}`;
+        let options = { method: 'GET' };
+        
+        if (functionName === 'create-checkout-session') {
+          options = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              priceId: 'price_1SB07SPJgpJveDpNhT51Z0OO',
+              customer_email: 'test@example.com',
+              successUrl: window.location.origin + '/home.html',
+              cancelUrl: window.location.origin + '/index.html'
+            })
+          };
+        }
+        
+        const response = await fetch(url, options);
+        const data = await response.text();
+        
+        status.innerHTML += `<div class="success">✅ ${functionName} responded</div>`;
+        status.innerHTML += `<div>Status: ${response.status}</div>`;
+        status.innerHTML += `<pre>${data.substring(0, 500)}...</pre>`;
+      } catch (error) {
+        status.innerHTML += `<div class="error">❌ ${functionName} failed: ${error.message}</div>`;
+      }
+    }
+
+    // Check Stripe configuration
+    function checkStripe() {
+      const cfg = window.AppConfig;
+      const status = document.getElementById('stripeStatus');
+      
+      let html = '<h3>Stripe Configuration:</h3>';
+      html += `<div>Publishable Key: ${cfg?.stripe?.publishableKey ? '✅ Set' : '❌ Missing'}</div>`;
+      html += `<div>Monthly Price ID: ${cfg?.stripe?.priceIds?.monthly || '❌ Missing'}</div>`;
+      html += `<div>Yearly Price ID: ${cfg?.stripe?.priceIds?.yearly || '❌ Missing'}</div>`;
+      
+      status.innerHTML = html;
+    }
+    
+    // Run Stripe check on load
+    setTimeout(checkStripe, 100);
+  </script>
+</body>
+</html>

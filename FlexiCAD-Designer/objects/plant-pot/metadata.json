@@ -1,0 +1,14 @@
+{
+  "title": "Plant Pot",
+  "description": "Custom planter",
+  "category": "garden",
+  "parameters": {
+    "outer_diameter": "Pot outer diameter",
+    "pot_height": "Pot height in mm",
+    "wall_thickness": "Wall thickness",
+    "drain_hole_count": "Number of drainage holes",
+    "drain_hole_diameter": "Drainage hole diameter",
+    "include_saucer": "Include matching saucer"
+  },
+  "tags": ["garden", "plant", "pot", "planter", "drainage"]
+}

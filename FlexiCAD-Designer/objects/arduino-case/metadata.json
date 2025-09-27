@@ -1,0 +1,14 @@
+{
+  "title": "Arduino Case",
+  "description": "Board protection case",
+  "category": "electronics",
+  "parameters": {
+    "board_type": "Arduino board type (Uno/Nano/Mega)",
+    "case_height": "Case height in mm",
+    "wall_thickness": "Wall thickness",
+    "port_clearance": "Extra space around board",
+    "include_screen_cutout": "Add screen window on top",
+    "include_fan_mount": "Add fan mounting hole"
+  },
+  "tags": ["arduino", "case", "protection", "electronics", "microcontroller"]
+}

@@ -1,0 +1,14 @@
+{
+  "title": "Pen Holder",
+  "description": "Desktop organizer",
+  "category": "office",
+  "parameters": {
+    "outer_diameter": "Holder outer diameter",
+    "holder_height": "Holder height",
+    "slot_count": "Number of pen slots",
+    "pen_diameter": "Pen diameter",
+    "center_compartment_enabled": "Add center storage",
+    "wall_thickness": "Wall thickness"
+  },
+  "tags": ["office", "pen", "organizer", "desk", "stationery"]
+}

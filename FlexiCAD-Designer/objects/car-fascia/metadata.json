@@ -1,0 +1,14 @@
+{
+  "title": "Car Dashboard Fascia",
+  "description": "Panel with AC vents and controls",
+  "category": "automotive",
+  "parameters": {
+    "panel_width": "Panel width in mm",
+    "panel_height": "Panel height in mm", 
+    "panel_thickness": "Panel depth in mm",
+    "vent_diameter": "AC vent diameter in mm",
+    "button_count": "Number of button holes",
+    "button_diameter": "Button hole diameter in mm"
+  },
+  "tags": ["automotive", "dashboard", "panel", "buttons", "vent"]
+}

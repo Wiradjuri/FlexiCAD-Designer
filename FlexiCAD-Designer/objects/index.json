@@ -1,0 +1,156 @@
+{
+  "items": [
+    {
+      "slug": "arduino-case",
+      "path": "objects/arduino-case",
+      "title": "Arduino Case",
+      "description": "Board protection case",
+      "category": "electronics",
+      "thumbnail": null
+    },
+    {
+      "slug": "car-fascia",
+      "path": "objects/car-fascia",
+      "title": "Car Dashboard Fascia",
+      "description": "Panel with AC vents and controls",
+      "category": "automotive",
+      "thumbnail": null
+    },
+    {
+      "slug": "control-panel",
+      "path": "objects/control-panel",
+      "title": "Control Panel",
+      "description": "Button and dial interface",
+      "category": "electronics",
+      "thumbnail": null
+    },
+    {
+      "slug": "cup-holder",
+      "path": "objects/cup-holder",
+      "title": "Cup Holder Insert",
+      "description": "Vehicle cup adapter",
+      "category": "automotive",
+      "thumbnail": null
+    },
+    {
+      "slug": "dice-tower",
+      "path": "objects/dice-tower",
+      "title": "Dice Tower",
+      "description": "Gaming randomizer",
+      "category": "gaming",
+      "thumbnail": null
+    },
+    {
+      "slug": "drone-frame",
+      "path": "objects/drone-frame",
+      "title": "Drone Frame",
+      "description": "Professional quadcopter frame with customizable motor mounts",
+      "category": "Aerospace",
+      "thumbnail": null
+    },
+    {
+      "slug": "electronic-enclosure",
+      "path": "objects/electronic-enclosure",
+      "title": "Electronic Enclosure",
+      "description": "Project box with ventilation",
+      "category": "electronics",
+      "thumbnail": null
+    },
+    {
+      "slug": "headphone-stand",
+      "path": "objects/headphone-stand",
+      "title": "Headphone Stand",
+      "description": "Desktop holder",
+      "category": "office",
+      "thumbnail": null
+    },
+    {
+      "slug": "license-plate-frame",
+      "path": "objects/license-plate-frame",
+      "title": "License Plate Frame",
+      "description": "Custom mounting frame for license plates",
+      "category": "automotive",
+      "thumbnail": null
+    },
+    {
+      "slug": "pen-holder",
+      "path": "objects/pen-holder",
+      "title": "Pen Holder",
+      "description": "Desktop organizer",
+      "category": "office",
+      "thumbnail": null
+    },
+    {
+      "slug": "phone-mount",
+      "path": "objects/phone-mount",
+      "title": "Phone Mount",
+      "description": "Adjustable phone holder",
+      "category": "electronics",
+      "thumbnail": null
+    },
+    {
+      "slug": "plant-pot",
+      "path": "objects/plant-pot",
+      "title": "Plant Pot",
+      "description": "Custom planter",
+      "category": "garden",
+      "thumbnail": null
+    },
+    {
+      "slug": "precision-bearing",
+      "path": "objects/precision-bearing",
+      "title": "Precision Bearing",
+      "description": "Custom ball bearing with configurable races and tolerances",
+      "category": "Mechanical",
+      "thumbnail": null
+    },
+    {
+      "slug": "prosthetic-hand",
+      "path": "objects/prosthetic-hand",
+      "title": "Prosthetic Hand",
+      "description": "Functional prosthetic with tendon-driven fingers",
+      "category": "Medical",
+      "thumbnail": null
+    },
+    {
+      "slug": "raspberry-pi-case",
+      "path": "objects/raspberry-pi-case",
+      "title": "Raspberry Pi Case",
+      "description": "Protective enclosure for Raspberry Pi boards",
+      "category": "electronics",
+      "thumbnail": null
+    },
+    {
+      "slug": "robotic-gripper",
+      "path": "objects/robotic-gripper",
+      "title": "Robotic Gripper",
+      "description": "Servo-actuated gripper with customizable finger geometry",
+      "category": "Robotics",
+      "thumbnail": null
+    },
+    {
+      "slug": "storage-box",
+      "path": "objects/storage-box",
+      "title": "Storage Box",
+      "description": "Modular container",
+      "category": "storage",
+      "thumbnail": null
+    },
+    {
+      "slug": "switch-holder",
+      "path": "objects/switch-holder",
+      "title": "Switch Holder",
+      "description": "Panel-mount switch housing for electronics",
+      "category": "electronics",
+      "thumbnail": null
+    },
+    {
+      "slug": "tool-holder",
+      "path": "objects/tool-holder",
+      "title": "Tool Holder",
+      "description": "Workshop organizer",
+      "category": "workshop",
+      "thumbnail": null
+    }
+  ]
+}

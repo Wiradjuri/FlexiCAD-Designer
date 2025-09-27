@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>FlexiCAD — About Us</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico"/>
+
+  <!-- Config (MUST be first) -->
+  <script src="config/config.js"></script>
+
+  <!-- Supabase (for auth) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <style>
+    :root { --bg:#0e0f12; --panel:#16181d; --text:#e9eef6; --muted:#a9b3c2; --brand:#4f8cff; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:1100px;margin:0 auto;padding:24px}
+    .nav{display:flex;align-items:center;justify-content:space-between;background:#121419;border-radius:16px;padding:12px 16px;margin-bottom:24px}
+    .nav a{color:white;text-decoration:none;margin-right:16px;padding:8px 12px;border-radius:10px}
+    .nav a:hover{background:#1c1f26}
+    .nav a.active{background:#1c1f26}
+    .right a{margin-left:8px;margin-right:0}
+    .hero{background:linear-gradient(180deg,#141720,#0f1218);border:1px solid #222531;border-radius:16px;padding:28px;margin-bottom:24px}
+    .hero h1{font-size:28px;margin-bottom:8px}
+    .hero p{color:var(--muted);margin-top:6px;line-height:1.6}
+    .content{background:var(--panel);border:1px solid #23262f;border-radius:16px;padding:28px;margin-bottom:24px}
+    .content h2{margin-bottom:16px;color:var(--brand)}
+    .content p{color:var(--muted);line-height:1.6;margin-bottom:16px}
+    .content ul{color:var(--muted);line-height:1.6;margin-left:20px;margin-bottom:16px}
+    .footer{color:var(--muted);text-align:center;margin-top:28px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <nav class="nav">
+      <div class="left">
+        <a href="index.html"><strong>FlexiCAD-Designer</strong></a>
+        <a href="templates.html">Templates</a>
+        <a href="ai.html">AI Generator</a>
+        <a href="my-designs.html">My Designs</a>
+        <a href="about-us.html" class="active">About Us</a>
+      </div>
+      <div class="right" id="authArea">
+        <!-- filled by script -->
+      </div>
+    </nav>
+
+    <section class="hero">
+      <h1>About FlexiCAD-Designer</h1>
+      <p>Learn more about our mission to make parametric CAD accessible to everyone.</p>
+    </section>
+
+    <section class="content">
+      <h2>About the Developer</h2>
+      <p>We are determined to create easy-to-use CAD tools for beginners and experts alike.</p>
+      
+      <h2>Our Mission</h2>
+      <p>FlexiCAD-Designer was created to bridge the gap between complex CAD software and the maker community. We believe that parametric design should be accessible, intuitive, and powerful without requiring years of training.</p>
+      
+      <h2>What We Offer</h2>
+      <ul>
+        <li><strong>Ready-to-use Templates:</strong> A curated collection of parametric OpenSCAD designs</li>
+        <li><strong>AI-Powered Generation:</strong> Describe what you want, get complete, compilable code</li>
+        <li><strong>Design History:</strong> Keep track of your creations and iterations</li>
+        <li><strong>Copy-Paste Ready:</strong> No proprietary formats, just clean OpenSCAD code</li>
+      </ul>
+      
+      <h2>Our Philosophy</h2>
+      <p>We believe in:</p>
+      <ul>
+        <li>Open source tools and formats</li>
+        <li>Clean, parametric design</li>
+        <li>Accessibility for all skill levels</li>
+        <li>Community-driven development</li>
+      </ul>
+      
+      <h2>Get Involved</h2>
+      <p>FlexiCAD-Designer is an evolving project. Whether you're a maker, designer, or developer, there are many ways to contribute to making parametric CAD more accessible.</p>
+    </section>
+
+    <p class="footer">© <span id="year"></span> FlexiCAD</p>
+  </div>
+
+  <script>
+    const cfg = window.AppConfig || {};
+    const hasSupabase = !!(window.supabase && window.supabase.createClient && cfg.supabase && cfg.supabase.url && cfg.supabase.anonKey &&
+                          cfg.supabase.url.trim() !== '' && cfg.supabase.anonKey.trim() !== '');
+    let sb = null, userEmail = null;
+
+    if (hasSupabase) {
+      sb = window.supabase.createClient(cfg.supabase.url, cfg.supabase.anonKey);
+      sb.auth.getUser().then(({ data }) => {
+        userEmail = data?.user?.email || null;
+        renderAuth();
+      });
+    } else {
+      renderAuth();
+    }
+
+    function renderAuth() {
+      const el = document.getElementById('authArea');
+      if (!el) return;
+
+      if (userEmail) {
+        el.innerHTML = `
+          <span class="muted">Signed in as ${userEmail}</span>
+          <a href="#" id="logoutBtn">Logout</a>
+        `;
+        document.getElementById('logoutBtn').onclick = async (e) => {
+          e.preventDefault();
+          await sb.auth.signOut();
+          location.reload();
+        };
+      } else {
+        el.innerHTML = `
+          <a href="login.html">Login</a>
+          <a href="register.html">Register</a>
+        `;
+      }
+    }
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

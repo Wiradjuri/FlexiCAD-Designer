@@ -1,0 +1,17 @@
+{
+  "title": "Professional Workshop Tool Organizer",
+  "description": "Multi-section tool organizer with magnetic base, labels, and specialized slots for screwdrivers, hex keys, and drill bits",
+  "category": "workshop",
+  "parameters": {
+    "screwdriver_count": "Number of screwdriver slots (1-12)",
+    "hex_key_count": "Number of hex key slots (1-15)",
+    "drill_bit_count": "Number of drill bit slots (1-20)",
+    "holder_width": "Holder width in mm",
+    "holder_depth": "Holder depth in mm",
+    "holder_height": "Holder height in mm",
+    "magnetic_base": "Include neodymium magnet slots",
+    "tool_labels": "Include tool size labels",
+    "angle_cut": "Front angle for better access (0-30 degrees)"
+  },
+  "tags": ["workshop", "tools", "organizer", "magnetic", "screwdriver", "hex key", "drill bits", "professional", "labeled"]
+}

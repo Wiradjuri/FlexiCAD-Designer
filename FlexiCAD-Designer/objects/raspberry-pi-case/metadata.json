@@ -1,0 +1,18 @@
+{
+  "title": "Raspberry Pi Case",
+  "description": "Protective enclosure for Raspberry Pi boards",
+  "category": "electronics",
+  "tags": ["raspberry pi", "case", "electronics", "protection", "enclosure"],
+  "difficulty": "Medium",
+  "printTime": "2-4 hours",
+  "features": [
+    "Multiple Pi model support",
+    "Proper port access",
+    "Ventilation holes for cooling",
+    "Mounting posts for secure fit",
+    "Optional lid generation"
+  ],
+  "materials": ["PLA", "ABS", "PETG"],
+  "infill": "20-25%",
+  "supports": false
+}

@@ -1,0 +1,15 @@
+{
+  "title": "Control Panel",
+  "description": "Button and dial interface",
+  "category": "electronics",
+  "parameters": {
+    "panel_width": "Panel width in mm",
+    "panel_height": "Panel height in mm",
+    "panel_thickness": "Panel thickness",
+    "button_count": "Number of buttons",
+    "button_diameter": "Button diameter",
+    "dial_count": "Number of dials",
+    "dial_diameter": "Dial diameter"
+  },
+  "tags": ["control", "panel", "interface", "buttons", "dials"]
+}

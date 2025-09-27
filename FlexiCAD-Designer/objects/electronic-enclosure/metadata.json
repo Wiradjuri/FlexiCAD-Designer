@@ -1,0 +1,14 @@
+{
+  "title": "Electronic Enclosure",
+  "description": "Project box with ventilation",
+  "category": "electronics",
+  "parameters": {
+    "box_length": "Enclosure length",
+    "box_width": "Enclosure width",
+    "box_height": "Enclosure height",
+    "wall_thickness": "Wall thickness",
+    "vent_count": "Number of ventilation holes",
+    "cable_diameter": "Cable entry diameter"
+  },
+  "tags": ["electronics", "enclosure", "box", "ventilation", "projects"]
+}

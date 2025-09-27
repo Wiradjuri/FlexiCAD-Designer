@@ -1,0 +1,47 @@
+{
+  "name": "flexicad-designer",
+  "version": "1.0.0",
+  "description": "FlexiCAD Designer - Professional Parametric OpenSCAD Design Platform",
+  "scripts": {
+    "prebuild": "node scripts/build-ai-manifest.js && node scripts/build-objects-manifest.js",
+    "build": "node scripts/build.js",
+    "dev": "npx netlify dev",
+    "preview": "npx netlify dev",
+    "deploy": "npm run build && netlify deploy --prod",
+    "deploy:preview": "npm run build && netlify deploy",
+    "test": "node scripts/validate-ai.js"
+  },
+  "dependencies": {
+    "@netlify/neon": "^0.1.0",
+    "@supabase/supabase-js": "^2.39.0",
+    "bootstrap": "^5.3.8",
+    "dotenv": "^17.2.2",
+    "drizzle-orm": "^0.44.5",
+    "openai": "^4.104.0",
+    "postgres": "^3.4.7",
+    "stripe": "^14.10.0",
+    "supabase-cli": "^0.0.21"
+  },
+  "devDependencies": {
+    "@postgrestools/postgrestools": "^0.15.0",
+    "drizzle-kit": "^0.18.1",
+    "netlify-cli": "^17.26.1",
+    "supabase": "^2.45.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/flexicad-designer"
+  },
+  "keywords": [
+    "openscad",
+    "cad",
+    "parametric",
+    "design",
+    "3d-printing"
+  ],
+  "author": "FlexiCAD",
+  "license": "MIT"
+}

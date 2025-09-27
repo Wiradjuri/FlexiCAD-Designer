@@ -1,0 +1,17 @@
+{
+  "title": "Prosthetic Hand",
+  "description": "Functional prosthetic with tendon-driven fingers",
+  "category": "Medical",
+  "tags": ["prosthetic", "medical", "assistive", "functional", "tendon"],
+  "difficulty": "Expert",
+  "printTime": "8-12 hours",
+  "material": "PETG, TPU (flexible joints)",
+  "features": [
+    "Parametric hand and finger sizing",
+    "Tendon-driven actuation system",
+    "Configurable joint flexibility",
+    "Multiple attachment methods",
+    "Opposable thumb design",
+    "Modular finger segments"
+  ]
+}

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home - FlexiCAD Designer</title>
+  
+  <!-- Dark Theme Styles -->
+  <link rel="stylesheet" href="css/dark-theme.css">
+  
+  <!-- Theme Management -->
+  <script src="js/theme.js"></script>
+  
+  <!-- Configuration -->
+  <script src="config/config.js"></script>
+  
+  <!-- Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    /* Page-specific styles */
+    .designs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+    
+    .design-card {
+      transition: transform 0.2s ease;
+    }
+    
+    .design-card:hover {
+      transform: translateY(-2px);
+    }
+    
+    .design-preview {
+      height: 160px;
+      background: var(--bg-primary);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-input);
+      color: var(--text-muted);
+    }
+    
+    .design-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-primary);
+    }
+    
+    .design-meta {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+    
+    .design-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .search-bar {
+      margin-bottom: 24px;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+    
+    .empty-state h3 {
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+    
+    .empty-state a {
+      color: var(--brand-primary);
+      text-decoration: none;
+    }
+    
+    .empty-state a:hover {
+      text-decoration: underline;
+    }
+    
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .user-info {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header class="nav">
+      <div><a href="index.html"><strong>FlexiCAD Designer</strong></a></div>
+      <div class="nav-right">
+        <a href="home.html" class="active">My Designs</a>
+        <a href="templates.html">Templates</a>
+        <a href="ai.html">AI Generator</a>
+        <button onclick="toggleTheme()" class="theme-toggle">
+          <span class="theme-toggle-icon" id="themeIcon">🌙</span>
+          <span id="themeText">Dark</span>
+        </button>
+        <span id="userEmail" class="user-info"></span>
+        <button onclick="logout()" class="btn-secondary btn-small">Logout</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <h1>My Designs</h1>
+      <p class="text-secondary">Manage and organize your OpenSCAD designs</p>
+    </section>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search designs..." oninput="filterDesigns()">
+    </div>
+
+    <div id="designsContainer">
+      <div class="empty-state">
+        <h3>No designs yet</h3>
+        <p>Start creating with our <a href="ai.html">AI Generator</a> or browse <a href="templates.html">Templates</a></p>
+      </div>
+    </div>
+
+    <div id="designsGrid" class="designs-grid hidden">
+      <!-- Designs will be populated here -->
+    </div>
+  </div>
+
+  <script>
+    const cfg = window.AppConfig || {};
+    const sb = (window.supabase?.createClient && cfg.supabase?.url && cfg.supabase?.anonKey) ?
+      window.supabase.createClient(cfg.supabase.url, cfg.supabase.anonKey) : null;
+
+    let allDesigns = [];
+
+    async function loadUserData() {
+      if (!sb) {
+        console.log('Demo mode - no Supabase');
+        showDemoDesigns();
+        return;
+      }
+
+      try {
+        const { data: { user } } = await sb.auth.getUser();
+        if (!user) {
+          window.location.href = 'index.html';
+          return;
+        }
+
+        document.getElementById('userEmail').textContent = user.email;
+        await loadDesigns();
+      } catch (error) {
+        console.error('Error loading user data:', error);
+        showError('Failed to load user data');
+      }
+    }
+
+    async function loadDesigns() {
+      try {
+        // In a real implementation, this would load from Supabase
+        // For now, show demo content
+        showDemoDesigns();
+      } catch (error) {
+        console.error('Error loading designs:', error);
+        showError('Failed to load designs');
+      }
+    }
+
+    function showDemoDesigns() {
+      // Demo designs for visualization
+      const demoDesigns = [
+        {
+          id: 1,
+          title: "Phone Stand",
+          description: "Adjustable phone stand with cable management",
+          created_at: "2025-01-15",
+          updated_at: "2025-01-20"
+        },
+        {
+          id: 2,
+          title: "Desk Organizer",
+          description: "Multi-compartment desk organizer",
+          created_at: "2025-01-10",
+          updated_at: "2025-01-18"
+        }
+      ];
+
+      allDesigns = demoDesigns;
+      renderDesigns(allDesigns);
+    }
+
+    function renderDesigns(designs) {
+      const container = document.getElementById('designsContainer');
+      const grid = document.getElementById('designsGrid');
+
+      if (designs.length === 0) {
+        container.classList.remove('hidden');
+        grid.classList.add('hidden');
+        return;
+      }
+
+      container.classList.add('hidden');
+      grid.classList.remove('hidden');
+
+      grid.innerHTML = designs.map(design => `
+        <div class="card design-card">
+          <div class="design-preview">
+            <span>3D Preview</span>
+          </div>
+          <div class="design-title">${design.title}</div>
+          <div class="design-meta">
+            ${design.description}<br>
+            <small>Updated: ${new Date(design.updated_at).toLocaleDateString()}</small>
+          </div>
+          <div class="design-actions">
+            <button class="btn-small" onclick="editDesign(${design.id})">Edit</button>
+            <button class="btn-small btn-secondary" onclick="downloadDesign(${design.id})">Download</button>
+            <button class="btn-small" onclick="deleteDesign(${design.id})" style="background: var(--error);">Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterDesigns() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const filteredDesigns = allDesigns.filter(design => 
+        design.title.toLowerCase().includes(searchTerm) ||
+        design.description.toLowerCase().includes(searchTerm)
+      );
+      renderDesigns(filteredDesigns);
+    }
+
+    function editDesign(id) {
+      // Navigate to editor with design ID
+      window.location.href = `ai.html?edit=${id}`;
+    }
+
+    function downloadDesign(id) {
+      // In real implementation, fetch and download the .scad file
+      alert('Download functionality would be implemented here');
+    }
+
+    function deleteDesign(id) {
+      if (confirm('Are you sure you want to delete this design?')) {
+        // In real implementation, delete from database
+        allDesigns = allDesigns.filter(d => d.id !== id);
+        renderDesigns(allDesigns);
+      }
+    }
+
+    async function logout() {
+      if (sb) {
+        try {
+          await sb.auth.signOut();
+        } catch (error) {
+          console.error('Error signing out:', error);
+        }
+      }
+      window.location.href = 'index.html';
+    }
+
+    function showError(message) {
+      const container = document.getElementById('designsContainer');
+      container.innerHTML = `<div class="error">${message}</div>`;
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', loadUserData);
+  </script>
+</body>
+</html>

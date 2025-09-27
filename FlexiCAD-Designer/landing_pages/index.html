@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>FlexiCAD — Parametric Design Made Simple</title>
+  <link rel="icon" href="favicon.ico"/>
+  
+  <!-- Dark Theme Styles -->
+  <link rel="stylesheet" href="css/dark-theme.css">
+
+  <!-- Theme Management -->
+  <script src="js/theme.js"></script>
+
+  <!-- Config MUST be first -->
+  <script src="config/config.js"></script>
+
+  <!-- Dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <style>
+    /* Page-specific styles */
+    .grid{max-width:600px;margin:0 auto}
+    .grid{grid-template-columns: 1fr 1fr;}
+    .hidden{display:none}
+    .footer{text-align:center;margin-top:40px}
+    .nav-right{display: flex; align-items: center; gap: 16px;}
+  </style>
+    button:hover{background:#3a7aff}
+    .muted{color:var(--muted)}
+    .tabs{display:flex;gap:8px;margin-bottom:12px;max-width:600px;margin:0 auto 12px}
+    .tab{flex:1;text-align:center;padding:10px;border-radius:12px;background:#1a1d25;cursor:pointer;transition:all 0.2s}
+    .tab.active{background:#2b2f39}
+    .error{color:var(--error);font-size:14px;margin-top:8px}
+    .success{color:#4fcc4f;font-size:14px;margin-top:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav class="nav">
+      <div><a href="index.html"><strong>FlexiCAD Designer</strong></a></div>
+      <div class="nav-right">
+        <button onclick="toggleTheme()" class="theme-toggle">
+          <span class="theme-toggle-icon" id="themeIcon">🌙</span>
+          <span id="themeText">Dark</span>
+        </button>
+        <span id="authArea" class="text-muted">Welcome</span>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <h1>FlexiCAD Designer</h1>
+      <p class="muted">Create parametric OpenSCAD designs with AI assistance.<br>Browse templates, generate custom code, save your designs.</p>
+    </section>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="login">Login</div>
+      <div class="tab" data-tab="register">Register</div>
+    </div>
+
+    <section class="grid">
+      <!-- Login Panel -->
+      <article class="card" id="panel-login">
+        <h3>Login to FlexiCAD</h3>
+        <form id="loginForm">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" required autocomplete="email"/>
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" required autocomplete="current-password"/>
+          <button type="submit">Login</button>
+          <div id="loginError" class="error"></div>
+        </form>
+      </article>
+
+      <!-- Register Panel -->
+      <article class="card hidden" id="panel-register">
+        <h3>Create FlexiCAD Account</h3>
+        <form id="registerForm">
+          <label for="regEmail">Email</label>
+          <input type="email" id="regEmail" required autocomplete="email"/>
+          <label for="regPassword">Password</label>
+          <input type="password" id="regPassword" required autocomplete="new-password"/>
+          <label for="regPlan">Plan</label>
+          <select id="regPlan">
+            <option value="monthly">Monthly — $10 AUD</option>
+            <option value="yearly">Yearly — $50 AUD (save $70 AUD)</option>
+          </select>
+          <button type="submit">Create Account & Continue</button>
+          <div id="regError" class="error"></div>
+        </form>
+      </article>
+    </section>
+
+    <div class="footer">
+      <p class="text-muted">© 2025 FlexiCAD. All rights reserved.</p>
+    </div>
+  </div>
+
+  <script>
+    const cfg = window.AppConfig || {};
+    const sb = (window.supabase?.createClient && cfg.supabase?.url && cfg.supabase?.anonKey) ?
+      window.supabase.createClient(cfg.supabase.url, cfg.supabase.anonKey) : null;
+
+    // Demo mode shortcut
+    if (localStorage.getItem('flexicad_demo_mode') === 'true') location.href = 'home.html';
+
+    // Redirect if already logged in
+    sb?.auth.getUser().then(({ data }) => {
+      if (data?.user?.email) location.href = 'home.html';
+    });
+
+    // Tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const show = tab.dataset.tab;
+        document.getElementById('panel-login').style.display = show === 'login' ? '' : 'none';
+        document.getElementById('panel-register').style.display = show === 'register' ? '' : 'none';
+        document.getElementById('loginError').textContent = '';
+        document.getElementById('regError').textContent = '';
+      });
+    });
+
+    // Login
+    document.getElementById('loginForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const email = loginEmail.value.trim(), password = loginPassword.value;
+      try {
+        if (!sb) throw new Error('Auth not configured');
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        location.href = 'home.html';
+      } catch (err) { loginError.textContent = err.message; }
+    });
+
+    // Register
+    document.getElementById('registerForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const email = regEmail.value.trim(), password = regPassword.value, plan = regPlan.value;
+      try {
+        if (!sb) throw new Error('Auth not configured');
+        const { error } = await sb.auth.signUp({ email, password });
+        if (error) throw error;
+        const priceId = cfg?.stripe?.priceIds?.[plan];
+        if (!priceId) throw new Error('Payment config error');
+        const res = await fetch('/.netlify/functions/create-checkout-session', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            priceId, customer_email: email,
+            successUrl: `${location.origin}/home.html?checkout=success`,
+            cancelUrl: `${location.origin}/index.html?checkout=cancelled`
+          })
+        });
+        const { url } = await res.json();
+        if (!url) throw new Error('No checkout URL');
+        location.href = url;
+      } catch (err) { regError.textContent = err.message; }
+    });
+
+    // Handle checkout status
+    const params = new URLSearchParams(location.search);
+    if (params.get('checkout') === 'cancelled') {
+      regError.textContent = 'Checkout was cancelled. Please try again.';
+      document.querySelector('[data-tab="register"]').click();
+    }
+    if (params.get('checkout') === 'success') {
+      alert('✅ Account created successfully!');
+    }
+  </script>
+</body>
+</html>
