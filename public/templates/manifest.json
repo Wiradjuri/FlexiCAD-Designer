@@ -1,0 +1,16 @@
+{
+  "templates": [
+    {
+      "id": "arduino-case",
+      "name": "Arduino Uno Case",
+      "description": "Protective case for Arduino Uno with ventilation holes and easy access ports",
+      "category": "Electronics"
+    },
+    {
+      "id": "car-fascia",
+      "name": "Car Dashboard Fascia",
+      "description": "Custom dashboard fascia for aftermarket car stereo installation",
+      "category": "Automotive"
+    }
+  ]
+}

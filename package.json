@@ -1,0 +1,21 @@
+{
+  "name": "flexicad-designer",
+  "version": "1.0.0",
+  "description": "AI-powered OpenSCAD design platform with templates and user authentication",
+  "main": "public/index.html",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build step needed for static site'",
+    "deploy": "netlify deploy --prod"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0",
+    "openai": "^4.20.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.10.1"
+  },
+  "keywords": ["openscad", "ai", "3d-design", "cad", "templates"],
+  "author": "FlexiCAD Team",
+  "license": "MIT"
+}

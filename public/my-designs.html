@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlexiCAD Designer - My Designs</title>
+    <link rel="stylesheet" href="css/dark-theme.css">
+    <script src="config/config.js"></script>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">FlexiCAD Designer</a>
+            <ul class="nav-links">
+                <li><a href="home.html">Home</a></li>
+                <li><a href="templates.html">Templates</a></li>
+                <li><a href="ai.html">AI Generator</a></li>
+                <li><a href="my-designs.html" class="active">My Designs</a></li>
+                <li><a href="about.html">About</a></li>
+            </ul>
+            <div class="nav-user">
+                <span class="user-info" id="userInfo"></span>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">My Designs</h1>
+            <p class="page-subtitle">Manage and organize your saved 3D designs</p>
+        </div>
+
+        <!-- Actions Bar -->
+        <div class="card">
+            <div class="card-actions">
+                <button class="btn btn-primary" onclick="refreshDesigns()">
+                    🔄 Refresh
+                </button>
+                <a href="ai.html" class="btn btn-secondary">
+                    ➕ Create New Design
+                </a>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            Loading your designs...
+        </div>
+
+        <!-- Error State -->
+        <div id="error" class="alert alert-error hidden">
+            <span id="errorMessage">Failed to load designs. Please try refreshing the page.</span>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="card hidden">
+            <div class="card-title">No Designs Yet</div>
+            <div class="card-description">
+                You haven't created any designs yet. Start by using our AI generator or browsing templates.
+            </div>
+            <div class="card-actions mt-2">
+                <a href="ai.html" class="btn btn-primary">🤖 Generate Design</a>
+                <a href="templates.html" class="btn btn-secondary">📚 Browse Templates</a>
+            </div>
+        </div>
+
+        <!-- Designs Grid -->
+        <div id="designsGrid" class="card-grid hidden"></div>
+    </div>
+
+    <!-- Design View Modal -->
+    <div id="designModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Design Details</h2>
+                <button class="modal-close" onclick="closeModal('designModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="card-description mb-3" id="modalPrompt"></div>
+                
+                <div class="code-container">
+                    <div class="code-header">
+                        <span id="modalFileName">design.scad</span>
+                        <div>
+                            <button class="btn btn-small btn-secondary" onclick="copyModalCode()">Copy Code</button>
+                            <button class="btn btn-small btn-secondary" onclick="downloadModalCode()">Download</button>
+                        </div>
+                    </div>
+                    <pre class="code-block" id="modalCode"></pre>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-danger" onclick="deleteCurrentDesign()">🗑️ Delete</button>
+                <button class="btn btn-secondary" onclick="closeModal('designModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2 class="modal-title">Confirm Delete</h2>
+                <button class="modal-close" onclick="closeModal('deleteModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete "<span id="deleteDesignName"></span>"?</p>
+                <p><strong>This action cannot be undone.</strong></p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize Supabase client
+        const { createClient } = supabase;
+        const supabaseClient = createClient(
+            CONFIG.SUPABASE_URL,
+            CONFIG.SUPABASE_ANON_KEY
+        );
+
+        let designs = [];
+        let currentDesign = null;
+        let designToDelete = null;
+
+        // Check authentication and load designs
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            await loadDesigns();
+        });
+
+        async function checkAuth() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            document.getElementById('userInfo').textContent = user.email;
+        }
+
+        async function loadDesigns() {
+            showLoading();
+            
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (!session) {
+                    throw new Error('No active session');
+                }
+                
+                const response = await fetch('/.netlify/functions/list-designs', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${session.access_token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to load designs');
+                }
+                
+                const data = await response.json();
+                designs = data.designs || [];
+                
+                displayDesigns();
+                
+            } catch (error) {
+                console.error('Error loading designs:', error);
+                showError(error.message);
+            }
+        }
+
+        function displayDesigns() {
+            hideLoading();
+            hideError();
+            
+            if (designs.length === 0) {
+                document.getElementById('emptyState').classList.remove('hidden');
+                return;
+            }
+            
+            const grid = document.getElementById('designsGrid');
+            grid.innerHTML = designs.map(design => {
+                const date = new Date(design.created_at).toLocaleDateString();
+                const codePreview = design.code.substring(0, 100) + '...';
+                
+                return `
+                    <div class="card">
+                        <div class="card-title">${escapeHtml(design.name)}</div>
+                        <div class="card-description">
+                            ${design.prompt ? `<strong>Prompt:</strong> ${escapeHtml(design.prompt.substring(0, 80))}${design.prompt.length > 80 ? '...' : ''}` : 'Custom design'}
+                        </div>
+                        <div class="card-meta">
+                            <span>Created: ${date}</span>
+                        </div>
+                        <div class="code-container" style="margin-top: 1rem;">
+                            <div class="code-header">
+                                <span>Preview</span>
+                            </div>
+                            <pre class="code-block" style="font-size: 12px; max-height: 80px; overflow: hidden;">${escapeHtml(codePreview)}</pre>
+                        </div>
+                        <div class="card-actions mt-3">
+                            <button class="btn btn-secondary btn-small" onclick="viewDesign('${design.id}')">
+                                👁️ View
+                            </button>
+                            <button class="btn btn-secondary btn-small" onclick="copyDesign('${design.id}')">
+                                📋 Copy
+                            </button>
+                            <button class="btn btn-secondary btn-small" onclick="downloadDesign('${design.id}')">
+                                ⬇️ Download
+                            </button>
+                            <button class="btn btn-danger btn-small" onclick="showDeleteConfirmation('${design.id}')">
+                                🗑️ Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            grid.classList.remove('hidden');
+        }
+
+        function viewDesign(designId) {
+            const design = designs.find(d => d.id === designId);
+            if (!design) return;
+            
+            currentDesign = design;
+            
+            document.getElementById('modalTitle').textContent = design.name;
+            document.getElementById('modalPrompt').textContent = design.prompt || 'No prompt provided';
+            document.getElementById('modalFileName').textContent = `${design.name.toLowerCase().replace(/\s+/g, '-')}.scad`;
+            document.getElementById('modalCode').textContent = design.code;
+            
+            showModal('designModal');
+        }
+
+        async function copyDesign(designId) {
+            const design = designs.find(d => d.id === designId);
+            if (!design) return;
+            
+            try {
+                await navigator.clipboard.writeText(design.code);
+                
+                // Visual feedback
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            } catch (error) {
+                console.error('Failed to copy code:', error);
+                alert('Failed to copy code to clipboard');
+            }
+        }
+
+        function downloadDesign(designId) {
+            const design = designs.find(d => d.id === designId);
+            if (!design) return;
+            
+            const fileName = `${design.name.toLowerCase().replace(/\s+/g, '-')}.scad`;
+            const blob = new Blob([design.code], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function showDeleteConfirmation(designId) {
+            const design = designs.find(d => d.id === designId);
+            if (!design) return;
+            
+            designToDelete = design;
+            document.getElementById('deleteDesignName').textContent = design.name;
+            showModal('deleteModal');
+        }
+
+        async function confirmDelete() {
+            if (!designToDelete) return;
+            
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (!session) {
+                    throw new Error('No active session');
+                }
+                
+                const response = await fetch(`/.netlify/functions/delete-design`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.access_token}`
+                    },
+                    body: JSON.stringify({ id: designToDelete.id })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to delete design');
+                }
+                
+                // Remove from local array
+                designs = designs.filter(d => d.id !== designToDelete.id);
+                displayDesigns();
+                
+                closeModal('deleteModal');
+                designToDelete = null;
+                
+            } catch (error) {
+                console.error('Error deleting design:', error);
+                alert(`Failed to delete design: ${error.message}`);
+            }
+        }
+
+        function deleteCurrentDesign() {
+            if (currentDesign) {
+                closeModal('designModal');
+                showDeleteConfirmation(currentDesign.id);
+            }
+        }
+
+        function copyModalCode() {
+            if (!currentDesign) return;
+            
+            navigator.clipboard.writeText(currentDesign.code).then(() => {
+                // Visual feedback
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy code:', err);
+                alert('Failed to copy code to clipboard');
+            });
+        }
+
+        function downloadModalCode() {
+            if (currentDesign) {
+                downloadDesign(currentDesign.id);
+            }
+        }
+
+        async function refreshDesigns() {
+            await loadDesigns();
+        }
+
+        function showLoading() {
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('designsGrid').classList.add('hidden');
+            document.getElementById('emptyState').classList.add('hidden');
+            hideError();
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.add('hidden');
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('error').classList.remove('hidden');
+            hideLoading();
+        }
+
+        function hideError() {
+            document.getElementById('error').classList.add('hidden');
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            if (modalId === 'designModal') {
+                currentDesign = null;
+            }
+            if (modalId === 'deleteModal') {
+                designToDelete = null;
+            }
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Close modals when clicking outside
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        async function handleLogout() {
+            try {
+                const { error } = await supabaseClient.auth.signOut();
+                if (error) throw error;
+                
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Error logging out:', error);
+                alert('Error logging out. Please try again.');
+            }
+        }
+
+        // Listen for auth state changes
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_OUT') {
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>

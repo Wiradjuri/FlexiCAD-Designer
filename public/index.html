@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlexiCAD Designer - Login</title>
+    <link rel="stylesheet" href="css/dark-theme.css">
+    <script src="config/config.js"></script>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">FlexiCAD Designer</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">Welcome to FlexiCAD Designer</h1>
+            <p class="page-subtitle">Create stunning 3D designs with AI-powered OpenSCAD generation</p>
+        </div>
+
+        <div class="form-container">
+            <div class="form-tabs">
+                <button class="tab-btn active" data-tab="login">Login</button>
+                <button class="tab-btn" data-tab="register">Register</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="loginEmail" class="form-label">Email</label>
+                    <input type="email" id="loginEmail" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword" class="form-label">Password</label>
+                    <input type="password" id="loginPassword" class="form-input" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-full">
+                    <span class="btn-text">Sign In</span>
+                    <div class="spinner hidden"></div>
+                </button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" class="auth-form hidden">
+                <div class="form-group">
+                    <label for="registerEmail" class="form-label">Email</label>
+                    <input type="email" id="registerEmail" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword" class="form-label">Password</label>
+                    <input type="password" id="registerPassword" class="form-input" minlength="6" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <input type="password" id="confirmPassword" class="form-input" minlength="6" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-full">
+                    <span class="btn-text">Create Account</span>
+                    <div class="spinner hidden"></div>
+                </button>
+            </form>
+
+            <div id="authMessage" class="hidden"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize Supabase client
+        const { createClient } = supabase;
+        const supabaseClient = createClient(
+            window.FlexiCADConfig.supabase.url,
+            window.FlexiCADConfig.supabase.anonKey
+        );
+
+        // Check if user is already logged in
+        checkAuthStatus();
+
+        async function checkAuthStatus() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (user) {
+                window.location.href = 'home.html';
+            }
+        }
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                
+                // Update active tab
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Show/hide forms
+                document.querySelectorAll('.auth-form').forEach(form => form.classList.add('hidden'));
+                document.getElementById(tab + 'Form').classList.remove('hidden');
+                
+                // Clear messages
+                clearMessage();
+            });
+        });
+
+        // Login form
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            setLoadingState(submitBtn, true);
+            clearMessage();
+            
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password,
+                });
+                
+                if (error) throw error;
+                
+                showMessage('Login successful! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = 'home.html';
+                }, 1000);
+                
+            } catch (error) {
+                showMessage(error.message, 'error');
+            } finally {
+                setLoadingState(submitBtn, false);
+            }
+        });
+
+        // Register form
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            if (password !== confirmPassword) {
+                showMessage('Passwords do not match', 'error');
+                return;
+            }
+            
+            setLoadingState(submitBtn, true);
+            clearMessage();
+            
+            try {
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email: email,
+                    password: password,
+                });
+                
+                if (error) throw error;
+                
+                if (data.user && !data.session) {
+                    showMessage('Registration successful! Please check your email to verify your account.', 'success');
+                    // Switch to login tab after successful registration
+                    setTimeout(() => {
+                        document.querySelector('[data-tab="login"]').click();
+                        document.getElementById('loginEmail').value = email;
+                    }, 2000);
+                } else {
+                    showMessage('Registration successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'home.html';
+                    }, 1000);
+                }
+                
+            } catch (error) {
+                showMessage(error.message, 'error');
+            } finally {
+                setLoadingState(submitBtn, false);
+            }
+        });
+
+        function setLoadingState(button, loading) {
+            const btnText = button.querySelector('.btn-text');
+            const spinner = button.querySelector('.spinner');
+            
+            if (loading) {
+                button.classList.add('btn-loading');
+                button.disabled = true;
+                btnText.textContent = 'Loading...';
+                spinner.classList.remove('hidden');
+            } else {
+                button.classList.remove('btn-loading');
+                button.disabled = false;
+                btnText.textContent = button.form.id === 'loginForm' ? 'Sign In' : 'Create Account';
+                spinner.classList.add('hidden');
+            }
+        }
+
+        function showMessage(message, type) {
+            const messageEl = document.getElementById('authMessage');
+            messageEl.textContent = message;
+            messageEl.className = `alert alert-${type}`;
+            messageEl.classList.remove('hidden');
+        }
+
+        function clearMessage() {
+            document.getElementById('authMessage').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

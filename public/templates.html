@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlexiCAD Designer - Templates</title>
+    <link rel="stylesheet" href="css/dark-theme.css">
+    <script src="config/config.js"></script>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">FlexiCAD Designer</a>
+            <ul class="nav-links">
+                <li><a href="home.html">Home</a></li>
+                <li><a href="templates.html" class="active">Templates</a></li>
+                <li><a href="ai.html">AI Generator</a></li>
+                <li><a href="my-designs.html">My Designs</a></li>
+                <li><a href="about.html">About</a></li>
+            </ul>
+            <div class="nav-user" id="navUser">
+                <span class="user-info" id="userInfo"></span>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">Template Library</h1>
+            <p class="page-subtitle">Professional OpenSCAD templates to jumpstart your 3D design projects</p>
+        </div>
+
+        <!-- Loading state -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            Loading templates...
+        </div>
+
+        <!-- Error state -->
+        <div id="error" class="alert alert-error hidden">
+            <span>Failed to load templates. Please try refreshing the page.</span>
+        </div>
+
+        <!-- Template grid -->
+        <div id="templateGrid" class="card-grid hidden"></div>
+    </div>
+
+    <!-- Code View Modal -->
+    <div id="codeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="codeModalTitle">Template Code</h2>
+                <button class="modal-close" onclick="closeModal('codeModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="code-container">
+                    <div class="code-header">
+                        <span id="codeFileName">template.scad</span>
+                        <button class="btn btn-small btn-secondary" onclick="copyCode()">Copy Code</button>
+                    </div>
+                    <pre class="code-block" id="codeContent"></pre>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('codeModal')">Close</button>
+                <button class="btn btn-primary" onclick="downloadCurrentTemplate()">Download</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- README Modal -->
+    <div id="readmeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="readmeModalTitle">Template Guide</h2>
+                <button class="modal-close" onclick="closeModal('readmeModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="readmeContent">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('readmeModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        // Initialize Supabase client
+        const { createClient } = supabase;
+        const supabaseClient = createClient(
+            CONFIG.SUPABASE_URL,
+            CONFIG.SUPABASE_ANON_KEY
+        );
+
+        let currentTemplate = null;
+        let templates = [];
+
+        // Check authentication and load templates
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            await loadTemplates();
+        });
+
+        async function checkAuth() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            
+            if (user) {
+                document.getElementById('navUser').style.display = 'flex';
+                document.getElementById('userInfo').textContent = user.email;
+            } else {
+                document.getElementById('navUser').style.display = 'none';
+            }
+        }
+
+        async function loadTemplates() {
+            try {
+                const response = await fetch('templates/manifest.json');
+                if (!response.ok) throw new Error('Failed to load templates');
+                
+                const data = await response.json();
+                templates = data.templates;
+                
+                displayTemplates(templates);
+                
+            } catch (error) {
+                console.error('Error loading templates:', error);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error').classList.remove('hidden');
+            }
+        }
+
+        function displayTemplates(templateList) {
+            const grid = document.getElementById('templateGrid');
+            
+            grid.innerHTML = templateList.map(template => `
+                <div class="card">
+                    <div class="card-title">${template.name}</div>
+                    <div class="card-description">${template.description}</div>
+                    <div class="card-meta">
+                        <span class="card-category">${template.category}</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary btn-small" 
+                                onclick="viewReadme('${template.id}')">
+                            📖 Guide
+                        </button>
+                        <button class="btn btn-secondary btn-small" 
+                                onclick="viewCode('${template.id}')">
+                            👁️ View Code
+                        </button>
+                        <button class="btn btn-primary btn-small" 
+                                onclick="downloadTemplate('${template.id}')">
+                            ⬇️ Download
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('loading').classList.add('hidden');
+            grid.classList.remove('hidden');
+        }
+
+        async function viewCode(templateId) {
+            try {
+                const template = templates.find(t => t.id === templateId);
+                currentTemplate = template;
+                
+                const response = await fetch(`templates/${templateId}/template.scad`);
+                if (!response.ok) throw new Error('Failed to load template code');
+                
+                const code = await response.text();
+                
+                document.getElementById('codeModalTitle').textContent = `${template.name} - Code`;
+                document.getElementById('codeFileName').textContent = `${templateId}.scad`;
+                document.getElementById('codeContent').textContent = code;
+                
+                showModal('codeModal');
+                
+            } catch (error) {
+                console.error('Error loading template code:', error);
+                alert('Failed to load template code. Please try again.');
+            }
+        }
+
+        async function viewReadme(templateId) {
+            try {
+                const template = templates.find(t => t.id === templateId);
+                
+                const response = await fetch(`templates/${templateId}/README.md`);
+                if (!response.ok) throw new Error('Failed to load README');
+                
+                const markdown = await response.text();
+                const html = marked.parse(markdown);
+                
+                document.getElementById('readmeModalTitle').textContent = `${template.name} - Guide`;
+                document.getElementById('readmeContent').innerHTML = html;
+                
+                showModal('readmeModal');
+                
+            } catch (error) {
+                console.error('Error loading README:', error);
+                alert('Failed to load template guide. Please try again.');
+            }
+        }
+
+        async function downloadTemplate(templateId) {
+            try {
+                const template = templates.find(t => t.id === templateId);
+                const response = await fetch(`templates/${templateId}/template.scad`);
+                if (!response.ok) throw new Error('Failed to download template');
+                
+                const code = await response.text();
+                
+                // Create download link
+                const blob = new Blob([code], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${templateId}.scad`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+            } catch (error) {
+                console.error('Error downloading template:', error);
+                alert('Failed to download template. Please try again.');
+            }
+        }
+
+        function downloadCurrentTemplate() {
+            if (currentTemplate) {
+                downloadTemplate(currentTemplate.id);
+            }
+        }
+
+        function copyCode() {
+            const codeContent = document.getElementById('codeContent').textContent;
+            navigator.clipboard.writeText(codeContent).then(() => {
+                // Visual feedback
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy code:', err);
+                alert('Failed to copy code to clipboard');
+            });
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Close modals when clicking outside
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        async function handleLogout() {
+            try {
+                const { error } = await supabaseClient.auth.signOut();
+                if (error) throw error;
+                
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Error logging out:', error);
+                alert('Error logging out. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>

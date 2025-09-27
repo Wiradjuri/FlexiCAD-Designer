@@ -1,0 +1,19 @@
+{
+  "name": "Car Dashboard Fascia",
+  "description": "Custom dashboard fascia panel for aftermarket stereo installation. Designed to seamlessly integrate with existing dashboard aesthetics while providing precise cutouts for new equipment.",
+  "category": "Automotive", 
+  "difficulty": "Intermediate",
+  "parameters": {
+    "panel_width": "180",
+    "panel_height": "100",
+    "panel_depth": "15",
+    "stereo_width": "178",
+    "stereo_height": "50",
+    "mounting_holes": "4",
+    "corner_radius": "5"
+  },
+  "materials": ["ABS", "PETG", "Nylon"],
+  "print_time": "4-6 hours",
+  "supports_required": true,
+  "infill": "30%"
+}
