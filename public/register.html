@@ -3,203 +3,357 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - FlexiCAD Designer</title>
+    <title>FlexiCAD Designer - Login</title>
     <link rel="stylesheet" href="css/dark-theme.css">
-    <script src="https://js.stripe.com/v3/"></script>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-content">
-            <div class="nav-brand">FlexiCAD Designer</div>
-            <ul class="nav-menu">
-                <li><a href="login.html" class="nav-link">Login</a></li>
-            </ul>
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">FlexiCAD Designer</a>
         </div>
     </nav>
 
-    <main class="container">
+    <div class="container">
         <div class="page-header">
-            <h1>Create Your Account</h1>
-            <p>Join FlexiCAD Designer and start creating amazing 3D designs with AI</p>
+            <h1 class="page-title">Welcome to FlexiCAD Designer</h1>
+            <p class="page-subtitle">Create stunning 3D designs with AI-powered OpenSCAD generation</p>
         </div>
 
-        <!-- Subscription Pricing Section -->
-        <div class="pricing-section">
-            <h2 class="pricing-title">Choose Your Plan</h2>
-            <div class="pricing-cards">
-                <div class="pricing-card" data-plan="monthly">
-                    <div class="pricing-header">
-                        <h3>Monthly Plan</h3>
-                        <div class="price">
-                            <span class="currency">$</span>
-                            <span class="amount">10</span>
-                            <span class="period">/month</span>
-                        </div>
+        <div class="main-content">
+            <!-- Left Column: Login/Register Forms -->
+            <div class="auth-column">
+                <div class="form-container">
+                    <div class="form-tabs">
+                        <button class="tab-btn" data-tab="login">Login</button>
+                        <button class="tab-btn active" data-tab="register">Register</button>
                     </div>
-                    <ul class="pricing-features">
-                        <li>✅ Unlimited AI design generations</li>
-                        <li>✅ Access to all templates</li>
-                        <li>✅ Save and organize your designs</li>
-                        <li>✅ Export to .scad files</li>
-                        <li>✅ Community support</li>
-                    </ul>
-                    <button class="btn-pricing" onclick="selectPlan('monthly', 10)">
-                        Select Monthly
-                    </button>
-                </div>
 
-                <div class="pricing-card featured" data-plan="yearly">
-                    <div class="featured-badge">Best Value</div>
-                    <div class="pricing-header">
-                        <h3>Yearly Plan</h3>
-                        <div class="price">
-                            <span class="currency">$</span>
-                            <span class="amount">50</span>
-                            <span class="period">/year</span>
-                        </div>
-                        <div class="savings">Save $70 per year!</div>
-                    </div>
-                    <ul class="pricing-features">
-                        <li>✅ Unlimited AI design generations</li>
-                        <li>✅ Access to all templates</li>
-                        <li>✅ Save and organize your designs</li>
-                        <li>✅ Export to .scad files</li>
-                        <li>✅ Priority support</li>
-                        <li>✅ Early access to new features</li>
-                    </ul>
-                    <button class="btn-pricing featured" onclick="selectPlan('yearly', 50)">
-                        Select Yearly
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="auth-container" id="registrationForm" style="display: none;">
-            <div class="card auth-card">
-                <div class="selected-plan-info">
-                    <p>Selected Plan: <span id="selectedPlanName"></span> - <span id="selectedPlanPrice"></span></p>
-                    <button type="button" class="btn-link" onclick="changePlan()">Change Plan</button>
-                </div>
-                <div class="card-body">
-                    <form id="registerForm" class="auth-form">
+                    <!-- Login Form -->
+                    <form id="loginForm" class="auth-form hidden">
                         <div class="form-group">
-                            <label for="email" class="form-label">Email Address</label>
-                            <input type="email" id="email" class="form-control" required 
-                                   placeholder="Enter your email address">
+                            <label for="loginEmail" class="form-label">Email</label>
+                            <input type="email" id="loginEmail" class="form-input" required>
                         </div>
-                        
                         <div class="form-group">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" id="password" class="form-control" required 
-                                   placeholder="Enter your password" minlength="6">
-                            <small class="form-text">Password must be at least 6 characters long</small>
+                            <label for="loginPassword" class="form-label">Password</label>
+                            <input type="password" id="loginPassword" class="form-input" required>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="confirmPassword" class="form-label">Confirm Password</label>
-                            <input type="password" id="confirmPassword" class="form-control" required 
-                                   placeholder="Confirm your password">
-                        </div>
-
-                        <div id="errorMessage" class="alert alert-error" style="display: none;">
-                            <p id="errorText"></p>
-                        </div>
-
-                        <div id="successMessage" class="alert alert-success" style="display: none;">
-                            <p>Registration successful! Redirecting to home...</p>
-                        </div>
-
-                        <button type="submit" id="registerBtn" class="btn-primary w-full">
-                            <span class="btn-text">Create Account</span>
-                            <span class="btn-spinner" style="display: none;">
-                                <div class="spinner"></div>
-                                Creating account...
-                            </span>
+                        <button type="submit" class="btn btn-primary w-full">
+                            <span class="btn-text">Sign In</span>
+                            <div class="spinner hidden"></div>
                         </button>
                     </form>
 
-                    <div class="auth-footer">
-                        <p>Already have an account? <a href="login.html" class="text-link">Sign in here</a></p>
+                    <!-- Register Form -->
+                    <form id="registerForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="registerEmail" class="form-label">Email</label>
+                            <input type="email" id="registerEmail" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="registerPassword" class="form-label">Password</label>
+                            <input type="password" id="registerPassword" class="form-input" minlength="6" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword" class="form-label">Confirm Password</label>
+                            <input type="password" id="confirmPassword" class="form-input" minlength="6" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-full">
+                            <span class="btn-text">Create Account & Subscribe</span>
+                            <div class="spinner hidden"></div>
+                        </button>
+                    </form>
+
+                    <div id="authMessage" class="hidden"></div>
+                    
+                    <!-- Resend confirmation button -->
+                    <div id="resendSection" class="hidden">
+                        <button id="resendBtn" class="btn btn-secondary">
+                            <span class="btn-text">Resend Confirmation Email</span>
+                            <div class="spinner hidden"></div>
+                        </button>
+                        <p>Didn't receive the email? Check your spam folder or click to resend.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Pricing Plans -->
+            <div class="pricing-column">
+                <div id="pricingSection" class="pricing-section">
+                    <h2 class="pricing-title">Choose Your Plan</h2>
+                    <p class="pricing-subtitle">Select a subscription plan to get started with FlexiCAD Designer</p>
+                    <div class="pricing-cards">
+                        <div class="plan-card selected" data-plan="monthly">
+                            <div class="plan-header">
+                                <h3 class="plan-name">Monthly Plan</h3>
+                                <div class="plan-price">
+                                    <span class="currency">$</span>
+                                    <span class="amount">10</span>
+                                    <span class="period">/month</span>
+                                </div>
+                            </div>
+                            <div class="plan-features">
+                                <div class="feature">
+                                    <span class="feature-icon">✓</span>
+                                    <span class="feature-text">Unlimited AI generations</span>
+                                </div>
+                                <div class="feature">
+                                    <span class="feature-icon">✓</span>
+                                    <span class="feature-text">Access to all templates</span>
+                                </div>
+                                <div class="feature">
+                                    <span class="feature-icon">✓</span>
+                                    <span class="feature-text">Save unlimited designs</span>
+                                </div>
+                                <div class="feature">
+                                    <span class="feature-icon">✓</span>
+                                    <span class="feature-text">24/7 support</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="plan-card" data-plan="yearly">
+                            <div class="plan-header">
+                                <h3 class="plan-name">Yearly Plan</h3>
+                                <div class="plan-price">
+                                    <span class="currency">$</span>
+                                    <span class="amount">50</span>
+                                    <span class="period">/year</span>
+                                </div>
+                                <div class="plan-savings">Save $70/year!</div>
+                            </div>
+                            <div class="plan-features">
+                                <div class="feature">
+                                    <span class="feature-icon">✓</span>
+                                    <span class="feature-text">Unlimited AI generations</span>
+                                </div>
+                                <div class="feature">
+                                    <span class="feature-icon">✓</span>
+                                    <span class="feature-text">Access to all templates</span>
+                                </div>
+                                <div class="feature">
+                                    <span class="feature-icon">✓</span>
+                                    <span class="feature-text">Save unlimited designs</span>
+                                </div>
+                                <div class="feature">
+                                    <span class="feature-icon">✓</span>
+                                    <span class="feature-text">Priority 24/7 support</span>
+                                </div>
+                                <div class="feature">
+                                    <span class="feature-icon">✓</span>
+                                    <span class="feature-text">Early access to new features</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="config/env-config.js"></script>
     <script src="config/config.js"></script>
     <script src="js/flexicad-auth.js"></script>
     <script>
-        // Initialize Supabase client
-        const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+        // Initialize authentication
+        let currentPlan = 'monthly';
         
-        // Initialize Stripe
-        const stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
-        
-        // Plan selection variables
-        let selectedPlan = null;
-        let selectedPrice = 0;
-        let userEmail = null;
-        let userId = null;
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize auth system
+            await window.flexicadAuth.init();
+            
+            // Set initial state - Register tab active, show pricing
+            document.querySelector('.pricing-column').style.display = 'flex';
+            document.querySelector('.main-content').style.gridTemplateColumns = '1fr 1fr';
+            
+            // Add responsive check for mobile
+            function checkMobileLayout() {
+                if (window.innerWidth <= 768) {
+                    document.querySelector('.main-content').style.gridTemplateColumns = '1fr';
+                    document.querySelector('.pricing-column').style.display = 'flex';
+                }
+            }
+            
+            checkMobileLayout();
+            window.addEventListener('resize', checkMobileLayout);
+            
+            // Check URL parameters for status messages
+            const urlStatus = window.flexicadAuth.checkURLParams();
+            if (urlStatus) {
+                if (urlStatus.type === 'checkout_success') {
+                    showMessage(urlStatus.message, 'success');
+                    
+                    // Auto-switch to login tab and populate email if we have it
+                    const registrationEmail = sessionStorage.getItem('flexicad_registration_email');
+                    if (registrationEmail) {
+                        setTimeout(() => {
+                            document.querySelector('[data-tab="login"]').click();
+                            document.getElementById('loginEmail').value = registrationEmail;
+                            showMessage('Your account has been created! Please log in with your credentials.', 'info');
+                        }, 3000);
+                    }
+                } else if (urlStatus.type === 'checkout_cancelled') {
+                    showMessage(urlStatus.message, 'error');
+                } else if (urlStatus.type === 'auth_required') {
+                    showMessage(urlStatus.message, 'info');
+                }
+            }
+        });
 
-        // Plan selection functions
-        function selectPlan(planType, price) {
-            selectedPlan = planType;
-            selectedPrice = price;
-            
-            // Update UI
-            document.getElementById('selectedPlanName').textContent = planType.charAt(0).toUpperCase() + planType.slice(1);
-            document.getElementById('selectedPlanPrice').textContent = `$${price}/${planType === 'monthly' ? 'month' : 'year'}`;
-            
-            // Hide pricing section and show registration form
-            document.querySelector('.pricing-section').style.display = 'none';
-            document.getElementById('registrationForm').style.display = 'block';
-            
-            // Update the register button text
-            document.querySelector('.btn-text').textContent = `Create Account & Pay $${price}`;
-            
-            console.log(`Selected plan: ${planType} - $${price}`);
-        }
+        // Plan selection functionality
+        document.querySelectorAll('.plan-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                currentPlan = card.dataset.plan;
+                console.log('Selected plan:', currentPlan);
+            });
+        });
 
-        function changePlan() {
-            // Show pricing section and hide registration form
-            document.querySelector('.pricing-section').style.display = 'block';
-            document.getElementById('registrationForm').style.display = 'none';
-            
-            // Reset selection
-            selectedPlan = null;
-            selectedPrice = 0;
-        }
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                console.log('Tab clicked:', btn.dataset.tab);
+                const tab = btn.dataset.tab;
+                
+                // Update active tab
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Show/hide forms based on which tab is clicked
+                if (tab === 'login') {
+                    document.getElementById('loginForm').classList.remove('hidden');
+                    document.getElementById('registerForm').classList.add('hidden');
+                    // Hide pricing column for login
+                    document.querySelector('.pricing-column').style.display = 'none';
+                    // Make auth column full width
+                    document.querySelector('.main-content').style.gridTemplateColumns = '1fr';
+                    console.log('Showing login form');
+                } else if (tab === 'register') {
+                    document.getElementById('registerForm').classList.remove('hidden'); 
+                    document.getElementById('loginForm').classList.add('hidden');
+                    // Show pricing column for register
+                    document.querySelector('.pricing-column').style.display = 'flex';
+                    // Reset to two-column layout
+                    document.querySelector('.main-content').style.gridTemplateColumns = '1fr 1fr';
+                    console.log('Showing register form with pricing');
+                }
+                
+                // Clear messages
+                clearMessage();
+            });
+        });
 
+        // Updated login form handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            setLoadingState(submitBtn, true);
+            clearMessage();
+            
+            try {
+                const result = await window.flexicadAuth.login(email, password);
+                
+                if (result.success) {
+                    // Login successful - redirect to home
+                    showMessage('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'home.html';
+                    }, 1000);
+                    
+                } else if (result.redirectToRegister) {
+                    // User doesn't exist - show register option
+                    showMessage(result.message, 'info');
+                    
+                    // Auto-switch to register tab after 3 seconds
+                    setTimeout(() => {
+                        document.querySelector('[data-tab="register"]').click();
+                        document.getElementById('registerEmail').value = email;
+                        document.getElementById('registerPassword').value = password;
+                        showMessage('Please complete registration with payment to create your account.', 'info');
+                    }, 2000);
+                    
+                } else {
+                    // Other errors
+                    let errorMessage = result.error;
+                    
+                    // Provide more helpful error messages
+                    if (errorMessage === 'ACCOUNT_NOT_PAID') {
+                        errorMessage = 'Your account exists but requires an active subscription. Please contact support or re-register.';
+                    } else if (errorMessage.includes('Invalid login credentials')) {
+                        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+                    } else if (errorMessage.includes('Email not confirmed')) {
+                        errorMessage = 'Please check your email and click the confirmation link before logging in.';
+                        showResendButton(email);
+                    } else if (errorMessage.includes('too many requests') || errorMessage.includes('rate limit')) {
+                        errorMessage = 'Too many login attempts. Please wait a moment and try again.';
+                    }
+                    
+                    showMessage(errorMessage, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showMessage('An unexpected error occurred. Please try again.', 'error');
+            } finally {
+                setLoadingState(submitBtn, false);
+            }
+        });
+
+        // Updated register form handler
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
             
-            // Hide previous messages
-            hideMessages();
-            
-            // Validate form
-            if (!validateForm(email, password, confirmPassword)) {
+            if (password !== confirmPassword) {
+                showMessage('Passwords do not match', 'error');
                 return;
             }
             
-            // Show loading state
-            setLoadingState(true);
+            if (!currentPlan) {
+                showMessage('Please select a subscription plan', 'error');
+                return;
+            }
+
+            // Validate password strength
+            if (password.length < 6) {
+                showMessage('Password must be at least 6 characters long', 'error');
+                return;
+            }
+            
+            setLoadingState(submitBtn, true, 'Creating checkout session...');
+            clearMessage();
             
             try {
-                // PAYMENT-FIRST FLOW: NO supabase.auth.signUp() here!
-                // Go directly to Stripe checkout - account will be created by webhook after payment
+                console.log('🎯 Starting payment-first registration');
                 
-                console.log('Starting payment-first registration for:', { plan: selectedPlan, email: email });
+                // STEP 1: Check if user already exists in profiles table
+                if (window.flexicadAuth.supabaseClient) {
+                    const { data: existingProfile } = await window.flexicadAuth.supabaseClient
+                        .from('profiles')
+                        .select('email, is_paid, is_active')
+                        .eq('email', email.toLowerCase())
+                        .single();
+                    
+                    if (existingProfile) {
+                        if (existingProfile.is_paid && existingProfile.is_active) {
+                            throw new Error('This email is already registered with an active account. Please use the login form instead.');
+                        } else {
+                            throw new Error('This email is already registered but requires payment activation. Please contact support.');
+                        }
+                    }
+                }
                 
-                // Update button to show payment processing
-                document.querySelector('.btn-text').textContent = 'Creating checkout session...';
-
-                // Create Stripe checkout session WITHOUT creating Supabase account
+                // STEP 2: Create Stripe checkout session (NO Supabase account created yet)
                 const response = await fetch('/.netlify/functions/create-checkout-session', {
                     method: 'POST',
                     headers: {
@@ -208,7 +362,7 @@
                     body: JSON.stringify({
                         email: email,
                         password: password,
-                        plan: selectedPlan
+                        plan: currentPlan
                     })
                 });
 
@@ -217,7 +371,7 @@
                     throw new Error(errorData.error || 'Failed to create checkout session');
                 }
 
-                const { sessionId, url } = await response.json();
+                const { sessionId, url, message } = await response.json();
                 
                 if (!url) {
                     throw new Error('No checkout URL returned');
@@ -227,392 +381,151 @@
                 sessionStorage.setItem('flexicad_registration_email', email);
                 
                 // Update button text and redirect to Stripe
-                document.querySelector('.btn-text').textContent = 'Redirecting to Payment...';
+                setLoadingState(submitBtn, true, 'Redirecting to Payment...');
                 
                 console.log('✅ Redirecting to Stripe checkout:', url);
+                showMessage(message || 'Redirecting to secure payment...', 'success');
                 
                 // Redirect to Stripe Checkout (no Supabase account created yet)
-                window.location.href = url;
+                setTimeout(() => {
+                    window.location.href = url;
+                }, 1500);
                 
             } catch (error) {
                 console.error('Registration error:', error);
-                
                 let errorMessage = error.message;
                 
                 // Handle specific error cases for better UX
-                if (errorMessage.includes('already linked to a paid FlexiCAD account')) {
-                    errorMessage = 'This email is already registered. Please use the login page instead.';
+                if (errorMessage.includes('already registered with an active account')) {
+                    errorMessage = 'This email is already registered. Please use the login form instead.';
+                    
+                    // Auto-switch to login tab and populate email
+                    setTimeout(() => {
+                        document.querySelector('[data-tab="login"]').click();
+                        document.getElementById('loginEmail').value = email;
+                        document.getElementById('loginEmail').focus();
+                    }, 3000);
                 } else if (errorMessage.includes('Invalid email format')) {
                     errorMessage = 'Please enter a valid email address.';
                 } else if (errorMessage.includes('Failed to create checkout session')) {
                     errorMessage = 'Unable to process registration. Please try again.';
                 }
                 
-                showErrorMessage(errorMessage);
-                setLoadingState(false);
+                showMessage(errorMessage, 'error');
+            } finally {
+                setLoadingState(submitBtn, false);
             }
         });
 
-        function validateForm(email, password, confirmPassword) {
-            // Check if plan is selected
-            if (!selectedPlan || !selectedPrice) {
-                showErrorMessage('Please select a subscription plan before creating your account.');
-                return false;
-            }
+        function setLoadingState(button, loading, customText = null) {
+            const btnText = button.querySelector('.btn-text');
+            const spinner = button.querySelector('.spinner');
             
-            if (!email) {
-                showErrorMessage('Please enter your email address.');
-                return false;
-            }
-            
-            if (!isValidEmail(email)) {
-                showErrorMessage('Please enter a valid email address.');
-                return false;
-            }
-            
-            if (!password) {
-                showErrorMessage('Please enter a password.');
-                return false;
-            }
-            
-            if (password.length < 6) {
-                showErrorMessage('Password must be at least 6 characters long.');
-                return false;
-            }
-            
-            if (password !== confirmPassword) {
-                showErrorMessage('Passwords do not match.');
-                return false;
-            }
-            
-            return true;
-        }
-
-        function isValidEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
-        }
-
-        function setLoadingState(isLoading) {
-            const btn = document.getElementById('registerBtn');
-            const btnText = btn.querySelector('.btn-text');
-            const btnSpinner = btn.querySelector('.btn-spinner');
-            
-            if (isLoading) {
-                btn.disabled = true;
-                btnText.style.display = 'none';
-                btnSpinner.style.display = 'inline-flex';
+            if (loading) {
+                button.classList.add('btn-loading');
+                button.disabled = true;
+                btnText.textContent = customText || 'Loading...';
+                spinner.classList.remove('hidden');
             } else {
-                btn.disabled = false;
-                btnText.style.display = 'inline';
-                btnSpinner.style.display = 'none';
+                button.classList.remove('btn-loading');
+                button.disabled = false;
+                btnText.textContent = button.form.id === 'loginForm' ? 'Sign In' : 'Create Account & Subscribe';
+                spinner.classList.add('hidden');
             }
         }
 
-        function showErrorMessage(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            const errorText = document.getElementById('errorText');
-            errorText.textContent = message;
-            errorDiv.style.display = 'block';
+        function showMessage(message, type) {
+            const messageEl = document.getElementById('authMessage');
+            messageEl.textContent = message;
+            messageEl.className = `alert alert-${type}`;
+            messageEl.classList.remove('hidden');
         }
 
-        function showSuccessMessage(message = 'Registration successful! Redirecting to home...') {
-            const successDiv = document.getElementById('successMessage');
-            const successP = successDiv.querySelector('p');
-            successP.textContent = message;
-            successDiv.style.display = 'block';
+        function clearMessage() {
+            document.getElementById('authMessage').classList.add('hidden');
+            document.getElementById('resendSection').classList.add('hidden');
         }
 
-        function hideMessages() {
-            document.getElementById('errorMessage').style.display = 'none';
-            document.getElementById('successMessage').style.display = 'none';
-        }
-
-        function getErrorMessage(error) {
-            switch (error.message) {
-                case 'User already registered':
-                    return 'An account with this email already exists. Please try logging in instead.';
-                case 'Invalid login credentials':
-                    return 'Invalid email or password. Please check your credentials and try again.';
-                case 'Password should be at least 6 characters':
-                    return 'Password must be at least 6 characters long.';
-                case 'Unable to validate email address: invalid format':
-                    return 'Please enter a valid email address.';
-                default:
-                    return error.message || 'An error occurred during registration. Please try again.';
-            }
-        }
-
-        // Check if user is already logged in
-        async function checkExistingSession() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                window.location.href = 'home.html';
-            }
-        }
-
-        // Check session on page load
-        checkExistingSession();
-    </script>
-
-    <style>
-        .auth-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 60vh;
-            padding: 2rem 0;
-        }
-
-        .auth-card {
-            width: 100%;
-            max-width: 400px;
-            padding: 2rem;
-        }
-
-        .auth-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .form-text {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-top: 0.25rem;
-        }
-
-        .auth-footer {
-            text-align: center;
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .text-link {
-            color: var(--accent-color);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .text-link:hover {
-            text-decoration: underline;
-        }
-
-        .w-full {
-            width: 100%;
-        }
-
-        /* Pricing Styles */
-        .pricing-section {
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        .pricing-title {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            color: var(--text-primary);
-        }
-
-        .pricing-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .pricing-card {
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            padding: 2rem;
-            position: relative;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .pricing-card:hover {
-            border-color: var(--accent-color);
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 150, 136, 0.2);
-        }
-
-        .pricing-card.featured {
-            border-color: var(--accent-color);
-            background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(0, 150, 136, 0.1) 100%);
-        }
-
-        .featured-badge {
-            position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--accent-color);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-
-        .pricing-header {
-            margin-bottom: 2rem;
-        }
-
-        .pricing-header h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: var(--text-primary);
-        }
-
-        .price {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.25rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .currency {
-            font-size: 1.5rem;
-            color: var(--text-secondary);
-        }
-
-        .amount {
-            font-size: 3rem;
-            font-weight: 700;
-            color: var(--accent-color);
-        }
-
-        .period {
-            font-size: 1.25rem;
-            color: var(--text-secondary);
-        }
-
-        .savings {
-            color: var(--success-color, #4CAF50);
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .pricing-features {
-            list-style: none;
-            padding: 0;
-            margin: 2rem 0;
-            text-align: left;
-        }
-
-        .pricing-features li {
-            padding: 0.5rem 0;
-            color: var(--text-primary);
-            font-size: 0.95rem;
-        }
-
-        .btn-pricing {
-            width: 100%;
-            padding: 1rem 2rem;
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-pricing:hover {
-            background: var(--accent-color);
-            color: white;
-            border-color: var(--accent-color);
-        }
-
-        .btn-pricing.featured {
-            background: var(--accent-color);
-            color: white;
-            border-color: var(--accent-color);
-        }
-
-        .btn-pricing.featured:hover {
-            background: #00a89c;
-            border-color: #00a89c;
-        }
-
-        .selected-plan-info {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-
-        .selected-plan-info p {
-            margin: 0 0 0.5rem 0;
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        .btn-link {
-            background: none;
-            border: none;
-            color: var(--accent-color);
-            text-decoration: underline;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-
-        .btn-link:hover {
-            color: #00a89c;
-        }
-
-        @media (max-width: 768px) {
-            .pricing-cards {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-
-            .pricing-card {
-                padding: 1.5rem;
-            }
-
-            .amount {
-                font-size: 2.5rem;
-            }
-        }
-
-        .btn-spinner {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid transparent;
-            border-top: 2px solid currentColor;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 768px) {
-            .auth-container {
-                padding: 1rem;
-            }
+        function showResendButton(email) {
+            const resendSection = document.getElementById('resendSection');
+            const resendBtn = document.getElementById('resendBtn');
             
-            .auth-card {
-                padding: 1.5rem;
-            }
+            resendSection.classList.remove('hidden');
+            
+            // Remove any existing click listeners and add new one
+            const newResendBtn = resendBtn.cloneNode(true);
+            resendBtn.parentNode.replaceChild(newResendBtn, resendBtn);
+            
+            newResendBtn.addEventListener('click', async () => {
+                const btnText = newResendBtn.querySelector('.btn-text');
+                const spinner = newResendBtn.querySelector('.spinner');
+                
+                // Show loading state
+                newResendBtn.disabled = true;
+                btnText.textContent = 'Sending...';
+                spinner.classList.remove('hidden');
+                
+                try {
+                    // Since we're using proxy auth, we need to call the proxy endpoint
+                    const result = await fetch('/.netlify/functions/auth-proxy', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: 'resend',
+                            email: email
+                        })
+                    });
+                    
+                    if (result.ok) {
+                        showMessage('Confirmation email sent! Please check your inbox.', 'success');
+                        resendSection.classList.add('hidden');
+                    } else {
+                        throw new Error('Failed to send confirmation email');
+                    }
+                } catch (error) {
+                    showMessage('Failed to resend confirmation email. Please try again later.', 'error');
+                } finally {
+                    // Reset button state
+                    newResendBtn.disabled = false;
+                    btnText.textContent = 'Resend Confirmation Email';
+                    spinner.classList.add('hidden');
+                }
+            });
+        }
+    </script>
+    
+    <style>
+        .auth-form {
+            display: block;
+        }
+        .auth-form.hidden {
+            display: none !important;
+        }
+        .tab-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            margin-right: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: var(--button-primary);
+            color: white;
+            border-color: var(--button-primary);
+        }
+        #resendSection {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        #resendSection p {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
         }
     </style>
 </body>

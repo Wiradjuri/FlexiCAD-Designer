@@ -39,7 +39,7 @@ INSERT INTO public.profiles (
     id, 
     email, 
     is_paid, 
-    is_active, 
+ 
     subscription_plan, 
     stripe_customer_id,
     stripe_subscription_id,

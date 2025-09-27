@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Required - FlexiCAD Designer</title>
+    <link rel="stylesheet" href="css/dark-theme.css">
+    <style>
+        .payment-required {
+            max-width: 600px;
+            margin: 4rem auto;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .payment-icon {
+            font-size: 4rem;
+            color: #f59e0b;
+            margin-bottom: 2rem;
+        }
+
+        .payment-message {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .payment-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .account-info {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .account-info h3 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .account-details {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .payment-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .payment-required {
+                margin: 2rem auto;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-brand">FlexiCAD Designer</div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="about.html" class="nav-link">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="payment-required">
+        <div class="payment-icon">💳</div>
+
+        <h1>Payment Required</h1>
+
+        <div class="payment-message">
+            <h2>Your account needs payment to be activated</h2>
+            <p>Your FlexiCAD Designer account has been created, but requires payment to access the full platform. Complete your subscription to start creating amazing 3D designs with AI.</p>
+        </div>
+
+        <div id="account-info" class="account-info" style="display: none;">
+            <h3>Account Information</h3>
+            <div class="account-details">
+                <p><strong>Email:</strong> <span id="user-email">—</span></p>
+                <p><strong>Account Status:</strong> <span class="status-unpaid">Unpaid</span></p>
+                <p><strong>Plan:</strong> <span id="user-plan">—</span></p>
+            </div>
+        </div>
+
+        <div class="payment-actions">
+            <a href="register.html" class="btn btn-primary">Complete Payment</a>
+            <button onclick="logout()" class="btn btn-secondary">Logout</button>
+            <a href="login.html" class="btn btn-link">Already paid? Login here</a>
+        </div>
+
+        <div style="margin-top: 3rem; color: var(--text-secondary); font-size: 0.9rem;">
+            <p>Need help? Contact our support team.</p>
+            <p>Your account will remain active for 30 days pending payment completion.</p>
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config/env-config.js"></script>
+    <script src="config/config.js"></script>
+    <script src="js/flexicad-auth.js"></script>
+    <script>
+        // Payment Required Page Logic
+
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+
+        async function logout() {
+            console.log('🔄 Logging out user...');
+
+            // Sign out from Supabase
+            await supabase.auth.signOut();
+
+            // Clear session storage
+            sessionStorage.clear();
+
+            console.log('✅ User logged out');
+
+            // Redirect to home
+            window.location.href = '/index.html';
+        }
+
+        // Check if user is logged in and show their info
+        async function checkUserStatus() {
+            try {
+                await window.flexicadAuth.init();
+
+                if (window.flexicadAuth.user) {
+                    console.log('✅ User is logged in, showing account info');
+
+                    // Show account info section
+                    const accountInfo = document.getElementById('account-info');
+                    const userEmail = document.getElementById('user-email');
+                    const userPlan = document.getElementById('user-plan');
+
+                    if (accountInfo && userEmail) {
+                        userEmail.textContent = window.flexicadAuth.user.email;
+                        userPlan.textContent = window.flexicadAuth.paymentStatus?.subscription_plan || 'Not set';
+                        accountInfo.style.display = 'block';
+                    }
+
+                    // If user is actually paid, redirect them to home
+                    if (window.flexicadAuth.paymentStatus?.is_paid) {
+                        console.log('🎉 User is actually paid, redirecting to home');
+                        window.location.href = '/home.html';
+                        return;
+                    }
+                } else {
+                    console.log('ℹ️ No user logged in');
+                }
+            } catch (error) {
+                console.error('❌ Error checking user status:', error);
+            }
+        }
+
+        // Check URL parameters for specific messages
+        function checkURLParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+
+            if (message) {
+                const messageDiv = document.querySelector('.payment-message p');
+                if (messageDiv) {
+                    switch (message) {
+                        case 'login_blocked':
+                            messageDiv.textContent = 'Your account requires payment before you can log in. Please complete your subscription to access FlexiCAD Designer.';
+                            break;
+                        case 'access_denied':
+                            messageDiv.textContent = 'Access denied. Your account does not have an active subscription. Please complete payment to continue.';
+                            break;
+                        case 'payment_incomplete':
+                            messageDiv.textContent = 'Your registration was started but payment was not completed. Please finish your subscription to activate your account.';
+                            break;
+                        default:
+                            // Keep default message
+                            break;
+                    }
+                }
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Initializing payment required page...');
+
+            // Check URL parameters first
+            checkURLParams();
+
+            // Check user status
+            await checkUserStatus();
+        });
+    </script>
+</body>
+</html>

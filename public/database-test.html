@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Schema Test - FlexiCAD</title>
+    <link rel="stylesheet" href="css/flexicad.css">
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .test-result {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .test-result.success {
+            border-color: var(--success-color);
+        }
+        .test-result.error {
+            border-color: var(--error-color);
+        }
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        .status-indicator.success { background-color: var(--success-color); }
+        .status-indicator.error { background-color: var(--error-color); }
+        .status-indicator.warning { background-color: var(--warning-color); }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">FlexiCAD - Database Test</div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="test-container">
+            <h1>Database Schema Test</h1>
+            <p>This page will help us understand what columns exist in your production database.</p>
+
+            <div class="btn-group">
+                <button id="checkSchemaBtn" class="btn btn-primary">Check Database Schema</button>
+                <button id="testAuthBtn" class="btn btn-secondary">Test Authentication</button>
+                <button id="clearLogsBtn" class="btn btn-outline">Clear Logs</button>
+            </div>
+
+            <div id="authStatus">
+                <h3>Authentication Status</h3>
+                <div id="authResult" class="test-result"></div>
+            </div>
+
+            <div id="schemaStatus">
+                <h3>Database Schema</h3>
+                <div id="schemaResult" class="test-result"></div>
+            </div>
+
+            <div id="testLogs">
+                <h3>Test Logs</h3>
+                <div id="logResult" class="test-result"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Load scripts in correct order -->
+    <script src="js/env-config.js"></script>
+    <script src="config/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/dist/umd/supabase.min.js"></script>
+    <script src="js/db-helper.js"></script>
+    <script src="js/flexicad-auth.js"></script>
+
+    <script>
+        let logs = [];
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            logs.push(`[${timestamp}] ${type.toUpperCase()}: ${message}`);
+            updateLogDisplay();
+        }
+
+        function updateLogDisplay() {
+            const logElement = document.getElementById('logResult');
+            logElement.textContent = logs.join('\n');
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function updateAuthStatus(status, message) {
+            const element = document.getElementById('authResult');
+            const indicator = status === 'success' ? '🟢' : status === 'warning' ? '🟡' : '🔴';
+            element.textContent = `${indicator} ${message}`;
+            element.className = `test-result ${status}`;
+        }
+
+        function updateSchemaStatus(status, data) {
+            const element = document.getElementById('schemaResult');
+            const indicator = status === 'success' ? '🟢' : status === 'warning' ? '🟡' : '🔴';
+            element.textContent = `${indicator}\n${JSON.stringify(data, null, 2)}`;
+            element.className = `test-result ${status}`;
+        }
+
+        async function checkDatabaseSchema() {
+            addLog('Starting database schema check...');
+            
+            try {
+                // Initialize FlexiCAD Auth
+                const auth = new FlexiCADAuth();
+                await auth.init();
+
+                if (!auth.supabaseClient) {
+                    throw new Error('Supabase client not initialized');
+                }
+
+                // Initialize database helper
+                const dbHelper = new DatabaseHelper(auth.supabaseClient);
+                
+                addLog('Checking available columns...');
+                const columns = await dbHelper.checkProfileColumns();
+                
+                const schemaInfo = {
+                    availableColumns: columns,
+                    hasPaymentColumns: {
+                        is_paid: columns.includes('is_paid'),
+                        subscription_plan: columns.includes('subscription_plan'),
+                        stripe_customer_id: columns.includes('stripe_customer_id')
+                    },
+                    hasFallbackColumns: {
+                        is_active: columns.includes('is_active')
+                    }
+                };
+
+                updateSchemaStatus('success', schemaInfo);
+                addLog(`Found ${columns.length} columns in profiles table`);
+
+                // Check if we have the required payment columns
+                if (schemaInfo.hasPaymentColumns.is_paid) {
+                    addLog('✅ Payment columns found - production ready!');
+                } else if (schemaInfo.hasFallbackColumns.is_active) {
+                    addLog('⚠️ Using fallback column is_active for payment status');
+                } else {
+                    addLog('❌ No payment status columns found - database needs migration');
+                }
+
+            } catch (error) {
+                addLog(`Schema check failed: ${error.message}`, 'error');
+                updateSchemaStatus('error', { error: error.message });
+            }
+        }
+
+        async function testAuthentication() {
+            addLog('Testing authentication system...');
+            
+            try {
+                const auth = new FlexiCADAuth();
+                await auth.init();
+
+                if (!auth.user) {
+                    updateAuthStatus('warning', 'No user logged in');
+                    addLog('No authenticated user found');
+                    return;
+                }
+
+                addLog(`Authenticated as: ${auth.user.email}`);
+
+                // Test payment status check
+                addLog('Checking payment status...');
+                const paymentStatus = await auth.checkPaymentStatus();
+
+                const authInfo = {
+                    user: {
+                        id: auth.user.id,
+                        email: auth.user.email,
+                        created_at: auth.user.created_at
+                    },
+                    paymentStatus: paymentStatus
+                };
+
+                updateAuthStatus('success', `Authenticated: ${auth.user.email}\nPayment Status: ${JSON.stringify(paymentStatus, null, 2)}`);
+                addLog('✅ Authentication test completed successfully');
+
+            } catch (error) {
+                addLog(`Authentication test failed: ${error.message}`, 'error');
+                updateAuthStatus('error', `Authentication failed: ${error.message}`);
+            }
+        }
+
+        function clearLogs() {
+            logs = [];
+            updateLogDisplay();
+        }
+
+        // Event listeners
+        document.getElementById('checkSchemaBtn').addEventListener('click', checkDatabaseSchema);
+        document.getElementById('testAuthBtn').addEventListener('click', testAuthentication);
+        document.getElementById('clearLogsBtn').addEventListener('click', clearLogs);
+
+        // Auto-run schema check on page load
+        window.addEventListener('load', () => {
+            addLog('Database test page loaded');
+            setTimeout(checkDatabaseSchema, 1000); // Give time for auth to initialize
+        });
+    </script>
+</body>
+</html>

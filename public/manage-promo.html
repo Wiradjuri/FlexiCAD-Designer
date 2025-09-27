@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promo Code Management - FlexiCAD Designer</title>
+    <link rel="stylesheet" href="css/dark-theme.css">
+    <style>
+        .promo-management {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .management-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .form-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group-full {
+            grid-column: 1 / -1;
+        }
+
+        .table-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .promo-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .promo-table th,
+        .promo-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .promo-table th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .promo-table tr:hover {
+            background: var(--bg-secondary);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-inactive {
+            background: #ef4444;
+            color: white;
+        }
+
+        .status-expired {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-toggle {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-toggle:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .admin-only {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .promo-table {
+                font-size: 0.8rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-brand">FlexiCAD Designer - Admin</div>
+            <ul class="nav-menu">
+                <li><a href="ai.html" class="nav-link">Back to App</a></li>
+                <li><button onclick="logout()" class="nav-link btn">Logout</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="promo-management">
+        <div class="management-header">
+            <h1 class="page-title">Promo Code Management</h1>
+            <p class="page-subtitle">Create and manage discount codes for FlexiCAD Designer subscriptions</p>
+        </div>
+
+        <div id="auth-check" class="admin-only">
+            🔐 Checking admin permissions...
+        </div>
+
+        <div id="admin-content" style="display: none;">
+            <!-- Add New Promo Code Form -->
+            <div class="form-section">
+                <h2>Create New Promo Code</h2>
+                <div id="form-messages"></div>
+
+                <form id="promo-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="code">Promo Code *</label>
+                            <input type="text" id="code" name="code" required
+                                   placeholder="e.g., WELCOME20"
+                                   style="text-transform: uppercase;"
+                                   pattern="[A-Z0-9]+"
+                                   title="Only uppercase letters and numbers allowed">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="discount">Discount % *</label>
+                            <input type="number" id="discount" name="discount"
+                                   min="1" max="100" required
+                                   placeholder="e.g., 20">
+                        </div>
+
+                        <div class="form-group form-group-full">
+                            <label for="description">Description</label>
+                            <input type="text" id="description" name="description"
+                                   placeholder="e.g., 20% off for new customers">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="expires-at">Expiry Date (Optional)</label>
+                            <input type="datetime-local" id="expires-at" name="expires_at">
+                        </div>
+
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-primary">Create Promo Code</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Promo Codes Table -->
+            <div class="table-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2>Existing Promo Codes</h2>
+                    <button onclick="loadPromoCodes()" class="btn btn-secondary">🔄 Refresh</button>
+                </div>
+
+                <div id="table-loading" class="loading">Loading promo codes...</div>
+                <div id="table-error" style="display: none;"></div>
+
+                <table class="promo-table" id="promo-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Description</th>
+                            <th>Discount</th>
+                            <th>Status</th>
+                            <th>Expires</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="promo-table-body">
+                        <!-- Promo codes will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config/env-config.js"></script>
+    <script src="config/config.js"></script>
+    <script src="js/flexicad-auth.js"></script>
+    <script>
+        // Promo Code Management System
+        let supabaseAdmin = null;
+
+        // Initialize admin Supabase client with service role
+        function initializeAdminSupabase() {
+            // For demo purposes, we'll use the regular client
+            // In production, you'd need a secure way to handle service role key
+            supabaseAdmin = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+            return supabaseAdmin;
+        }
+
+        // Check if user is admin and authenticated
+        async function checkAdminAccess() {
+            console.log('🔐 Checking admin access...');
+
+            try {
+                // Initialize auth system
+                await window.flexicadAuth.init();
+
+                // Check if user is logged in
+                if (!window.flexicadAuth.user) {
+                    showMessage('error', 'Admin access required. Please log in first.');
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 2000);
+                    return false;
+                }
+
+                // Check if user is paid (basic requirement)
+                if (!window.flexicadAuth.paymentStatus?.is_paid) {
+                    showMessage('error', 'Admin access denied. Account must have valid payment.');
+                    return false;
+                }
+
+                // Check admin status from database
+                const isAdminUser = await window.flexicadAuth.checkAdminAccess();
+
+                if (!isAdminUser) {
+                    showMessage('error', 'Admin access denied. This feature is restricted to administrators only.');
+                    setTimeout(() => {
+                        window.location.href = '/ai.html';
+                    }, 3000);
+                    return false;
+                }
+
+                console.log('✅ Admin access granted');
+                document.getElementById('auth-check').style.display = 'none';
+                document.getElementById('admin-content').style.display = 'block';
+
+                // Initialize admin client
+                initializeAdminSupabase();
+
+                // Load initial data
+                await loadPromoCodes();
+
+                return true;
+            } catch (error) {
+                console.error('❌ Admin access check failed:', error);
+                showMessage('error', 'Failed to verify admin access: ' + error.message);
+                return false;
+            }
+        }
+
+        // Show success/error messages
+        function showMessage(type, message) {
+            const container = document.getElementById('form-messages');
+            const className = type === 'error' ? 'error-message' : 'success-message';
+            container.innerHTML = `<div class="${className}">${message}</div>`;
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        // Create new promo code
+        async function createPromoCode(formData) {
+            console.log('🎟️ Creating promo code:', formData.code);
+
+            try {
+                const promoData = {
+                    code: formData.code.toUpperCase(),
+                    description: formData.description || null,
+                    discount_percent: parseInt(formData.discount),
+                    expires_at: formData.expires_at || null
+                };
+
+                const { data, error } = await supabaseAdmin
+                    .from('promo_codes')
+                    .insert([promoData])
+                    .select()
+                    .single();
+
+                if (error) {
+                    throw error;
+                }
+
+                console.log('✅ Promo code created successfully:', data);
+                showMessage('success', `Promo code "${formData.code}" created successfully!`);
+
+                // Reset form and reload table
+                document.getElementById('promo-form').reset();
+                await loadPromoCodes();
+
+            } catch (error) {
+                console.error('❌ Failed to create promo code:', error);
+
+                if (error.code === '23505') { // Unique constraint violation
+                    showMessage('error', 'Promo code already exists. Please choose a different code.');
+                } else {
+                    showMessage('error', 'Failed to create promo code: ' + error.message);
+                }
+            }
+        }
+
+        // Load all promo codes
+        async function loadPromoCodes() {
+            console.log('📋 Loading promo codes...');
+
+            const loading = document.getElementById('table-loading');
+            const table = document.getElementById('promo-table');
+            const errorDiv = document.getElementById('table-error');
+
+            loading.style.display = 'block';
+            table.style.display = 'none';
+            errorDiv.style.display = 'none';
+
+            try {
+                const { data: promoCodes, error } = await supabaseAdmin
+                    .from('promo_codes')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    throw error;
+                }
+
+                console.log('✅ Loaded promo codes:', promoCodes.length);
+
+                // Populate table
+                const tbody = document.getElementById('promo-table-body');
+                tbody.innerHTML = '';
+
+                if (promoCodes.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-secondary);">No promo codes found. Create your first one above!</td></tr>';
+                } else {
+                    promoCodes.forEach(promo => {
+                        tbody.appendChild(createPromoRow(promo));
+                    });
+                }
+
+                loading.style.display = 'none';
+                table.style.display = 'table';
+
+            } catch (error) {
+                console.error('❌ Failed to load promo codes:', error);
+                loading.style.display = 'none';
+                errorDiv.innerHTML = `<div class="error-message">Failed to load promo codes: ${error.message}</div>`;
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // Create table row for promo code
+        function createPromoRow(promo) {
+            const row = document.createElement('tr');
+
+            // Determine status
+            const now = new Date();
+            const expiresAt = promo.expires_at ? new Date(promo.expires_at) : null;
+
+            let status, statusClass;
+            if (!promo.active) {
+                status = 'Inactive';
+                statusClass = 'status-inactive';
+            } else if (expiresAt && expiresAt <= now) {
+                status = 'Expired';
+                statusClass = 'status-expired';
+            } else {
+                status = 'Active';
+                statusClass = 'status-active';
+            }
+
+            row.innerHTML = `
+                <td><strong>${promo.code}</strong></td>
+                <td>${promo.description || '—'}</td>
+                <td>${promo.discount_percent}%</td>
+                <td><span class="status-badge ${statusClass}">${status}</span></td>
+                <td>${expiresAt ? new Date(promo.expires_at).toLocaleDateString() : 'Never'}</td>
+                <td>${new Date(promo.created_at).toLocaleDateString()}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-small btn-toggle" onclick="togglePromoCode('${promo.code}', ${promo.active})">
+                            ${promo.active ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button class="btn-small btn-delete" onclick="deletePromoCode('${promo.code}')">
+                            Delete
+                        </button>
+                    </div>
+                </td>
+            `;
+
+            return row;
+        }
+
+        // Toggle promo code active status
+        async function togglePromoCode(code, currentStatus) {
+            console.log('🔄 Toggling promo code:', code, 'from', currentStatus, 'to', !currentStatus);
+
+            try {
+                const { error } = await supabaseAdmin
+                    .from('promo_codes')
+                    .update({ active: !currentStatus })
+                    .eq('code', code);
+
+                if (error) {
+                    throw error;
+                }
+
+                console.log('✅ Promo code toggled successfully');
+                showMessage('success', `Promo code "${code}" ${!currentStatus ? 'activated' : 'deactivated'} successfully!`);
+                await loadPromoCodes();
+
+            } catch (error) {
+                console.error('❌ Failed to toggle promo code:', error);
+                showMessage('error', 'Failed to update promo code: ' + error.message);
+            }
+        }
+
+        // Delete promo code
+        async function deletePromoCode(code) {
+            if (!confirm(`Are you sure you want to delete promo code "${code}"? This action cannot be undone.`)) {
+                return;
+            }
+
+            console.log('🗑️ Deleting promo code:', code);
+
+            try {
+                const { error } = await supabaseAdmin
+                    .from('promo_codes')
+                    .delete()
+                    .eq('code', code);
+
+                if (error) {
+                    throw error;
+                }
+
+                console.log('✅ Promo code deleted successfully');
+                showMessage('success', `Promo code "${code}" deleted successfully!`);
+                await loadPromoCodes();
+
+            } catch (error) {
+                console.error('❌ Failed to delete promo code:', error);
+                showMessage('error', 'Failed to delete promo code: ' + error.message);
+            }
+        }
+
+        // Logout function
+        async function logout() {
+            await window.flexicadAuth.logout();
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Initializing promo code management page...');
+
+            // Check admin access first
+            await checkAdminAccess();
+
+            // Set up form handler
+            document.getElementById('promo-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData.entries());
+
+                await createPromoCode(data);
+            });
+
+            // Auto-uppercase promo code input
+            document.getElementById('code').addEventListener('input', (e) => {
+                e.target.value = e.target.value.toUpperCase();
+            });
+        });
+    </script>
+</body>
+</html>

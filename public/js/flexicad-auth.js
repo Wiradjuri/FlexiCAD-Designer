@@ -212,6 +212,99 @@ class FlexiCADAuth {
         return true;
     }
 
+    // Updated login method with profile checking
+    async login(email, password) {
+        try {
+            console.log('🔄 Starting login process for:', email);
+
+            if (!this.supabaseClient) {
+                await this.initializeSupabase();
+            }
+
+            // STEP 1: Check if user exists in Supabase profiles table first
+            const { data: profile, error: profileError } = await this.supabaseClient
+                .from('profiles')
+                .select('id, email, is_paid, is_active')
+                .eq('email', email.toLowerCase())
+                .single();
+
+            if (profileError && profileError.code === 'PGRST116') {
+                // User doesn't exist in profiles table - redirect to register
+                console.log('❌ User not found in profiles table - redirecting to register');
+                throw new Error('ACCOUNT_NOT_FOUND');
+            } else if (profileError) {
+                throw new Error(`Profile check failed: ${profileError.message}`);
+            }
+
+            // STEP 2: User exists in profiles, check if they're paid and active
+            if (!profile.is_paid || !profile.is_active) {
+                console.log('🚨 User exists but not paid/active:', profile);
+                throw new Error('ACCOUNT_NOT_PAID');
+            }
+
+            // STEP 3: Attempt Supabase authentication
+            const { data, error } = await this.supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+            if (error) {
+                console.error('❌ Supabase login error:', error);
+                
+                // Handle specific auth errors
+                if (error.message.includes('Invalid login credentials')) {
+                    throw new Error('Invalid email or password. Please check your credentials.');
+                } else if (error.message.includes('Email not confirmed')) {
+                    throw new Error('Please check your email and click the confirmation link.');
+                } else {
+                    throw new Error(error.message);
+                }
+            }
+
+            if (!data.user) {
+                throw new Error('Login failed - no user data returned');
+            }
+
+            console.log('✅ Login successful');
+            
+            // User data is automatically set by auth state listener
+            this.user = data.user;
+            sessionStorage.setItem('flexicad_user', JSON.stringify(this.user));
+
+            // Re-fetch payment status to ensure sync
+            await this.checkPaymentStatus();
+
+            console.log('✅ Login complete with payment verification');
+            
+            return { 
+                success: true, 
+                user: this.user, 
+                paymentStatus: this.paymentStatus
+            };
+            
+        } catch (error) {
+            console.error('❌ Login error:', error);
+            
+            // Handle special error cases
+            if (error.message === 'ACCOUNT_NOT_FOUND') {
+                return { 
+                    success: false, 
+                    error: 'ACCOUNT_NOT_FOUND',
+                    redirectToRegister: true,
+                    message: 'Account not found. Please register first.'
+                };
+            } else if (error.message === 'ACCOUNT_NOT_PAID') {
+                return { 
+                    success: false, 
+                    error: 'ACCOUNT_NOT_PAID',
+                    message: 'Account exists but payment is required. Please contact support.'
+                };
+            }
+            
+            return { success: false, error: error.message };
+        }
+    }
+
     // Payment-first registration: goes directly to Stripe checkout
     async register(email, password, plan = 'monthly') {
         try {
@@ -252,59 +345,6 @@ class FlexiCADAuth {
             };
         } catch (error) {
             console.error('Registration error:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    // Production-ready login with integrated Supabase and payment checking
-    async login(email, password) {
-        try {
-            console.log('🔄 Starting login process for:', email);
-
-            if (!this.supabaseClient) {
-                await this.initializeSupabase();
-            }
-
-            // Attempt Supabase login
-            const { data, error } = await this.supabaseClient.auth.signInWithPassword({
-                email: email,
-                password: password
-            });
-
-            if (error) {
-                console.error('❌ Supabase login error:', error);
-                throw new Error(error.message);
-            }
-
-            if (!data.user) {
-                throw new Error('Login failed - no user data returned');
-            }
-
-            console.log('✅ Supabase login successful');
-            
-            // User data is automatically set by auth state listener
-            this.user = data.user;
-            sessionStorage.setItem('flexicad_user', JSON.stringify(this.user));
-
-            // Check payment status in profiles table
-            await this.checkPaymentStatus();
-
-            // In payment-first system, all users should be paid and active
-            if (!this.paymentStatus.is_paid || !this.paymentStatus.is_active) {
-                console.error('🚨 User exists but not paid or not active - payment-first violation');
-                await this.supabaseClient.auth.signOut();
-                throw new Error('Account payment issue. Please contact support or re-register.');
-            }
-
-            console.log('✅ Login complete with payment verification');
-            
-            return { 
-                success: true, 
-                user: this.user, 
-                paymentStatus: this.paymentStatus
-            };
-        } catch (error) {
-            console.error('❌ Login error:', error);
             return { success: false, error: error.message };
         }
     }

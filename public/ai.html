@@ -16,6 +16,7 @@
                 <li><a href="ai.html" class="active">AI Generator</a></li>
                 <li><a href="my-designs.html">My Designs</a></li>
                 <li><a href="about.html">About</a></li>
+                <li id="admin-link" style="display: none;"><a href="manage-promo.html" class="admin-nav">Admin</a></li>
             </ul>
             <div class="nav-user">
                 <span class="user-info" id="userInfo"></span>
@@ -158,6 +159,14 @@
                 const userInfo = document.querySelector('.user-info');
                 if (window.flexicadAuth.user && userInfo) {
                     userInfo.textContent = window.flexicadAuth.user.email || 'User';
+                }
+
+                // Show admin link if user is admin
+                if (window.flexicadAuth.isAdmin()) {
+                    const adminLink = document.getElementById('admin-link');
+                    if (adminLink) {
+                        adminLink.style.display = 'block';
+                    }
                 }
                 
                 // Initialize AI generation functionality

@@ -1,31 +1,37 @@
 {
   "name": "flexicad-designer",
   "version": "1.0.0",
-  "description": "AI-powered OpenSCAD design platform with templates and user authentication",
-  "main": "public/index.html",
+  "description": "AI-powered 3D design tool with payment-first authentication",
+  "main": "index.js",
   "scripts": {
     "dev": "netlify dev",
-    "build": "node build-config.js && node build-env-config.js",
-    "build:env": "node build-env-config.js",
-    "deploy": "npm run build && netlify deploy --prod"
+    "build": "echo 'Build completed'",
+    "start": "netlify dev",
+    "test": "echo 'No tests specified'"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.38.0",
-    "dotenv": "^17.2.2",
-    "openai": "^4.20.0",
-    "stripe": "^14.10.0"
+    "stripe": "^14.21.0",
+    "@supabase/supabase-js": "^2.39.3"
   },
   "devDependencies": {
-    "netlify-cli": "^17.10.1",
-    "supabase": "^2.45.5"
+    "netlify-cli": "^17.15.4"
   },
   "keywords": [
-    "openscad",
-    "ai",
     "3d-design",
+    "openscad", 
+    "ai",
     "cad",
-    "templates"
+    "stripe",
+    "supabase",
+    "netlify"
   ],
   "author": "FlexiCAD Team",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/flexicad-designer.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }

@@ -1,311 +1,301 @@
+// netlify/functions/stripe-webhook.js
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { createClient } = require('@supabase/supabase-js');
 
-// Initialize Supabase client with service role key for admin operations
-const supabase = createClient(
+// Use service role key for admin operations (can bypass RLS)
+const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 exports.handler = async (event, context) => {
-  console.log('🔔 Stripe webhook received');
+  console.log('🎯 Webhook received:', event.httpMethod);
 
-  // CORS headers
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Stripe-Signature',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  };
-
-  // Handle preflight requests
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers,
-      body: '',
-    };
-  }
-
-  if (event.httpMethod !== 'POST') {
-    console.log('❌ Method not allowed:', event.httpMethod);
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({ error: 'Method not allowed' }),
-    };
-  }
-
-  // Verify webhook signature
   const sig = event.headers['stripe-signature'];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-  if (!webhookSecret) {
-    console.error('❌ STRIPE_WEBHOOK_SECRET not configured');
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: 'Webhook secret not configured' }),
-    };
-  }
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   let stripeEvent;
 
   try {
-    // Verify the webhook signature
-    stripeEvent = stripe.webhooks.constructEvent(event.body, sig, webhookSecret);
+    // Verify webhook signature for security
+    stripeEvent = stripe.webhooks.constructEvent(event.body, sig, endpointSecret);
     console.log('✅ Webhook signature verified for event:', stripeEvent.type);
   } catch (err) {
     console.error('❌ Webhook signature verification failed:', err.message);
     return {
       statusCode: 400,
-      headers,
-      body: JSON.stringify({ 
-        error: 'Webhook signature verification failed',
-        details: err.message 
-      }),
+      body: JSON.stringify({ error: `Webhook Error: ${err.message}` })
     };
   }
 
+  // Handle the event
   try {
-    // Handle different Stripe events
     switch (stripeEvent.type) {
       case 'checkout.session.completed':
-        console.log('🎉 Processing checkout.session.completed');
-        await handleCheckoutSessionCompleted(stripeEvent.data.object);
+        await handleCheckoutCompleted(stripeEvent.data.object);
         break;
-      
+        
+      case 'customer.subscription.updated':
+        await handleSubscriptionUpdated(stripeEvent.data.object);
+        break;
+        
       case 'customer.subscription.deleted':
-        console.log('🚫 Processing subscription cancellation');
-        await handleSubscriptionCancelled(stripeEvent.data.object);
+        await handleSubscriptionDeleted(stripeEvent.data.object);
         break;
-      
+        
+      case 'invoice.payment_succeeded':
+        await handlePaymentSucceeded(stripeEvent.data.object);
+        break;
+        
       case 'invoice.payment_failed':
-        console.log('💳 Processing payment failure');
         await handlePaymentFailed(stripeEvent.data.object);
         break;
-      
+        
       default:
         console.log(`ℹ️ Unhandled event type: ${stripeEvent.type}`);
     }
 
     return {
       statusCode: 200,
-      headers,
-      body: JSON.stringify({ 
-        received: true,
-        event_type: stripeEvent.type,
-        timestamp: new Date().toISOString()
-      }),
+      body: JSON.stringify({ received: true })
     };
 
   } catch (error) {
     console.error('❌ Webhook handler error:', error);
     return {
       statusCode: 500,
-      headers,
-      body: JSON.stringify({ 
-        error: 'Webhook handler failed',
-        details: error.message,
-        event_type: stripeEvent.type 
-      }),
+      body: JSON.stringify({ error: 'Webhook handler failed' })
     };
   }
 };
 
-/**
- * Handle successful checkout completion
- * This is where we create the Supabase account AFTER payment succeeds
- */
-async function handleCheckoutSessionCompleted(session) {
-  console.log('💳 Processing successful checkout for session:', session.id);
-  
-  const { email, password, plan } = session.metadata;
-  const customerId = session.customer;
-  const subscriptionId = session.subscription;
-  
-  // Validate required metadata
-  if (!email || !password || !plan) {
-    console.error('❌ Missing required metadata in checkout session:', session.metadata);
-    throw new Error('Missing registration data in checkout session metadata');
-  }
-
-  console.log('👤 Creating Supabase account for:', { email, plan });
+async function handleCheckoutCompleted(session) {
+  console.log('🎯 Processing checkout completion:', session.id);
 
   try {
-    // Step 1: Check if account already exists (email uniqueness)
-    console.log('🔍 Checking if email already exists:', email);
-    
-    const { data: existingProfile, error: checkError } = await supabase
+    const { email, password, plan } = session.metadata;
+
+    if (!email || !password) {
+      throw new Error('Missing email or password in session metadata');
+    }
+
+    console.log('📧 Creating account for:', email);
+
+    // STEP 1: Check if user already exists (safety check)
+    const { data: existingProfile } = await supabaseAdmin
       .from('profiles')
-      .select('email, id')
-      .eq('email', email)
+      .select('id, email')
+      .eq('email', email.toLowerCase())
       .single();
 
-    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
-      console.error('❌ Error checking existing email:', checkError);
-      throw new Error(`Database error checking email: ${checkError.message}`);
-    }
-
     if (existingProfile) {
-      console.error('🚫 Email already exists in system:', email);
-      throw new Error(`Account already exists for email: ${email}. Duplicate payment detected.`);
+      console.log('⚠️ User already exists, updating payment status:', email);
+      
+      // Update existing profile to paid status
+      const { error: updateError } = await supabaseAdmin
+        .from('profiles')
+        .update({
+          is_paid: true,
+          is_active: true,
+          subscription_plan: plan,
+          stripe_customer_id: session.customer,
+          updated_at: new Date().toISOString()
+        })
+        .eq('email', email.toLowerCase());
+
+      if (updateError) {
+        throw new Error(`Profile update failed: ${updateError.message}`);
+      }
+
+      console.log('✅ Existing profile updated to paid status');
+      return;
     }
 
-    // Step 2: Create Supabase auth user using Admin API
-    console.log('🏗️ Creating auth user via Admin API');
-    
-    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+    // STEP 2: Create Supabase user account (ONLY after payment success)
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: email,
       password: password,
-      email_confirm: true, // Auto-confirm since payment succeeded
+      email_confirm: true, // Auto-confirm email since payment was successful
       user_metadata: {
         subscription_plan: plan,
-        stripe_customer_id: customerId,
-        created_via: 'stripe_webhook',
-        payment_date: new Date().toISOString()
+        created_via: 'stripe_checkout',
+        stripe_customer_id: session.customer
       }
     });
 
     if (authError) {
-      console.error('❌ Failed to create auth user:', authError);
-      
-      // Handle duplicate user creation attempts
-      if (authError.message.includes('already registered') || 
-          authError.message.includes('already been registered')) {
-        console.error('🚨 Duplicate user registration attempt for:', email);
-        throw new Error(`User already exists: ${email}`);
-      }
-      
-      throw new Error(`Auth user creation failed: ${authError.message}`);
+      console.error('❌ Failed to create Supabase user:', authError);
+      throw new Error(`User creation failed: ${authError.message}`);
     }
 
-    console.log('✅ Auth user created successfully:', authUser.user.id);
+    console.log('✅ Supabase user created:', authData.user.id);
 
-    // Step 3: Create profile record with payment information
-    console.log('📝 Creating profile record');
-    
-    const { data: profile, error: profileError } = await supabase
+    // STEP 3: Create profile record with payment information
+    const { error: profileError } = await supabaseAdmin
       .from('profiles')
-      .insert([{
-        id: authUser.user.id,
-        email: email,
-        is_paid: true, // Mark as paid since payment succeeded
-        stripe_customer_id: customerId,
-        stripe_subscription_id: subscriptionId,
+      .insert({
+        id: authData.user.id,
+        email: email.toLowerCase(),
+        is_paid: true,
+        is_active: true,
         subscription_plan: plan,
-        payment_date: new Date().toISOString(),
+        stripe_customer_id: session.customer,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      }])
-      .select()
-      .single();
+      });
 
     if (profileError) {
       console.error('❌ Failed to create profile:', profileError);
       
-      // CRITICAL: If profile creation fails, clean up the auth user
-      console.log('🧹 Cleaning up auth user due to profile creation failure');
+      // Try to clean up the created user if profile creation fails
       try {
-        await supabase.auth.admin.deleteUser(authUser.user.id);
-        console.log('✅ Auth user cleanup completed');
+        await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+        console.log('🧹 Cleaned up user after profile creation failure');
       } catch (cleanupError) {
-        console.error('❌ Failed to clean up auth user:', cleanupError);
+        console.error('❌ Failed to cleanup user:', cleanupError);
       }
       
       throw new Error(`Profile creation failed: ${profileError.message}`);
     }
 
-    console.log('✅ Profile created successfully');
+    console.log('✅ Profile created for user:', authData.user.id);
+    console.log('🎉 Account creation complete - user can now log in with:', email);
+
+    // Optional: Send welcome email or notification here
+    // await sendWelcomeEmail(email, plan);
+
+  } catch (error) {
+    console.error('❌ Checkout completion handler failed:', error);
     
-    // Log successful registration for analytics/monitoring
-    console.log('🎊 REGISTRATION COMPLETED:', {
-      userId: authUser.user.id,
-      email: email,
-      plan: plan,
-      customerId: customerId,
-      subscriptionId: subscriptionId,
-      timestamp: new Date().toISOString()
+    // In production, you might want to:
+    // 1. Send an alert to administrators
+    // 2. Log to external monitoring service
+    // 3. Queue for retry with exponential backoff
+    
+    throw error;
+  }
+}
+
+async function handleSubscriptionUpdated(subscription) {
+  console.log('🔄 Processing subscription update:', subscription.id);
+
+  try {
+    const customerId = subscription.customer;
+    const isActive = subscription.status === 'active';
+    const planInterval = subscription.items.data[0]?.price?.recurring?.interval;
+
+    console.log('📊 Subscription status:', {
+      customer: customerId,
+      status: subscription.status,
+      interval: planInterval
     });
 
-    // Success metrics logging
-    console.log(`📊 METRICS: REGISTRATION_SUCCESS | ${email} | ${plan} | ${customerId}`);
-
-  } catch (error) {
-    console.error('❌ Checkout completion processing failed:', error);
-    
-    // Log error for monitoring/alerts
-    console.error(`🚨 METRICS: REGISTRATION_FAILED | ${email} | ${plan} | ${customerId} | ${error.message}`);
-    
-    // Re-throw to return error status to Stripe (will retry webhook)
-    throw error;
-  }
-}
-
-/**
- * Handle subscription cancellation
- */
-async function handleSubscriptionCancelled(subscription) {
-  console.log('🚫 Processing subscription cancellation:', subscription.id);
-  
-  try {
-    // Get customer details from Stripe
-    const customer = await stripe.customers.retrieve(subscription.customer);
-    
-    if (!customer.email) {
-      throw new Error('Customer email not found for subscription cancellation');
-    }
-
-    console.log('📧 Marking user as unpaid due to cancellation:', customer.email);
-
-    // Mark user as unpaid (but keep account for reactivation)
-    const { error: updateError } = await supabase
+    // Update profile status based on subscription
+    const { error } = await supabaseAdmin
       .from('profiles')
       .update({ 
-        is_paid: false,
-        subscription_cancelled_at: new Date().toISOString(),
+        is_active: isActive,
+        is_paid: isActive,
+        subscription_plan: planInterval || 'monthly',
         updated_at: new Date().toISOString()
       })
-      .eq('stripe_customer_id', customer.id);
+      .eq('stripe_customer_id', customerId);
 
-    if (updateError) {
-      console.error('❌ Failed to update user payment status:', updateError);
-      throw new Error(`Failed to revoke access: ${updateError.message}`);
+    if (error) {
+      console.error('❌ Failed to update subscription status:', error);
+    } else {
+      console.log('✅ Subscription status updated for customer:', customerId);
     }
 
-    console.log('✅ User access revoked due to subscription cancellation:', customer.email);
-    
-    // Log cancellation for analytics
-    console.log(`📊 METRICS: SUBSCRIPTION_CANCELLED | ${customer.email} | ${subscription.id}`);
-
   } catch (error) {
-    console.error('❌ Subscription cancellation processing failed:', error);
-    throw error;
+    console.error('❌ Subscription update handler failed:', error);
   }
 }
 
-/**
- * Handle payment failures
- */
-async function handlePaymentFailed(invoice) {
-  console.log('💳 Processing payment failure for invoice:', invoice.id);
-  
+async function handleSubscriptionDeleted(subscription) {
+  console.log('🗑️ Processing subscription deletion:', subscription.id);
+
   try {
-    const customerId = invoice.customer;
-    const customer = await stripe.customers.retrieve(customerId);
-    
-    if (!customer.email) {
-      throw new Error('Customer email not found for payment failure');
+    const customerId = subscription.customer;
+
+    // Deactivate user account but keep profile for potential reactivation
+    const { error } = await supabaseAdmin
+      .from('profiles')
+      .update({ 
+        is_active: false,
+        is_paid: false,
+        updated_at: new Date().toISOString()
+      })
+      .eq('stripe_customer_id', customerId);
+
+    if (error) {
+      console.error('❌ Failed to deactivate account:', error);
+    } else {
+      console.log('✅ Account deactivated due to subscription cancellation:', customerId);
     }
 
-    console.log('⚠️ Payment failed for user:', customer.email);
-    
-    // Log payment failure (don't immediately revoke access - give retry opportunities)
-    console.log(`📊 METRICS: PAYMENT_FAILED | ${customer.email} | ${invoice.id}`);
-
-    // You might want to send notification emails or implement retry logic here
-    
   } catch (error) {
-    console.error('❌ Payment failure processing failed:', error);
-    // Don't throw error for payment failures - just log them
+    console.error('❌ Subscription deletion handler failed:', error);
+  }
+}
+
+async function handlePaymentSucceeded(invoice) {
+  console.log('💰 Processing successful payment:', invoice.id);
+
+  try {
+    const customerId = invoice.customer;
+
+    // Ensure account is active after successful payment
+    const { error } = await supabaseAdmin
+      .from('profiles')
+      .update({ 
+        is_active: true,
+        is_paid: true,
+        updated_at: new Date().toISOString()
+      })
+      .eq('stripe_customer_id', customerId);
+
+    if (error) {
+      console.error('❌ Failed to activate account after payment:', error);
+    } else {
+      console.log('✅ Account activated after successful payment:', customerId);
+    }
+
+  } catch (error) {
+    console.error('❌ Payment success handler failed:', error);
+  }
+}
+
+async function handlePaymentFailed(invoice) {
+  console.log('💳 Processing failed payment:', invoice.id);
+
+  try {
+    const customerId = invoice.customer;
+
+    // Optionally deactivate account after failed payment
+    // You might want to give users a grace period before deactivating
+    console.log('⚠️ Payment failed for customer:', customerId);
+    
+    // For now, just log. You might implement grace period logic here
+    // const { error } = await supabaseAdmin
+    //   .from('profiles')
+    //   .update({ 
+    //     is_active: false,
+    //     updated_at: new Date().toISOString()
+    //   })
+    //   .eq('stripe_customer_id', customerId);
+
+  } catch (error) {
+    console.error('❌ Payment failure handler failed:', error);
+  }
+}
+
+// Optional: Welcome email function
+async function sendWelcomeEmail(email, plan) {
+  try {
+    // Implement your email service here (SendGrid, Mailgun, etc.)
+    console.log('📧 Would send welcome email to:', email, 'for plan:', plan);
+  } catch (error) {
+    console.error('❌ Welcome email failed:', error);
   }
 }

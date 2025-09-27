@@ -8,9 +8,10 @@ BEGIN
         SELECT 1 FROM information_schema.columns 
         WHERE table_name = 'profiles' AND column_name = 'is_active'
     ) THEN
-        ALTER TABLE profiles ADD COLUMN is_active BOOLEAN DEFAULT TRUE;
+        EXECUTE 'ALTER TABLE profiles ADD COLUMN is_active BOOLEAN DEFAULT TRUE';
     END IF;
-END $$;
+END
+$$ LANGUAGE plpgsql;
 
 -- Create index for performance if it doesn't exist
 DO $$

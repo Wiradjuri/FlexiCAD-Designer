@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - FlexiCAD Designer</title>
     <link rel="stylesheet" href="css/dark-theme.css">
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -65,6 +64,7 @@
         </div>
     </main>
 
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="config/env-config.js"></script>
     <script src="config/config.js"></script>
     <script src="js/flexicad-auth.js"></script>
@@ -90,18 +90,25 @@
             setLoadingState(true);
             
             try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-                
-                if (error) {
-                    throw error;
+                // Use FlexiCAD auth system with payment verification
+                const loginResult = await window.flexicadAuth.login(email, password);
+
+                if (!loginResult.success) {
+                    // Check if it's a payment issue
+                    if (loginResult.error === 'PAYMENT_REQUIRED' && loginResult.redirect) {
+                        console.log('🚨 Payment required - redirecting to payment page');
+                        window.location.href = loginResult.redirect;
+                        return;
+                    }
+
+                    // Other login errors
+                    throw new Error(loginResult.error || 'Login failed');
                 }
-                
-                if (data.user) {
-                    // Login successful
-                    showSuccessMessage();
+
+                console.log('✅ Login successful with payment verification');
+
+                // Login successful - show success and redirect
+                showSuccessMessage();
                     
                     // Redirect to home page
                     setTimeout(() => {

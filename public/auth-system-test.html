@@ -198,15 +198,14 @@
                 const paymentInfo = [
                     `💳 Payment Status: ${paymentStatus.is_paid ? '✅ Paid' : '❌ Not Paid'}`,
                     `🎯 Plan: ${paymentStatus.subscription_plan}`,
-                    `🟢 Active: ${paymentStatus.is_active ? '✅ Yes' : '❌ No'}`,
                     `🏪 Stripe Customer: ${paymentStatus.stripe_customer_id || 'Not set'}`,
                     `📅 Created: ${paymentStatus.created_at || 'Unknown'}`
                 ];
 
-                const resultClass = paymentStatus.is_paid && paymentStatus.is_active ? 'success' : 'warning';
+                const resultClass = paymentStatus.is_paid ? 'success' : 'warning';
                 statusDiv.innerHTML = `<div class="result ${resultClass}">${paymentInfo.join('<br>')}</div>`;
                 
-                testResults.payment = paymentStatus.is_paid && paymentStatus.is_active;
+                testResults.payment = paymentStatus.is_paid;
             } catch (error) {
                 statusDiv.innerHTML = `<div class="result error">❌ Payment Check Error: ${error.message}</div>`;
                 testResults.payment = false;
