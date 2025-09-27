@@ -211,12 +211,18 @@
                 if (tab === 'login') {
                     document.getElementById('loginForm').classList.remove('hidden');
                     document.getElementById('registerForm').classList.add('hidden');
-                    document.getElementById('pricingSection').classList.add('hidden');
+                    // Hide pricing column for login
+                    document.querySelector('.pricing-column').style.display = 'none';
+                    // Make auth column full width
+                    document.querySelector('.main-content').style.gridTemplateColumns = '1fr';
                     console.log('Showing login form');
                 } else if (tab === 'register') {
                     document.getElementById('registerForm').classList.remove('hidden'); 
                     document.getElementById('loginForm').classList.add('hidden');
-                    document.getElementById('pricingSection').classList.remove('hidden');
+                    // Show pricing column for register
+                    document.querySelector('.pricing-column').style.display = 'flex';
+                    // Reset to two-column layout
+                    document.querySelector('.main-content').style.gridTemplateColumns = '1fr 1fr';
                     console.log('Showing register form with pricing');
                 }
                 
