@@ -13,9 +13,16 @@
     "openai": "^4.20.0"
   },
   "devDependencies": {
-    "netlify-cli": "^17.10.1"
+    "netlify-cli": "^17.10.1",
+    "supabase": "^2.45.5"
   },
-  "keywords": ["openscad", "ai", "3d-design", "cad", "templates"],
+  "keywords": [
+    "openscad",
+    "ai",
+    "3d-design",
+    "cad",
+    "templates"
+  ],
   "author": "FlexiCAD Team",
   "license": "MIT"
 }

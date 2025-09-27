@@ -131,7 +131,7 @@
                 professional-quality OpenSCAD models in seconds.
             </div>
             <div class="card-actions mt-2">
-                <a href="index.html" class="btn btn-primary" id="getStartedBtn">Get Started</a>
+                <a href="login.html" class="btn btn-primary" id="getStartedBtn">Get Started</a>
                 <a href="templates.html" class="btn btn-secondary">Browse Templates</a>
             </div>
         </div>
@@ -181,7 +181,7 @@
                 const { error } = await supabaseClient.auth.signOut();
                 if (error) throw error;
                 
-                window.location.href = 'index.html';
+                window.location.href = 'login.html';
             } catch (error) {
                 console.error('Error logging out:', error);
                 alert('Error logging out. Please try again.');

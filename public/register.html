@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - FlexiCAD Designer</title>
+    <link rel="stylesheet" href="css/dark-theme.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-brand">FlexiCAD Designer</div>
+            <ul class="nav-menu">
+                <li><a href="login.html" class="nav-link">Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="page-header">
+            <h1>Create Your Account</h1>
+            <p>Join FlexiCAD Designer and start creating amazing 3D designs with AI</p>
+        </div>
+
+        <div class="auth-container">
+            <div class="card auth-card">
+                <div class="card-body">
+                    <form id="registerForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" id="email" class="form-control" required 
+                                   placeholder="Enter your email address">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" id="password" class="form-control" required 
+                                   placeholder="Enter your password" minlength="6">
+                            <small class="form-text">Password must be at least 6 characters long</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="confirmPassword" class="form-label">Confirm Password</label>
+                            <input type="password" id="confirmPassword" class="form-control" required 
+                                   placeholder="Confirm your password">
+                        </div>
+
+                        <div id="errorMessage" class="alert alert-error" style="display: none;">
+                            <p id="errorText"></p>
+                        </div>
+
+                        <div id="successMessage" class="alert alert-success" style="display: none;">
+                            <p>Registration successful! Redirecting to home...</p>
+                        </div>
+
+                        <button type="submit" id="registerBtn" class="btn-primary w-full">
+                            <span class="btn-text">Create Account</span>
+                            <span class="btn-spinner" style="display: none;">
+                                <div class="spinner"></div>
+                                Creating account...
+                            </span>
+                        </button>
+                    </form>
+
+                    <div class="auth-footer">
+                        <p>Already have an account? <a href="login.html" class="text-link">Sign in here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="config/config.js"></script>
+    <script>
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            // Hide previous messages
+            hideMessages();
+            
+            // Validate form
+            if (!validateForm(email, password, confirmPassword)) {
+                return;
+            }
+            
+            // Show loading state
+            setLoadingState(true);
+            
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        emailRedirectTo: window.location.origin + '/home.html'
+                    }
+                });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                // Registration successful
+                showSuccessMessage();
+                
+                // Redirect to home page after a short delay
+                setTimeout(() => {
+                    window.location.href = 'home.html';
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Registration error:', error);
+                showErrorMessage(getErrorMessage(error));
+                setLoadingState(false);
+            }
+        });
+
+        function validateForm(email, password, confirmPassword) {
+            if (!email) {
+                showErrorMessage('Please enter your email address.');
+                return false;
+            }
+            
+            if (!isValidEmail(email)) {
+                showErrorMessage('Please enter a valid email address.');
+                return false;
+            }
+            
+            if (!password) {
+                showErrorMessage('Please enter a password.');
+                return false;
+            }
+            
+            if (password.length < 6) {
+                showErrorMessage('Password must be at least 6 characters long.');
+                return false;
+            }
+            
+            if (password !== confirmPassword) {
+                showErrorMessage('Passwords do not match.');
+                return false;
+            }
+            
+            return true;
+        }
+
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function setLoadingState(isLoading) {
+            const btn = document.getElementById('registerBtn');
+            const btnText = btn.querySelector('.btn-text');
+            const btnSpinner = btn.querySelector('.btn-spinner');
+            
+            if (isLoading) {
+                btn.disabled = true;
+                btnText.style.display = 'none';
+                btnSpinner.style.display = 'inline-flex';
+            } else {
+                btn.disabled = false;
+                btnText.style.display = 'inline';
+                btnSpinner.style.display = 'none';
+            }
+        }
+
+        function showErrorMessage(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function showSuccessMessage() {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.style.display = 'block';
+        }
+
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        function getErrorMessage(error) {
+            switch (error.message) {
+                case 'User already registered':
+                    return 'An account with this email already exists. Please try logging in instead.';
+                case 'Invalid login credentials':
+                    return 'Invalid email or password. Please check your credentials and try again.';
+                case 'Password should be at least 6 characters':
+                    return 'Password must be at least 6 characters long.';
+                case 'Unable to validate email address: invalid format':
+                    return 'Please enter a valid email address.';
+                default:
+                    return error.message || 'An error occurred during registration. Please try again.';
+            }
+        }
+
+        // Check if user is already logged in
+        async function checkExistingSession() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                window.location.href = 'home.html';
+            }
+        }
+
+        // Check session on page load
+        checkExistingSession();
+    </script>
+
+    <style>
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 60vh;
+            padding: 2rem 0;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .text-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .text-link:hover {
+            text-decoration: underline;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        .btn-spinner {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .auth-container {
+                padding: 1rem;
+            }
+            
+            .auth-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</body>
+</html>

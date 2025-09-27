@@ -22,12 +22,12 @@
 
         <div class="form-container">
             <div class="form-tabs">
-                <button class="tab-btn active" data-tab="login">Login</button>
-                <button class="tab-btn" data-tab="register">Register</button>
+                <button class="tab-btn" data-tab="login">Login</button>
+                <button class="tab-btn active" data-tab="register">Register</button>
             </div>
 
             <!-- Login Form -->
-            <form id="loginForm" class="auth-form">
+            <form id="loginForm" class="auth-form hidden">
                 <div class="form-group">
                     <label for="loginEmail" class="form-label">Email</label>
                     <input type="email" id="loginEmail" class="form-input" required>
@@ -43,7 +43,7 @@
             </form>
 
             <!-- Register Form -->
-            <form id="registerForm" class="auth-form hidden">
+            <form id="registerForm" class="auth-form">
                 <div class="form-group">
                     <label for="registerEmail" class="form-label">Email</label>
                     <input type="email" id="registerEmail" class="form-input" required>
@@ -63,16 +63,43 @@
             </form>
 
             <div id="authMessage" class="hidden"></div>
+            
+            <!-- Resend confirmation button -->
+            <div id="resendSection" class="hidden">
+                <button id="resendBtn" class="btn btn-secondary">
+                    <span class="btn-text">Resend Confirmation Email</span>
+                    <div class="spinner hidden"></div>
+                </button>
+                <p>Didn't receive the email? Check your spam folder or click to resend.</p>
+            </div>
         </div>
     </div>
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config/config.js"></script>
     <script>
-        // Initialize Supabase client
+        // Initialize Supabase client with better error handling
         const { createClient } = supabase;
+        
+        console.log('Initializing Supabase with URL:', CONFIG.SUPABASE_URL);
+        
         const supabaseClient = createClient(
-            window.FlexiCADConfig.supabase.url,
-            window.FlexiCADConfig.supabase.anonKey
+            CONFIG.SUPABASE_URL,
+            CONFIG.SUPABASE_ANON_KEY,
+            {
+                auth: {
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    detectSessionInUrl: true,
+                    flowType: 'pkce'
+                },
+                global: {
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Headers': '*'
+                    }
+                }
+            }
         );
 
         // Check if user is already logged in
@@ -88,15 +115,23 @@
         // Tab switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
+                console.log('Tab clicked:', btn.dataset.tab);
                 const tab = btn.dataset.tab;
                 
                 // Update active tab
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 
-                // Show/hide forms
-                document.querySelectorAll('.auth-form').forEach(form => form.classList.add('hidden'));
-                document.getElementById(tab + 'Form').classList.remove('hidden');
+                // Show/hide forms based on which tab is clicked
+                if (tab === 'login') {
+                    document.getElementById('loginForm').classList.remove('hidden');
+                    document.getElementById('registerForm').classList.add('hidden');
+                    console.log('Showing login form, hiding register form');
+                } else if (tab === 'register') {
+                    document.getElementById('registerForm').classList.remove('hidden'); 
+                    document.getElementById('loginForm').classList.add('hidden');
+                    console.log('Showing register form, hiding login form');
+                }
                 
                 // Clear messages
                 clearMessage();
@@ -128,7 +163,19 @@
                 }, 1000);
                 
             } catch (error) {
-                showMessage(error.message, 'error');
+                let errorMessage = error.message;
+                
+                // Provide more helpful error messages
+                if (error.message.includes('Email not confirmed')) {
+                    errorMessage = 'Please check your email and click the confirmation link before logging in.';
+                    showResendButton(email); // Show resend button for confirmation issues
+                } else if (error.message.includes('Invalid login credentials')) {
+                    errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+                } else if (error.message.includes('signup')) {
+                    errorMessage = 'Account not found. Please register first or check your email address.';
+                }
+                
+                showMessage(errorMessage, 'error');
             } finally {
                 setLoadingState(submitBtn, false);
             }
@@ -206,7 +253,82 @@
 
         function clearMessage() {
             document.getElementById('authMessage').classList.add('hidden');
+            document.getElementById('resendSection').classList.add('hidden');
+        }
+
+        function showResendButton(email) {
+            const resendSection = document.getElementById('resendSection');
+            const resendBtn = document.getElementById('resendBtn');
+            
+            resendSection.classList.remove('hidden');
+            
+            // Remove any existing click listeners and add new one
+            const newResendBtn = resendBtn.cloneNode(true);
+            resendBtn.parentNode.replaceChild(newResendBtn, resendBtn);
+            
+            newResendBtn.addEventListener('click', async () => {
+                const btnText = newResendBtn.querySelector('.btn-text');
+                const spinner = newResendBtn.querySelector('.spinner');
+                
+                // Show loading state
+                newResendBtn.disabled = true;
+                btnText.textContent = 'Sending...';
+                spinner.classList.remove('hidden');
+                
+                try {
+                    const { error } = await supabaseClient.auth.resend({
+                        type: 'signup',
+                        email: email
+                    });
+                    
+                    if (error) throw error;
+                    
+                    showMessage('Confirmation email sent! Please check your inbox.', 'success');
+                    resendSection.classList.add('hidden');
+                    
+                } catch (error) {
+                    showMessage(`Failed to resend email: ${error.message}`, 'error');
+                } finally {
+                    // Reset button state
+                    newResendBtn.disabled = false;
+                    btnText.textContent = 'Resend Confirmation Email';
+                    spinner.classList.add('hidden');
+                }
+            });
         }
     </script>
+    
+    <style>
+        .auth-form {
+            display: block;
+        }
+        .auth-form.hidden {
+            display: none !important;
+        }
+        .tab-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            margin-right: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: var(--button-primary);
+            color: white;
+            border-color: var(--button-primary);
+        }
+        #resendSection {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        #resendSection p {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+    </style>
 </body>
 </html>

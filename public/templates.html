@@ -106,6 +106,11 @@
         async function checkAuth() {
             const { data: { user } } = await supabaseClient.auth.getUser();
             
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
             if (user) {
                 document.getElementById('navUser').style.display = 'flex';
                 document.getElementById('userInfo').textContent = user.email;
@@ -116,18 +121,46 @@
 
         async function loadTemplates() {
             try {
-                const response = await fetch('templates/manifest.json');
-                if (!response.ok) throw new Error('Failed to load templates');
+                // First try to load from the list-objects function
+                const response = await fetch('/.netlify/functions/list-objects');
+                if (!response.ok) {
+                    throw new Error('Failed to load templates from function');
+                }
                 
                 const data = await response.json();
-                templates = data.templates;
+                if (data.objects && Array.isArray(data.objects)) {
+                    templates = data.objects.map(obj => ({
+                        id: obj.id,
+                        name: obj.metadata?.name || obj.id,
+                        description: obj.metadata?.description || 'No description available',
+                        category: obj.metadata?.category || 'General',
+                        difficulty: obj.metadata?.difficulty || 'Intermediate',
+                        created: obj.metadata?.created || new Date().toISOString().split('T')[0]
+                    }));
+                } else {
+                    throw new Error('Invalid response format from list-objects');
+                }
                 
                 displayTemplates(templates);
                 
             } catch (error) {
-                console.error('Error loading templates:', error);
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('error').classList.remove('hidden');
+                console.error('Error loading from function, falling back to manifest:', error);
+                
+                // Fallback to local manifest
+                try {
+                    const response = await fetch('templates/manifest.json');
+                    if (!response.ok) throw new Error('Failed to load templates manifest');
+                    
+                    const data = await response.json();
+                    templates = data.templates || [];
+                    
+                    displayTemplates(templates);
+                    
+                } catch (fallbackError) {
+                    console.error('Error loading templates:', fallbackError);
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('error').classList.remove('hidden');
+                }
             }
         }
 
@@ -167,10 +200,22 @@
                 const template = templates.find(t => t.id === templateId);
                 currentTemplate = template;
                 
-                const response = await fetch(`templates/${templateId}/template.scad`);
-                if (!response.ok) throw new Error('Failed to load template code');
+                // Try to load from templates directory first
+                let response = await fetch(`templates/${templateId}/template.scad`);
+                if (!response.ok) {
+                    // Fallback to list-objects function for dynamic loading
+                    response = await fetch(`/.netlify/functions/list-objects?id=${templateId}&file=template.scad`);
+                    if (!response.ok) {
+                        throw new Error('Failed to load template code');
+                    }
+                }
                 
                 const code = await response.text();
+                
+                // Check if response is HTML (error page) instead of SCAD code
+                if (code.trim().startsWith('<!DOCTYPE html') || code.trim().startsWith('<html')) {
+                    throw new Error('Received HTML instead of SCAD code - template may not exist');
+                }
                 
                 document.getElementById('codeModalTitle').textContent = `${template.name} - Code`;
                 document.getElementById('codeFileName').textContent = `${templateId}.scad`;
@@ -180,7 +225,7 @@
                 
             } catch (error) {
                 console.error('Error loading template code:', error);
-                alert('Failed to load template code. Please try again.');
+                alert('Failed to load template code. The template file may not exist or there was a network error.');
             }
         }
 
@@ -188,10 +233,23 @@
             try {
                 const template = templates.find(t => t.id === templateId);
                 
-                const response = await fetch(`templates/${templateId}/README.md`);
-                if (!response.ok) throw new Error('Failed to load README');
+                // Try to load README from templates directory
+                let response = await fetch(`templates/${templateId}/README.md`);
+                if (!response.ok) {
+                    // Fallback to list-objects function
+                    response = await fetch(`/.netlify/functions/list-objects?id=${templateId}&file=README.md`);
+                    if (!response.ok) {
+                        throw new Error('README not available for this template');
+                    }
+                }
                 
                 const markdown = await response.text();
+                
+                // Check if response is HTML (error page) instead of Markdown
+                if (markdown.trim().startsWith('<!DOCTYPE html') || markdown.trim().startsWith('<html')) {
+                    throw new Error('README not available for this template');
+                }
+                
                 const html = marked.parse(markdown);
                 
                 document.getElementById('readmeModalTitle').textContent = `${template.name} - Guide`;
@@ -201,17 +259,30 @@
                 
             } catch (error) {
                 console.error('Error loading README:', error);
-                alert('Failed to load template guide. Please try again.');
+                alert('README guide not available for this template.');
             }
         }
 
         async function downloadTemplate(templateId) {
             try {
                 const template = templates.find(t => t.id === templateId);
-                const response = await fetch(`templates/${templateId}/template.scad`);
-                if (!response.ok) throw new Error('Failed to download template');
+                
+                // Try to load from templates directory first
+                let response = await fetch(`templates/${templateId}/template.scad`);
+                if (!response.ok) {
+                    // Fallback to list-objects function
+                    response = await fetch(`/.netlify/functions/list-objects?id=${templateId}&file=template.scad`);
+                    if (!response.ok) {
+                        throw new Error('Failed to download template');
+                    }
+                }
                 
                 const code = await response.text();
+                
+                // Check if response is HTML (error page) instead of SCAD code
+                if (code.trim().startsWith('<!DOCTYPE html') || code.trim().startsWith('<html')) {
+                    throw new Error('Template file not found');
+                }
                 
                 // Create download link
                 const blob = new Blob([code], { type: 'text/plain' });
@@ -226,7 +297,7 @@
                 
             } catch (error) {
                 console.error('Error downloading template:', error);
-                alert('Failed to download template. Please try again.');
+                alert('Failed to download template. The template file may not exist.');
             }
         }
 
@@ -274,7 +345,7 @@
                 const { error } = await supabaseClient.auth.signOut();
                 if (error) throw error;
                 
-                window.location.href = 'index.html';
+                window.location.href = 'login.html';
             } catch (error) {
                 console.error('Error logging out:', error);
                 alert('Error logging out. Please try again.');

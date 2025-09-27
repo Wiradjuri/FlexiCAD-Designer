@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Auth Test</title>
+    <script src="config/config.js"></script>
+</head>
+<body>
+    <h1>Simple Authentication Test</h1>
+    <div>
+        <h3>Sign Up Test</h3>
+        <input type="email" id="email" placeholder="test@example.com" value="test@example.com">
+        <input type="password" id="password" placeholder="password123" value="password123">
+        <button onclick="testSignUp()">Test Sign Up</button>
+    </div>
+    <div>
+        <h3>Sign In Test</h3>
+        <input type="email" id="loginEmail" placeholder="test@example.com" value="test@example.com">
+        <input type="password" id="loginPassword" placeholder="password123" value="password123">
+        <button onclick="testSignIn()">Test Sign In</button>
+    </div>
+    <div id="result" style="margin-top: 20px; padding: 20px; border: 1px solid #ccc;"></div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        const { createClient } = supabase;
+        
+        // Try different initialization approaches
+        let supabaseClient;
+        
+        try {
+            // Method 1: Basic initialization
+            supabaseClient = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+            console.log('Supabase client created successfully');
+        } catch (error) {
+            console.error('Failed to create Supabase client:', error);
+            document.getElementById('result').innerHTML = `<span style="color: red;">Failed to initialize Supabase: ${error.message}</span>`;
+        }
+
+        async function testSignUp() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = 'Testing sign up...';
+            
+            try {
+                console.log('Attempting sign up for:', email);
+                
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    console.error('Sign up error:', error);
+                    resultDiv.innerHTML = `<span style="color: red;">Sign up error: ${error.message}</span>`;
+                } else {
+                    console.log('Sign up success:', data);
+                    resultDiv.innerHTML = `<span style="color: green;">Sign up successful! User: ${data.user?.email || 'Created'}</span><br>
+                                         <small>Check your email for confirmation (if enabled)</small>`;
+                }
+            } catch (error) {
+                console.error('Sign up failed:', error);
+                resultDiv.innerHTML = `<span style="color: red;">Network error: ${error.message}</span>`;
+            }
+        }
+
+        async function testSignIn() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = 'Testing sign in...';
+            
+            try {
+                console.log('Attempting sign in for:', email);
+                
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    console.error('Sign in error:', error);
+                    resultDiv.innerHTML = `<span style="color: red;">Sign in error: ${error.message}</span>`;
+                } else {
+                    console.log('Sign in success:', data);
+                    resultDiv.innerHTML = `<span style="color: green;">Sign in successful! Welcome ${data.user?.email}</span>`;
+                }
+            } catch (error) {
+                console.error('Sign in failed:', error);
+                resultDiv.innerHTML = `<span style="color: red;">Network error: ${error.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>

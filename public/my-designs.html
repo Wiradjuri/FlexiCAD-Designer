@@ -139,7 +139,7 @@
             const { data: { user } } = await supabaseClient.auth.getUser();
             
             if (!user) {
-                window.location.href = 'index.html';
+                window.location.href = 'login.html';
                 return;
             }
 
@@ -148,32 +148,41 @@
 
         async function loadDesigns() {
             showLoading();
+            hideError();
+            hideEmpty();
+            hideDesigns();
             
             try {
-                const { data: { session } } = await supabaseClient.auth.getSession();
-                if (!session) {
-                    throw new Error('No active session');
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (!user) {
+                    throw new Error('Authentication required');
                 }
-                
-                const response = await fetch('/.netlify/functions/list-designs', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${session.access_token}`
-                    }
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to load designs');
+
+                // Load designs from Supabase ai_designs table
+                const { data: designsData, error } = await supabaseClient
+                    .from('ai_designs')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    throw error;
                 }
+
+                designs = designsData || [];
                 
-                const data = await response.json();
-                designs = data.designs || [];
+                hideLoading();
                 
-                displayDesigns();
+                if (designs.length === 0) {
+                    showEmpty();
+                } else {
+                    displayDesigns();
+                    showDesigns();
+                }
                 
             } catch (error) {
                 console.error('Error loading designs:', error);
+                hideLoading();
                 showError(error.message);
             }
         }
@@ -183,7 +192,7 @@
             hideError();
             
             if (designs.length === 0) {
-                document.getElementById('emptyState').classList.remove('hidden');
+                showEmpty();
                 return;
             }
             
@@ -225,7 +234,7 @@
                 `;
             }).join('');
             
-            grid.classList.remove('hidden');
+            showDesigns();
         }
 
         function viewDesign(designId) {
@@ -291,23 +300,13 @@
             if (!designToDelete) return;
             
             try {
-                const { data: { session } } = await supabaseClient.auth.getSession();
-                if (!session) {
-                    throw new Error('No active session');
-                }
-                
-                const response = await fetch(`/.netlify/functions/delete-design`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.access_token}`
-                    },
-                    body: JSON.stringify({ id: designToDelete.id })
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to delete design');
+                const { error } = await supabaseClient
+                    .from('ai_designs')
+                    .delete()
+                    .eq('id', designToDelete.id);
+
+                if (error) {
+                    throw error;
                 }
                 
                 // Remove from local array
@@ -378,6 +377,24 @@
             document.getElementById('error').classList.add('hidden');
         }
 
+        function showEmpty() {
+            document.getElementById('emptyState').classList.remove('hidden');
+            document.getElementById('designsGrid').classList.add('hidden');
+        }
+
+        function hideEmpty() {
+            document.getElementById('emptyState').classList.add('hidden');
+        }
+
+        function showDesigns() {
+            document.getElementById('designsGrid').classList.remove('hidden');
+            document.getElementById('emptyState').classList.add('hidden');
+        }
+
+        function hideDesigns() {
+            document.getElementById('designsGrid').classList.add('hidden');
+        }
+
         function showModal(modalId) {
             document.getElementById(modalId).classList.add('active');
         }
@@ -415,7 +432,7 @@
                 const { error } = await supabaseClient.auth.signOut();
                 if (error) throw error;
                 
-                window.location.href = 'index.html';
+                window.location.href = 'login.html';
             } catch (error) {
                 console.error('Error logging out:', error);
                 alert('Error logging out. Please try again.');
@@ -425,7 +442,7 @@
         // Listen for auth state changes
         supabaseClient.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_OUT') {
-                window.location.href = 'index.html';
+                window.location.href = 'login.html';
             }
         });
     </script>

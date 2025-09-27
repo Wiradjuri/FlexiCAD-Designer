@@ -1,10 +1,16 @@
 const { createClient } = require('@supabase/supabase-js');
 const OpenAI = require('openai');
 
+// Check if environment variables are loaded
+console.log('Environment check:');
+console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? 'Set' : 'Missing');
+console.log('SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'Set' : 'Missing');
+console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? 'Set' : 'Missing');
+
 // Initialize clients
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY // Use service role key for server-side auth validation
 );
 
 const openai = new OpenAI({
@@ -52,6 +58,7 @@ exports.handler = async (event, context) => {
     // Verify user authentication
     const authToken = event.headers.authorization?.replace('Bearer ', '');
     if (!authToken) {
+      console.log('No auth token provided');
       return {
         statusCode: 401,
         headers,
@@ -59,15 +66,30 @@ exports.handler = async (event, context) => {
       };
     }
 
+    console.log('Auth token received, verifying with Supabase...');
+
     // Verify the token with Supabase
     const { data: { user }, error: authError } = await supabase.auth.getUser(authToken);
-    if (authError || !user) {
+    
+    if (authError) {
+      console.error('Supabase auth error:', authError);
+      return {
+        statusCode: 401,
+        headers,
+        body: JSON.stringify({ error: 'Invalid authentication token', details: authError.message }),
+      };
+    }
+    
+    if (!user) {
+      console.log('No user returned from Supabase');
       return {
         statusCode: 401,
         headers,
         body: JSON.stringify({ error: 'Invalid authentication token' }),
       };
     }
+    
+    console.log('User authenticated successfully:', user.email);
 
     // Generate OpenSCAD code using OpenAI
     const systemPrompt = `You are an expert OpenSCAD developer. Generate clean, well-commented, parametric OpenSCAD code based on the user's description.

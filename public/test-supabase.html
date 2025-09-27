@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Connection Test</title>
+</head>
+<body>
+    <h1>Supabase Connection Test</h1>
+    <button onclick="testConnection()">Test Supabase Connection</button>
+    <div id="result"></div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config/config.js"></script>
+    <script>
+        const { createClient } = supabase;
+        
+        const supabaseClient = createClient(
+            CONFIG.SUPABASE_URL,
+            CONFIG.SUPABASE_ANON_KEY,
+            {
+                auth: {
+                    persistSession: false, // Don't persist session for testing
+                    autoRefreshToken: false // Don't auto-refresh
+                }
+            }
+        );
+
+        async function testConnection() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing multiple approaches...<br>';
+
+            // Test 1: Check config
+            console.log('CONFIG:', CONFIG);
+            resultDiv.innerHTML += `Config URL: ${CONFIG.SUPABASE_URL}<br>`;
+            resultDiv.innerHTML += `Config Key: ${CONFIG.SUPABASE_ANON_KEY.substring(0, 20)}...<br><br>`;
+
+            // Test 2: Try Supabase client initialization
+            try {
+                console.log('Testing Supabase client...');
+                const testClient = createClient(
+                    CONFIG.SUPABASE_URL,
+                    CONFIG.SUPABASE_ANON_KEY,
+                    {
+                        auth: {
+                            persistSession: false,
+                            autoRefreshToken: false,
+                            detectSessionInUrl: false
+                        }
+                    }
+                );
+                
+                // Try a simple operation that doesn't require authentication
+                const { data, error } = await testClient.from('ai_designs').select('count', { count: 'exact', head: true });
+                
+                if (error) {
+                    console.log('Database query error:', error);
+                    resultDiv.innerHTML += `<span style="color: orange;">⚠️ Database access: ${error.message}</span><br>`;
+                } else {
+                    resultDiv.innerHTML += '<span style="color: green;">✅ Database connection works!</span><br>';
+                }
+
+            } catch (error) {
+                console.error('Supabase client test failed:', error);
+                resultDiv.innerHTML += `<span style="color: red;">❌ Client error: ${error.message}</span><br>`;
+            }
+
+            // Test 3: Try direct fetch to REST API
+            try {
+                console.log('Testing REST API...');
+                const response = await fetch(CONFIG.SUPABASE_URL + '/rest/v1/ai_designs?select=count&count=exact&head=true', {
+                    method: 'GET',
+                    headers: {
+                        'apikey': CONFIG.SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'count=exact'
+                    }
+                });
+
+                if (response.ok) {
+                    resultDiv.innerHTML += '<span style="color: green;">✅ REST API works!</span><br>';
+                } else {
+                    resultDiv.innerHTML += `<span style="color: red;">❌ REST API failed: ${response.status} ${response.statusText}</span><br>`;
+                    const errorText = await response.text();
+                    console.log('REST API error response:', errorText);
+                }
+
+            } catch (error) {
+                console.error('REST API test failed:', error);
+                resultDiv.innerHTML += `<span style="color: red;">❌ REST API error: ${error.message}</span><br>`;
+            }
+
+            // Test 4: Simple auth check without session persistence  
+            try {
+                console.log('Testing auth...');
+                const { data: { user }, error } = await supabaseClient.auth.getUser();
+                
+                if (error) {
+                    console.log('Auth error:', error);
+                    resultDiv.innerHTML += `<span style="color: orange;">⚠️ Auth check: ${error.message}</span><br>`;
+                } else {
+                    resultDiv.innerHTML += '<span style="color: green;">✅ Auth endpoint accessible!</span><br>';
+                    resultDiv.innerHTML += `User: ${user ? 'Logged in' : 'Not logged in'}<br>`;
+                }
+
+            } catch (error) {
+                console.error('Auth test failed:', error);
+                resultDiv.innerHTML += `<span style="color: red;">❌ Auth error: ${error.message}</span><br>`;
+            }
+        }
+    </script>
+</body>
+</html>
