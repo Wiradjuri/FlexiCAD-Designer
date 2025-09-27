@@ -219,8 +219,11 @@
 
                 const sessionToken = await FlexiAuth.getSessionToken();
                 
-                if (!sessionToken) {
-                    console.error('No session token available');
+                console.log('Session token type:', typeof sessionToken);
+                console.log('Session token value:', sessionToken);
+                
+                if (!sessionToken || typeof sessionToken !== 'string') {
+                    console.error('Invalid session token:', sessionToken);
                     throw new Error('Authentication session expired. Please login again.');
                 }
 

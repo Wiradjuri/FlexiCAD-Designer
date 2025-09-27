@@ -722,6 +722,7 @@ class FlexiCADAuth {
         }
         
         try {
+            console.log('Getting Supabase session...');
             const { data: { session }, error } = await this.supabaseClient.auth.getSession();
             
             if (error) {
@@ -729,7 +730,22 @@ class FlexiCADAuth {
                 return null;
             }
             
-            return session?.access_token || null;
+            if (!session) {
+                console.error('No active session found');
+                return null;
+            }
+            
+            const token = session.access_token;
+            console.log('Session token type:', typeof token);
+            console.log('Session token preview:', token ? token.substring(0, 50) + '...' : 'null');
+            console.log('Session expires at:', session.expires_at);
+            
+            if (!token || typeof token !== 'string') {
+                console.error('Invalid token format from session:', typeof token, token);
+                return null;
+            }
+            
+            return token;
         } catch (error) {
             console.error('Failed to get session token:', error);
             return null;

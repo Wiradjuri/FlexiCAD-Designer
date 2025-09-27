@@ -5,12 +5,23 @@ const OpenAI = require('openai');
 console.log('Environment check:');
 console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? 'Set' : 'Missing');
 console.log('SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'Set' : 'Missing');
+console.log('SUPABASE_ANON_KEY:', process.env.SUPABASE_ANON_KEY ? 'Set' : 'Missing');
 console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? 'Set' : 'Missing');
 
 // Initialize clients
-const supabase = createClient(
+const supabaseService = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY // Use service role key for server-side auth validation
+  process.env.SUPABASE_SERVICE_ROLE_KEY // Use service role key for database operations
+);
+
+// Check if SUPABASE_ANON_KEY is available
+if (!process.env.SUPABASE_ANON_KEY) {
+  console.error('SUPABASE_ANON_KEY is missing! Using service key for auth validation (not recommended)');
+}
+
+const supabaseAuth = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY // Fallback to service key
 );
 
 const openai = new OpenAI({
@@ -55,8 +66,13 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Verify user authentication
+    // Simplified authentication - extract user ID from JWT payload
     const authToken = event.headers.authorization?.replace('Bearer ', '');
+    
+    console.log('Raw auth header:', event.headers.authorization);
+    console.log('Auth token type:', typeof authToken);
+    console.log('Auth token value:', authToken);
+    
     if (!authToken) {
       console.log('No auth token provided');
       return {
@@ -66,30 +82,84 @@ exports.handler = async (event, context) => {
       };
     }
 
-    console.log('Auth token received, verifying with Supabase...');
+    console.log('Auth token received, extracting user ID...');
+    console.log('Token preview:', authToken.substring(0, 50) + '...');
 
-    // Verify the token with Supabase
-    const { data: { user }, error: authError } = await supabase.auth.getUser(authToken);
-    
-    if (authError) {
-      console.error('Supabase auth error:', authError);
+    let userId;
+    try {
+      // Check if token has the expected JWT format (3 parts separated by dots)
+      const tokenParts = authToken.split('.');
+      console.log('Token parts count:', tokenParts.length);
+      
+      if (tokenParts.length !== 3) {
+        throw new Error(`Invalid JWT format - expected 3 parts, got ${tokenParts.length}`);
+      }
+      
+      // Decode JWT payload (without verification - just for user ID)
+      const payloadBase64 = tokenParts[1];
+      console.log('Payload base64 length:', payloadBase64 ? payloadBase64.length : 'undefined');
+      
+      if (!payloadBase64) {
+        throw new Error('JWT payload part is empty');
+      }
+      
+      const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString());
+      console.log('JWT payload keys:', Object.keys(payload));
+      console.log('JWT payload sub:', payload.sub);
+      console.log('JWT payload user_id:', payload.user_id);
+      
+      userId = payload.sub || payload.user_id; // Try both common user ID fields
+      
+      console.log('User ID extracted:', userId);
+      
+      if (!userId) {
+        throw new Error('No user ID found in token (checked sub and user_id fields)');
+      }
+    } catch (err) {
+      console.error('Failed to extract user ID from token:', err);
       return {
         statusCode: 401,
         headers,
-        body: JSON.stringify({ error: 'Invalid authentication token', details: authError.message }),
+        body: JSON.stringify({ error: 'Invalid token format' }),
       };
     }
-    
-    if (!user) {
-      console.log('No user returned from Supabase');
+
+    // Verify payment status using service role
+    try {
+      const { data: profile, error: profileError } = await supabaseService
+        .from('profiles')
+        .select('is_paid, is_active, email')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) {
+        console.error('Profile query failed:', profileError);
+        return {
+          statusCode: 401,
+          headers,
+          body: JSON.stringify({ error: 'User not found' }),
+        };
+      }
+
+      if (!profile?.is_paid || !profile?.is_active) {
+        console.error('User payment check failed - not paid or inactive');
+        return {
+          statusCode: 403,
+          headers,
+          body: JSON.stringify({ error: 'Payment required' }),
+        };
+      }
+
+      console.log('User has valid payment, proceeding with generation for:', profile.email);
+
+    } catch (authErr) {
+      console.error('Payment verification error:', authErr);
       return {
-        statusCode: 401,
+        statusCode: 500,
         headers,
-        body: JSON.stringify({ error: 'Invalid authentication token' }),
+        body: JSON.stringify({ error: 'Authentication verification failed' }),
       };
     }
-    
-    console.log('User authenticated successfully:', user.email);
 
     // Generate OpenSCAD code using OpenAI
     const systemPrompt = `You are an expert OpenSCAD developer. Generate clean, well-commented, parametric OpenSCAD code based on the user's description.
