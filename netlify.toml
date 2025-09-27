@@ -1,23 +1,24 @@
 [build]
   publish = "public"
   functions = "netlify/functions"
+  command = "npm run build"
 
 [build.environment]
   NODE_VERSION = "18"
 
+# API redirects for serverless functions
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
 
-# SPA fallback for client-side routing
+# SPA fallback for client-side routing (removed invalid conditions)
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  conditions = {Role = ["admin"]}
 
-# Security headers
+# Security headers for all pages
 [[headers]]
   for = "/*"
   [headers.values]
@@ -26,8 +27,9 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co;"
 
-# Headers for static assets
+# Cache headers for static assets
 [[headers]]
   for = "/css/*"
   [headers.values]
@@ -38,22 +40,55 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Function-specific settings
+[[headers]]
+  for = "/templates/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+# Function configuration
 [functions]
-  external_node_modules = ["stripe", "@supabase/supabase-js"]
+  external_node_modules = ["@supabase/supabase-js", "openai", "stripe"]
   node_bundler = "esbuild"
+
+# Individual function timeouts
+[functions."auth-proxy"]
+  timeout = 10
+
+[functions."check-database"]
+  timeout = 15
+
+[functions."check-payment-status"]
+  timeout = 15
 
 [functions."create-checkout-session"]
   timeout = 30
 
-[functions."stripe-webhook"]
+[functions."delete-design"]
+  timeout = 15
+
+[functions."generate-template"]
+  timeout = 60
+
+[functions."handle-payment-success"]
   timeout = 30
 
-# Environment variables (set these in Netlify dashboard)
-# SUPABASE_URL
-# SUPABASE_ANON_KEY  
-# SUPABASE_SERVICE_ROLE_KEY
-# STRIPE_SECRET_KEY
-# STRIPE_PUBLISHABLE_KEY
-# STRIPE_WEBHOOK_SECRET
-# URL (automatically set by Netlify)
+[functions."list-designs"]
+  timeout = 15
+
+[functions."list-objects"]
+  timeout = 15
+
+[functions."save-design"]
+  timeout = 20
+
+# Environment variables required for production
+# Set these in Netlify dashboard under Site settings > Environment variables:
+# SUPABASE_URL - Your Supabase project URL
+# SUPABASE_ANON_KEY - Your Supabase anonymous/public key
+# SUPABASE_SERVICE_ROLE_KEY - Your Supabase service role key (for server-side operations)
+# OPENAI_API_KEY - Your OpenAI API key for AI-powered template generation
+# STRIPE_SECRET_KEY - Your Stripe secret key
+# STRIPE_PUBLISHABLE_KEY - Your Stripe publishable key
+# STRIPE_MONTHLY_PRICE_ID - Your Stripe monthly subscription price ID
+# STRIPE_YEARLY_PRICE_ID - Your Stripe yearly subscription price ID
+# NETLIFY_SITE_URL - Automatically set by Netlify (your site URL)

@@ -10,18 +10,18 @@
     "test": "echo 'No tests specified'"
   },
   "dependencies": {
-    "stripe": "^14.21.0",
-    "@supabase/supabase-js": "^2.39.3"
+    "@supabase/supabase-js": "^2.39.3",
+    "openai": "^4.0.0",
+    "stripe": "^14.21.0"
   },
   "devDependencies": {
     "netlify-cli": "^17.15.4"
   },
   "keywords": [
     "3d-design",
-    "openscad", 
+    "openscad",
     "ai",
     "cad",
-    "stripe",
     "supabase",
     "netlify"
   ],
@@ -29,7 +29,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/flexicad-designer.git"
+    "url": "https://github.com/wiradjuri/flexicad-designer.git"
   },
   "engines": {
     "node": ">=18.0.0"

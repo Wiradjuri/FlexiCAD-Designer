@@ -18,16 +18,16 @@ INSERT INTO auth.users (
     confirmation_token,
     recovery_token
 ) VALUES (
-    'aae6c2f0-9fe1-48ff-98b0-a8828992cd97'::uuid,
-    '00000000-0000-0000-0000-000000000000'::uuid,
+    'aae6c2f0-9fe1-48ff-98b0-a8828992cd97',
+    '00000000-0000-0000-0000-000000000000',
     'bmuzza1992@gmail.com', 
-    crypt('password123', gen_salt('bf')), 
-    NOW(), 
-    NOW(), 
-    NOW(), 
+    'password123', -- Replace with a hashed password if needed
+    GETDATE(), 
+    GETDATE(), 
+    GETDATE(), 
     '{"provider":"email","providers":["email"]}',
     '{}', 
-    false, 
+    0, 
     'authenticated',
     'authenticated',
     '',
@@ -35,22 +35,20 @@ INSERT INTO auth.users (
 );
 
 -- Insert corresponding profile with paid status
-INSERT INTO public.profiles (
+INSERT INTO profiles (
     id, 
     email, 
     is_paid, 
- 
     subscription_plan, 
     stripe_customer_id,
     stripe_subscription_id,
     created_at
 ) VALUES (
-    'aae6c2f0-9fe1-48ff-98b0-a8828992cd97'::uuid,
+    'aae6c2f0-9fe1-48ff-98b0-a8828992cd97',
     'bmuzza1992@gmail.com', 
-    true, 
-    true, 
+    1, 
     'monthly', 
     'cus_test_123',
     'sub_test_123',
-    NOW()
+    GETDATE()
 );

@@ -1,5 +1,5 @@
 // FlexiCAD Payment-First Authentication System
-// Production-ready authentication with Supabase integration and payment enforcement
+// Users must pay before account creation - no free accounts allowed
 
 class FlexiCADAuth {
     constructor() {
@@ -10,10 +10,10 @@ class FlexiCADAuth {
         this.authStateChangeListener = null;
     }
 
-    // Initialize authentication system with Supabase
+    // Initialize authentication system
     async init() {
         try {
-            console.log('🔄 Initializing FlexiCAD Authentication System...');
+            console.log('🔄 Initializing FlexiCAD Payment-First Authentication...');
 
             // Initialize Supabase client
             await this.initializeSupabase();
@@ -29,64 +29,54 @@ class FlexiCADAuth {
                 console.log('✅ Found existing Supabase session');
                 this.user = session.user;
                 
-                // Sync with session storage
-                sessionStorage.setItem('flexicad_user', JSON.stringify(this.user));
-                
-                // Check payment status
+                // Check if user has paid access
                 await this.checkPaymentStatus();
-            } else {
-                // No Supabase session, check session storage for fallback
-                const userStr = sessionStorage.getItem('flexicad_user');
-                if (userStr) {
-                    console.log('📦 Found user in session storage (fallback)');
-                    this.user = JSON.parse(userStr);
-                    await this.checkPaymentStatus();
+                
+                // If user is not paid, redirect to register for payment
+                if (!this.paymentStatus?.hasPaid) {
+                    console.log('⚠️ User found but no payment - redirecting to register');
+                    await this.logout(); // Clear invalid session
+                    window.location.href = '/register.html?payment=required';
+                    return false;
                 }
+                
+                sessionStorage.setItem('flexicad_user', JSON.stringify(this.user));
             }
 
             // Set up auth state change listener
             this.setupAuthStateListener();
 
             this.isInitialized = true;
-            console.log('✅ Authentication system initialized');
-            
-            return { success: true, user: this.user, paymentStatus: this.paymentStatus };
+            console.log('✅ Payment-first authentication system initialized');
+            return true;
         } catch (error) {
             console.error('❌ Auth initialization error:', error);
-            this.isInitialized = true;
-            return { success: false, error: error.message };
+            throw error;
         }
     }
 
     // Initialize Supabase client
     async initializeSupabase() {
         try {
-            // Check if Supabase library is loaded
             if (typeof window.supabase === 'undefined') {
                 throw new Error('Supabase library not loaded. Please include the Supabase CDN script.');
             }
 
-            // Ensure config is loaded
-            if (typeof CONFIG === 'undefined') {
-                throw new Error('CONFIG not loaded. Please include config.js first.');
+            if (typeof window.flexicadConfig === 'undefined' || !window.flexicadConfig.supabase) {
+                throw new Error('FlexiCAD configuration not loaded. Please include config.js');
             }
 
-            // Validate configuration
-            if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY) {
-                throw new Error('Supabase configuration missing. Please set SUPABASE_URL and SUPABASE_ANON_KEY.');
+            const { supabase } = window.flexicadConfig;
+            
+            if (!supabase.url || !supabase.anonKey) {
+                throw new Error('Supabase configuration is incomplete. Please check config.js');
             }
 
-            if (CONFIG.SUPABASE_URL === 'https://your-project.supabase.co' || 
-                CONFIG.SUPABASE_ANON_KEY === 'your-anon-key') {
-                throw new Error('Please update your Supabase configuration with real values.');
-            }
-
-            // Create Supabase client directly
-            this.supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
+            this.supabaseClient = window.supabase.createClient(supabase.url, supabase.anonKey, {
                 auth: {
+                    autoRefreshToken: true,
                     persistSession: true,
-                    storageKey: 'flexicad_auth_token',
-                    storage: window.localStorage
+                    detectSessionInUrl: true
                 }
             });
 
@@ -94,7 +84,7 @@ class FlexiCADAuth {
             return this.supabaseClient;
         } catch (error) {
             console.error('❌ Failed to initialize Supabase:', error);
-            throw new Error(`Authentication system unavailable: ${error.message}`);
+            throw error;
         }
     }
 
@@ -106,93 +96,72 @@ class FlexiCADAuth {
             async (event, session) => {
                 console.log('🔄 Auth state change:', event);
                 
-                if (event === 'SIGNED_IN' && session) {
+                if (session && session.user) {
                     this.user = session.user;
-                    sessionStorage.setItem('flexicad_user', JSON.stringify(this.user));
                     await this.checkPaymentStatus();
-                } else if (event === 'SIGNED_OUT') {
+                    
+                    // Redirect if payment required
+                    if (!this.paymentStatus?.hasPaid) {
+                        console.log('⚠️ Payment required - redirecting');
+                        window.location.href = '/register.html?payment=required';
+                        return;
+                    }
+                    
+                    sessionStorage.setItem('flexicad_user', JSON.stringify(this.user));
+                } else {
                     this.user = null;
                     this.paymentStatus = null;
                     sessionStorage.removeItem('flexicad_user');
-                    sessionStorage.removeItem('flexicad_session_token');
                 }
             }
         );
     }
 
-    // Check payment status from profiles table (payment-first enforcement)
+    // Check payment status via API
     async checkPaymentStatus() {
-        if (!this.user || !this.user.id) {
-            this.paymentStatus = { is_paid: false, subscription_plan: 'none', is_active: false };
+        if (!this.user?.id) {
+            this.paymentStatus = { hasPaid: false, needsRegistration: true };
             return this.paymentStatus;
         }
 
         try {
             console.log('🔄 Checking payment status for user:', this.user.id);
 
-            if (!this.supabaseClient) {
-                await this.initializeSupabase();
+            const response = await fetch('/.netlify/functions/check-payment-status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: this.user.id
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Payment check failed: ${response.status}`);
             }
 
-            // Query the profiles table directly
-            const { data: profile, error } = await this.supabaseClient
-                .from('profiles')
-                .select('is_paid, subscription_plan, is_active, stripe_customer_id, created_at')
-                .eq('id', this.user.id)
-                .single();
-
-            if (error) {
-                console.error('❌ Profile query error:', error);
-                throw new Error(`Profile lookup failed: ${error.message}`);
-            }
-
-            if (!profile) {
-                console.error('🚨 No profile found for authenticated user - payment-first violation');
-                throw new Error('User profile not found. This should not happen in payment-first system.');
-            }
-
-            this.paymentStatus = {
-                is_paid: profile.is_paid || false,
-                subscription_plan: profile.subscription_plan || 'none',
-                is_active: profile.is_active || false,
-                stripe_customer_id: profile.stripe_customer_id,
-                created_at: profile.created_at
-            };
-
-            console.log('✅ Payment status loaded:', this.paymentStatus);
-
-            // In payment-first system, all authenticated users should be paid and active
-            if (!this.paymentStatus.is_paid || !this.paymentStatus.is_active) {
-                console.error('🚨 Payment-first violation detected:', {
-                    user_id: this.user.id,
-                    is_paid: this.paymentStatus.is_paid,
-                    is_active: this.paymentStatus.is_active
-                });
-                // Don't auto-logout here, let calling function handle it
-            }
-
-            return this.paymentStatus;
+            const result = await response.json();
+            this.paymentStatus = result;
+            
+            console.log(result.hasPaid ? '✅ User has valid payment' : '❌ Payment required', result);
+            return result;
         } catch (error) {
             console.error('❌ Payment status check failed:', error);
-            this.paymentStatus = { 
-                is_paid: false, 
-                subscription_plan: 'none', 
-                is_active: false,
-                error: error.message 
-            };
+            this.paymentStatus = { hasPaid: false, needsRegistration: true, error: error.message };
             return this.paymentStatus;
         }
     }
 
-    // Check if user is authenticated and has paid
-    async requireAuth(redirectPath = '/index.html') {
+    // Require authentication and payment
+    async requireAuth(redirectPath = '/register.html') {
         if (!this.isInitialized) {
             await this.init();
         }
 
         // Check if user is logged in
         if (!this.user) {
-            console.log('User not authenticated, redirecting to login');
+            console.log('User not authenticated, redirecting to register');
             window.location.href = `${redirectPath}?auth=required`;
             return false;
         }
@@ -202,159 +171,152 @@ class FlexiCADAuth {
             await this.checkPaymentStatus();
         }
 
-        // In payment-first system, all logged in users should be paid and active
-        if (!this.paymentStatus.is_paid || !this.paymentStatus.is_active) {
-            console.log('🚨 User not paid or not active - forcing logout (should not happen in payment-first system)');
-            this.logout();
+        // Payment-first enforcement
+        if (!this.paymentStatus.hasPaid) {
+            console.log('User has no valid payment, redirecting to register');
+            window.location.href = `${redirectPath}?payment=required`;
             return false;
         }
 
+        console.log('✅ User authenticated with valid payment');
         return true;
     }
 
-    // Updated login method with profile checking
+    // Login - only for users who have already paid
     async login(email, password) {
         try {
             console.log('🔄 Starting login process for:', email);
-
+            
             if (!this.supabaseClient) {
                 await this.initializeSupabase();
             }
 
-            // STEP 1: Check if user exists in Supabase profiles table first
-            const { data: profile, error: profileError } = await this.supabaseClient
-                .from('profiles')
-                .select('id, email, is_paid, is_active')
-                .eq('email', email.toLowerCase())
-                .single();
-
-            if (profileError && profileError.code === 'PGRST116') {
-                // User doesn't exist in profiles table - redirect to register
-                console.log('❌ User not found in profiles table - redirecting to register');
-                throw new Error('ACCOUNT_NOT_FOUND');
-            } else if (profileError) {
-                throw new Error(`Profile check failed: ${profileError.message}`);
-            }
-
-            // STEP 2: User exists in profiles, check if they're paid and active
-            if (!profile.is_paid || !profile.is_active) {
-                console.log('🚨 User exists but not paid/active:', profile);
-                throw new Error('ACCOUNT_NOT_PAID');
-            }
-
-            // STEP 3: Attempt Supabase authentication
             const { data, error } = await this.supabaseClient.auth.signInWithPassword({
-                email: email,
+                email: email.trim(),
                 password: password
             });
 
             if (error) {
-                console.error('❌ Supabase login error:', error);
+                console.error('❌ Login error:', error);
+                throw error;
+            }
+
+            if (data.user) {
+                console.log('✅ Login successful, checking payment status...');
+                this.user = data.user;
                 
-                // Handle specific auth errors
-                if (error.message.includes('Invalid login credentials')) {
-                    throw new Error('Invalid email or password. Please check your credentials.');
-                } else if (error.message.includes('Email not confirmed')) {
-                    throw new Error('Please check your email and click the confirmation link.');
-                } else {
-                    throw new Error(error.message);
+                // Check payment status
+                await this.checkPaymentStatus();
+                
+                if (!this.paymentStatus.hasPaid) {
+                    console.log('⚠️ User logged in but no valid payment');
+                    await this.logout();
+                    throw new Error('Account requires payment. Please register to make payment.');
                 }
+                
+                sessionStorage.setItem('flexicad_user', JSON.stringify(this.user));
+                return { success: true, user: data.user };
+            } else {
+                throw new Error('Login failed: No user data returned');
             }
-
-            if (!data.user) {
-                throw new Error('Login failed - no user data returned');
-            }
-
-            console.log('✅ Login successful');
-            
-            // User data is automatically set by auth state listener
-            this.user = data.user;
-            sessionStorage.setItem('flexicad_user', JSON.stringify(this.user));
-
-            // Re-fetch payment status to ensure sync
-            await this.checkPaymentStatus();
-
-            console.log('✅ Login complete with payment verification');
-            
-            return { 
-                success: true, 
-                user: this.user, 
-                paymentStatus: this.paymentStatus
-            };
-            
         } catch (error) {
             console.error('❌ Login error:', error);
-            
-            // Handle special error cases
-            if (error.message === 'ACCOUNT_NOT_FOUND') {
-                return { 
-                    success: false, 
-                    error: 'ACCOUNT_NOT_FOUND',
-                    redirectToRegister: true,
-                    message: 'Account not found. Please register first.'
-                };
-            } else if (error.message === 'ACCOUNT_NOT_PAID') {
-                return { 
-                    success: false, 
-                    error: 'ACCOUNT_NOT_PAID',
-                    message: 'Account exists but payment is required. Please contact support.'
-                };
-            }
-            
-            return { success: false, error: error.message };
+            throw error;
         }
     }
 
-    // Payment-first registration: goes directly to Stripe checkout
-    async register(email, password, plan = 'monthly') {
+    // Register - payment-first system
+    async registerWithPayment(email, password, plan = 'monthly') {
         try {
-            console.log('🎯 Starting payment-first registration for:', { email, plan });
+            console.log('🔄 Starting payment-first registration for:', email);
 
+            // Step 1: Create checkout session
             const response = await fetch('/.netlify/functions/create-checkout-session', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    email: email,
-                    password: password,
-                    plan: plan
+                    email: email.trim(),
+                    plan: plan,
+                    userId: null // No user yet - will be created after payment
                 })
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to create checkout session');
+                throw new Error('Failed to create payment session');
             }
 
-            const { sessionId, url, message } = await response.json();
-            console.log('✅ Checkout session created, redirecting to:', url);
-
-            if (url) {
-                // Store email temporarily for success page
-                sessionStorage.setItem('flexicad_registration_email', email);
-                window.location.href = url;
-            } else {
-                throw new Error('No checkout URL returned');
-            }
+            const { sessionId, url } = await response.json();
             
-            return { 
-                success: true, 
-                redirectingToPayment: true,
-                message: message
-            };
+            console.log('✅ Payment session created');
+            
+            // Store registration data temporarily
+            sessionStorage.setItem('pending_registration', JSON.stringify({
+                email: email.trim(),
+                password: password,
+                plan: plan,
+                sessionId: sessionId
+            }));
+
+            // Redirect to Stripe checkout
+            window.location.href = url;
+            
+            return { success: true, redirecting: true };
         } catch (error) {
-            console.error('Registration error:', error);
-            return { success: false, error: error.message };
+            console.error('❌ Registration error:', error);
+            throw error;
         }
     }
 
-    // Production-ready logout with proper cleanup
+    // Handle successful payment and create user
+    async handlePaymentSuccess(sessionId) {
+        try {
+            console.log('🔄 Processing payment success...');
+
+            const pendingData = sessionStorage.getItem('pending_registration');
+            if (!pendingData) {
+                throw new Error('No pending registration data found');
+            }
+
+            const { email, password, plan } = JSON.parse(pendingData);
+
+            // Process payment success and create user
+            const response = await fetch('/.netlify/functions/handle-payment-success', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    sessionId: sessionId,
+                    tempPassword: password
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to process payment success');
+            }
+
+            const result = await response.json();
+            
+            // Clean up pending data
+            sessionStorage.removeItem('pending_registration');
+            
+            console.log('✅ Payment successful, user created:', result.userId);
+            
+            // Now log the user in
+            return await this.login(email, password);
+        } catch (error) {
+            console.error('❌ Payment success handling error:', error);
+            throw error;
+        }
+    }
+
+    // Logout user
     async logout() {
         try {
-            console.log('🔄 Logging out user...');
-
-            // Sign out from Supabase
+            console.log('🔄 Logging out user');
+            
             if (this.supabaseClient) {
                 const { error } = await this.supabaseClient.auth.signOut();
                 if (error) {
@@ -362,101 +324,55 @@ class FlexiCADAuth {
                 }
             }
 
-            // Clean up auth state listener
-            if (this.authStateChangeListener) {
-                this.authStateChangeListener.data?.subscription?.unsubscribe();
-                this.authStateChangeListener = null;
-            }
-
             // Clear local state
             this.user = null;
             this.paymentStatus = null;
-
-            // Clear session storage
             sessionStorage.removeItem('flexicad_user');
-            sessionStorage.removeItem('flexicad_session_token');
-            sessionStorage.removeItem('flexicad_registration_email');
 
-            console.log('✅ Logout complete');
+            // Remove auth state listener
+            if (this.authStateChangeListener) {
+                this.authStateChangeListener.data.subscription.unsubscribe();
+                this.authStateChangeListener = null;
+            }
 
-            // Redirect to login page
+            console.log('✅ Logout successful');
+            
+            // Redirect to index page
             window.location.href = '/index.html';
         } catch (error) {
             console.error('❌ Logout error:', error);
-            // Force cleanup even if logout fails
-            this.user = null;
-            this.paymentStatus = null;
-            window.location.href = '/index.html';
+            throw error;
         }
     }
 
-    // Check URL parameters for checkout status
+    // Check if user is admin
+    isAdmin() {
+        if (!this.user || !this.paymentStatus?.hasPaid) return false;
+        // Add admin logic here if needed
+        return false;
+    }
+
+    // Check URL parameters
     checkURLParams() {
         const urlParams = new URLSearchParams(window.location.search);
-        
-        if (urlParams.has('checkout')) {
-            const checkoutStatus = urlParams.get('checkout');
-            
-            if (checkoutStatus === 'success') {
-                const sessionId = urlParams.get('session_id');
-                const registrationEmail = sessionStorage.getItem('flexicad_registration_email');
-                
-                return { 
-                    type: 'checkout_success', 
-                    message: `Payment successful! Your FlexiCAD Designer account has been created. You can now log in with ${registrationEmail || 'your email'}.`,
-                    sessionId: sessionId
-                };
-            } else if (checkoutStatus === 'cancelled') {
-                return { 
-                    type: 'checkout_cancelled', 
-                    message: 'Payment was cancelled. No account was created. You can try again anytime.' 
-                };
-            }
-        }
-
-        if (urlParams.has('auth')) {
-            const authStatus = urlParams.get('auth');
-            if (authStatus === 'required') {
-                return { type: 'auth_required', message: 'Please log in to access FlexiCAD Designer.' };
-            }
-        }
-
-        return null;
-    }
-
-    // Check if an email is available for registration
-    async checkEmailAvailability(email) {
-        try {
-            const response = await fetch('/.netlify/functions/create-checkout-session', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: email,
-                    password: 'test123', // Dummy password for validation
-                    plan: 'monthly'
-                })
-            });
-
-            const result = await response.json();
-            
-            if (response.status === 400 && result.code === 'EMAIL_EXISTS') {
-                return { available: false, message: result.error };
-            }
-            
-            return { available: true };
-        } catch (error) {
-            console.error('Email availability check failed:', error);
-            return { available: true }; // Default to available if check fails
-        }
+        return {
+            authRequired: urlParams.get('auth') === 'required',
+            paymentRequired: urlParams.get('payment') === 'required',
+            paymentCancelled: urlParams.get('payment') === 'cancelled',
+            sessionId: urlParams.get('session_id'),
+            error: urlParams.get('error')
+        };
     }
 }
 
 // Global instance
 window.flexicadAuth = new FlexiCADAuth();
 
-// Export for module usage
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = FlexiCADAuth;
+// Auto-initialize on DOM load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        window.flexicadAuth.init().catch(console.error);
+    });
+} else {
+    window.flexicadAuth.init().catch(console.error);
 }

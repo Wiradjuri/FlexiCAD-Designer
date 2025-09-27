@@ -1,113 +1,103 @@
+// netlify/functions/check-payment-status.js
 const { createClient } = require('@supabase/supabase-js');
 
-// Initialize Supabase client with service role key for admin operations
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 exports.handler = async (event, context) => {
-  // CORS headers
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-  };
-
-  // Handle preflight requests
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers,
-      body: '',
-    };
-  }
-
-  if (!['POST', 'GET'].includes(event.httpMethod)) {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({ error: 'Method not allowed' }),
-    };
-  }
-
-  try {
-    let userId;
+    console.log('Checking payment status...');
     
-    if (event.httpMethod === 'GET') {
-      // Extract userId from query parameters
-      userId = event.queryStringParameters?.userId;
-    } else {
-      // Extract userId from request body
-      const { userId: bodyUserId } = JSON.parse(event.body || '{}');
-      userId = bodyUserId;
-    }
-
-    if (!userId) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: 'User ID is required' }),
-      };
-    }
-
-    console.log('Checking payment status for user:', userId);
-
-    // Check user's payment status using the new schema
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('is_paid, subscription_plan, payment_date, email, stripe_customer_id')
-      .eq('id', userId)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // No profile found - in payment-first system, this means user doesn't exist or wasn't created properly
-        console.log('No profile found for user:', userId);
+    if (event.httpMethod !== 'POST') {
         return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify({ 
-            is_paid: false, 
-            subscription_plan: 'none',
-            payment_date: null,
-            profile_exists: false,
-            message: 'No payment record found'
-          }),
+            statusCode: 405,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Methods': 'POST'
+            },
+            body: JSON.stringify({ error: 'Method not allowed' })
         };
-      }
-      throw error;
     }
 
-    console.log('Payment status result:', data);
+    try {
+        const { userId } = JSON.parse(event.body);
 
-    // In payment-first system, all users should be paid
-    if (!data.is_paid) {
-      console.error('🚨 User profile exists but is not paid - this should not happen in payment-first system');
+        if (!userId) {
+            throw new Error('User ID is required');
+        }
+
+        console.log('Checking payment status for user:', userId);
+
+        // Query profile to check payment status
+        const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('is_paid, subscription_plan, is_active, stripe_customer_id, payment_date, created_at')
+            .eq('id', userId)
+            .single();
+
+        if (error && error.code !== 'PGRST116') {
+            console.error('❌ Database error:', error);
+            throw new Error(`Database query failed: ${error.message}`);
+        }
+
+        if (!profile) {
+            // User not in database - needs to register and pay
+            console.log('❌ User not found in database');
+            return {
+                statusCode: 200,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type',
+                    'Access-Control-Allow-Methods': 'POST'
+                },
+                body: JSON.stringify({
+                    hasPaid: false,
+                    needsRegistration: true,
+                    message: 'User needs to register and make payment'
+                })
+            };
+        }
+
+        // User exists, check payment status
+        const hasPaid = profile.is_paid && profile.is_active;
+        
+        console.log(hasPaid ? '✅ User has valid payment' : '❌ User payment invalid');
+
+        return {
+            statusCode: 200,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Methods': 'POST'
+            },
+            body: JSON.stringify({
+                hasPaid: hasPaid,
+                needsRegistration: false,
+                paymentStatus: {
+                    is_paid: profile.is_paid,
+                    subscription_plan: profile.subscription_plan,
+                    is_active: profile.is_active,
+                    stripe_customer_id: profile.stripe_customer_id,
+                    payment_date: profile.payment_date,
+                    created_at: profile.created_at
+                }
+            })
+        };
+
+    } catch (error) {
+        console.error('❌ Error checking payment status:', error);
+        return {
+            statusCode: 500,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Methods': 'POST'
+            },
+            body: JSON.stringify({
+                error: error.message || 'Failed to check payment status'
+            })
+        };
     }
-
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({
-        is_paid: data.is_paid || false,
-        subscription_plan: data.subscription_plan || 'none',
-        payment_date: data.payment_date,
-        email: data.email,
-        stripe_customer_id: data.stripe_customer_id,
-        profile_exists: true
-      }),
-    };
-
-  } catch (error) {
-    console.error('Payment status check error:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ 
-        error: 'Failed to check payment status',
-        details: error.message
-      }),
-    };
-  }
 };
