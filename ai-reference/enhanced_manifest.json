@@ -1,0 +1,168 @@
+{
+  "version": 2,
+  "name": "FlexiCAD AI Training Manifest",
+  "description": "Comprehensive OpenSCAD learning materials for AI code generation",
+  "generated_at": "2025-09-27T03:30:00.000Z",
+  "categories": {
+    "Basics": {
+      "description": "Fundamental OpenSCAD concepts and simple shapes",
+      "skills": ["CSG operations", "basic shapes", "transformations", "text extrusion", "linear extrude"],
+      "examples": [
+        {
+          "name": "CSG.scad",
+          "description": "Basic CSG (Constructive Solid Geometry) operations: union, intersection, difference",
+          "concepts": ["union", "intersection", "difference", "cube", "sphere", "translate"],
+          "use_case": "Combining and cutting shapes to create complex objects"
+        },
+        {
+          "name": "phone_case.scad", 
+          "description": "Parametric phone case with camera cutouts and rounded corners",
+          "concepts": ["parametric design", "difference", "hull", "cylinder cutouts", "customizable dimensions"],
+          "use_case": "Creating protective cases for electronic devices"
+        },
+        {
+          "name": "LetterBlock.scad",
+          "description": "3D letter blocks using text extrusion and boolean operations",
+          "concepts": ["text", "linear_extrude", "difference", "modules", "parameters"],
+          "use_case": "Creating letter blocks, signage, embossed text"
+        },
+        {
+          "name": "linear_extrude.scad",
+          "description": "2D shapes extruded into 3D with various options",
+          "concepts": ["linear_extrude", "2D shapes", "height", "twist", "scale"],
+          "use_case": "Converting 2D profiles into 3D objects"
+        },
+        {
+          "name": "rotate_extrude.scad", 
+          "description": "Creating rotational objects like bowls, vases, and circular profiles",
+          "concepts": ["rotate_extrude", "profile creation", "circular symmetry"],
+          "use_case": "Creating round objects, bowls, vases, wheels"
+        }
+      ]
+    },
+    "Advanced": {
+      "description": "Complex techniques, animations, and advanced OpenSCAD features",
+      "skills": ["children()", "recursion", "animation", "complex mathematics", "advanced modules"],
+      "examples": [
+        {
+          "name": "parametric_gear.scad",
+          "description": "Mathematical gear generation with involute curves and parametric teeth",
+          "concepts": ["parametric design", "mathematical calculations", "gear teeth", "involute curves", "loops"],
+          "use_case": "Creating mechanical gears, drive systems, rotating mechanisms"
+        },
+        {
+          "name": "children.scad",
+          "description": "Using children() to create reusable modules that work with any child geometry",
+          "concepts": ["children()", "modules", "reusability", "generic patterns"],
+          "use_case": "Creating reusable patterns and layouts for multiple objects"
+        },
+        {
+          "name": "animation.scad",
+          "description": "Time-based animations using $t variable for moving parts",
+          "concepts": ["animation", "$t variable", "time functions", "inverse kinematics"],
+          "use_case": "Creating animated demonstrations, mechanical simulations"
+        },
+        {
+          "name": "module_recursion.scad",
+          "description": "Recursive modules for generating fractal trees and complex patterns",
+          "concepts": ["recursion", "fractals", "random generation", "matrix transformations"],
+          "use_case": "Creating organic shapes, trees, fractal patterns"
+        }
+      ]
+    },
+    "Functions": {
+      "description": "Function definitions, list comprehensions, and mathematical operations",
+      "skills": ["function definition", "mathematical operations", "list processing", "recursion"],
+      "examples": [
+        {
+          "name": "functions.scad",
+          "description": "User-defined functions for calculations and data processing",
+          "concepts": ["function definition", "mathematical operations", "return values"],
+          "use_case": "Creating reusable calculations, data processing"
+        },
+        {
+          "name": "list_comprehensions.scad",
+          "description": "Advanced list processing and generation techniques",
+          "concepts": ["list comprehensions", "for loops in expressions", "data generation"],
+          "use_case": "Generating complex data sets, processing arrays"
+        }
+      ]
+    },
+    "Parametric": {
+      "description": "Customizable designs with user-adjustable parameters",
+      "skills": ["parametric design", "customization", "variable parameters", "user input"],
+      "examples": [
+        {
+          "name": "candleStand.scad",
+          "description": "Customizable candle holder with adjustable dimensions",
+          "concepts": ["parametric design", "customizable dimensions", "practical objects"],
+          "use_case": "Creating holders, stands, customizable household items"
+        },
+        {
+          "name": "sign.scad",
+          "description": "Parametric signage with customizable text and dimensions",
+          "concepts": ["text customization", "parametric design", "signage"],
+          "use_case": "Creating custom signs, nameplates, labels"
+        }
+      ]
+    }
+  },
+  "common_patterns": {
+    "enclosures": {
+      "description": "Creating protective cases and enclosures",
+      "examples": ["phone_case.scad"],
+      "concepts": ["difference operations", "wall thickness", "cutouts", "mounting features"]
+    },
+    "mechanical_parts": {
+      "description": "Gears, brackets, and mechanical components", 
+      "examples": ["parametric_gear.scad"],
+      "concepts": ["precise dimensions", "tolerances", "mechanical constraints"]
+    },
+    "decorative_objects": {
+      "description": "Artistic and decorative items",
+      "examples": ["candleStand.scad", "LetterBlock.scad"],
+      "concepts": ["aesthetics", "text integration", "organic shapes"]
+    },
+    "parametric_design": {
+      "description": "User-customizable designs with adjustable parameters",
+      "examples": ["phone_case.scad", "parametric_gear.scad", "candleStand.scad"],
+      "concepts": ["variable parameters", "user customization", "scalable designs"]
+    }
+  },
+  "design_principles": {
+    "modularity": "Break complex designs into reusable modules",
+    "parametrization": "Use variables for dimensions that users might want to change",
+    "comments": "Include clear comments explaining the purpose and parameters",
+    "organization": "Structure code logically with clear sections",
+    "error_handling": "Use assert() statements for parameter validation",
+    "performance": "Use appropriate $fn values for curves and circles"
+  },
+  "ai_generation_guidelines": {
+    "always_include": [
+      "Clear parameter definitions at the top",
+      "Descriptive comments explaining the design",
+      "Modular structure when appropriate",
+      "Proper use of CSG operations",
+      "Reasonable default values for parameters"
+    ],
+    "user_request_patterns": {
+      "case_enclosure": "Use difference() operations with wall thickness considerations",
+      "mechanical_part": "Include precise dimensions and tolerances",
+      "decorative_item": "Focus on aesthetics and visual appeal",
+      "bracket_mount": "Include mounting holes and structural considerations",
+      "container_box": "Include lid options and internal divisions if requested"
+    },
+    "common_dimensions": {
+      "phone_width": "70-85mm typical",
+      "wall_thickness": "1-3mm typical", 
+      "screw_holes": "M3=3mm, M4=4mm, M5=5mm",
+      "usb_connector": "12mm x 6mm typical"
+    }
+  },
+  "learning_progression": {
+    "beginner": ["Basic shapes", "CSG operations", "Simple transformations"],
+    "intermediate": ["Modules", "Parameters", "2D to 3D extrusion", "Text integration"],
+    "advanced": ["Children()", "Recursion", "Mathematical functions", "Animation"],
+    "expert": ["Complex algorithms", "Inverse kinematics", "Fractal generation"]
+  }
+}

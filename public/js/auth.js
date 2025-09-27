@@ -14,6 +14,11 @@ const FlexiAuth = {
         return userData ? JSON.parse(userData) : null;
     },
 
+    // Alias for getCurrentUser (for compatibility)
+    getUser() {
+        return this.getCurrentUser();
+    },
+
     // Get stored session token (if available)
     getSessionToken() {
         const token = sessionStorage.getItem('flexicad_session_token');

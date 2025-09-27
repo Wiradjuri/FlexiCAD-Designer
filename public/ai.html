@@ -107,7 +107,7 @@
                             <div class="code-header">
                                 <span id="resultFileName">generated-design.scad</span>
                                 <div>
-                                    <button class="btn btn-small btn-secondary" onclick="copyGeneratedCode()">Copy Code</button>
+                                    <button class="btn btn-small btn-secondary" onclick="copyGeneratedCode(event)">Copy Code</button>
                                     <button class="btn btn-small btn-secondary" onclick="downloadGeneratedCode()">Download</button>
                                 </div>
                             </div>
@@ -115,7 +115,7 @@
                         </div>
                         
                         <div class="card-actions mt-3">
-                            <button class="btn btn-primary" onclick="saveDesign()">💾 Save to My Designs</button>
+                            <button class="btn btn-primary" onclick="saveDesign(event)">💾 Save to My Designs</button>
                             <button class="btn btn-secondary" onclick="generateAnother()">🔄 Generate Another</button>
                         </div>
                     </div>
@@ -144,7 +144,6 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
         let currentGeneration = null;
-        let supabaseClient;
 
         // Check authentication on page load
         document.addEventListener('DOMContentLoaded', async () => {
@@ -152,13 +151,6 @@
             if (!FlexiAuth.init()) {
                 return; // Will redirect to login
             }
-
-            // Initialize Supabase for this page's database operations
-            const { createClient } = supabase;
-            supabaseClient = createClient(
-                CONFIG.SUPABASE_URL,
-                CONFIG.SUPABASE_ANON_KEY
-            );
         });
 
         // Handle form submission
@@ -185,16 +177,20 @@
             hidePlaceholder();
             
             try {
-                const { data: { session } } = await supabaseClient.auth.getSession();
-                if (!session) {
-                    throw new Error('Authentication required');
+                // Check if user is authenticated using session storage
+                const userData = FlexiAuth.getUser();
+                if (!userData) {
+                    window.location.href = 'login.html';
+                    return;
                 }
+
+                const sessionToken = FlexiAuth.getSessionToken();
 
                 const response = await fetch('/.netlify/functions/generate-template', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.access_token}`
+                        'Authorization': `Bearer ${sessionToken || ''}`
                     },
                     body: JSON.stringify({ prompt, name })
                 });
@@ -213,8 +209,12 @@
                 
                 displayResult(currentGeneration);
                 
-                // Auto-save the design to Supabase
-                await autoSaveDesign();
+                // Auto-save the design to Supabase (don't let this fail the generation)
+                try {
+                    await autoSaveDesign();
+                } catch (autoSaveError) {
+                    console.error('Auto-save failed, but generation succeeded:', autoSaveError);
+                }
                 
             } catch (error) {
                 console.error('Error generating design:', error);
@@ -237,83 +237,94 @@
         }
 
         async function autoSaveDesign() {
-            if (!currentGeneration) return;
+            if (!currentGeneration) {
+                console.log('AutoSave skipped: No current generation');
+                return;
+            }
             
             try {
-                const { data: { user } } = await supabaseClient.auth.getUser();
-                if (!user) return;
+                const userData = FlexiAuth.getUser();
+                if (!userData) {
+                    console.log('AutoSave skipped: User not authenticated');
+                    return;
+                }
                 
-                // Save to Supabase ai_designs table
-                const { error } = await supabaseClient
-                    .from('ai_designs')
-                    .insert({
-                        user_id: user.id,
-                        name: currentGeneration.name,
+                const sessionToken = FlexiAuth.getSessionToken();
+                console.log('AutoSave: Attempting to save design...');
+                
+                // Auto-save to server
+                const response = await fetch('/.netlify/functions/save-design', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionToken || ''}`
+                    },
+                    body: JSON.stringify({
                         prompt: currentGeneration.prompt,
                         code: currentGeneration.code,
-                        created_at: new Date().toISOString()
-                    });
+                        name: currentGeneration.name || 'Auto-saved Design',
+                        user_id: userData.id,
+                        is_auto_save: true
+                    })
+                });
 
-                if (error) {
-                    console.error('Error auto-saving design:', error);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('AutoSave failed:', response.status, errorText);
+                } else {
+                    console.log('AutoSave successful');
                 }
                 
             } catch (error) {
-                console.error('Error auto-saving design:', error);
+                console.error('Error auto-saving design:', error.message || error);
                 // Don't show error to user for auto-save failures
             }
         }
 
-        async function saveDesign() {
+        async function saveDesign(event) {
             if (!currentGeneration) return;
             
             try {
-                const { data: { user } } = await supabaseClient.auth.getUser();
-                if (!user) {
-                    throw new Error('Authentication required');
-                }
-
-                // Check if already saved (duplicate)
-                const { data: existingDesigns } = await supabaseClient
-                    .from('ai_designs')
-                    .select('id')
-                    .eq('user_id', user.id)
-                    .eq('prompt', currentGeneration.prompt)
-                    .eq('code', currentGeneration.code);
-
-                if (existingDesigns && existingDesigns.length > 0) {
-                    // Visual feedback - already saved
-                    const btn = event.target;
-                    const originalText = btn.innerHTML;
-                    btn.innerHTML = '✅ Already Saved!';
-                    setTimeout(() => {
-                        btn.innerHTML = originalText;
-                    }, 2000);
+                const userData = FlexiAuth.getUser();
+                const sessionToken = FlexiAuth.getSessionToken();
+                if (!userData) {
+                    alert('Authentication required');
                     return;
                 }
 
-                // Save to Supabase ai_designs table
-                const { error } = await supabaseClient
-                    .from('ai_designs')
-                    .insert({
-                        user_id: user.id,
-                        name: currentGeneration.name,
+                // Send save request to server
+                const response = await fetch('/.netlify/functions/save-design', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionToken || ''}`
+                    },
+                    body: JSON.stringify({
                         prompt: currentGeneration.prompt,
                         code: currentGeneration.code,
-                        created_at: new Date().toISOString()
-                    });
+                        name: currentGeneration.name || 'Untitled Design',
+                        user_id: userData.id
+                    })
+                });
 
-                if (error) {
-                    throw error;
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to save design');
                 }
+
+                const data = await response.json();
                 
                 // Visual feedback
-                const btn = event.target;
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '✅ Saved!';
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                }, 2000);
+                if (event && event.target) {
+                    const btn = event.target;
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '✅ Saved!';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                    }, 2000);
+                } else {
+                    alert('Design saved successfully!');
+                }
                 
             } catch (error) {
                 console.error('Error saving design:', error);
@@ -321,19 +332,20 @@
             }
         }
 
-        function copyGeneratedCode() {
+        function copyGeneratedCode(event) {
             if (!currentGeneration) return;
             
             navigator.clipboard.writeText(currentGeneration.code).then(() => {
                 // Visual feedback
-                const btn = event.target;
-                const originalText = btn.textContent;
-                btn.textContent = 'Copied!';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy code:', err);
+                if (event && event.target) {
+                    const btn = event.target;
+                    const originalText = btn.textContent;
+                    btn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                    }, 1000);
+                }
+            }).catch(() => {
                 alert('Failed to copy code to clipboard');
             });
         }
@@ -405,24 +417,11 @@
             document.getElementById('placeholderSection').classList.add('hidden');
         }
 
-        async function handleLogout() {
-            try {
-                const { error } = await supabaseClient.auth.signOut();
-                if (error) throw error;
-                
-                window.location.href = 'login.html';
-            } catch (error) {
-                console.error('Error logging out:', error);
-                alert('Error logging out. Please try again.');
-            }
+        // Use the FlexiAuth logout function
+        function handleLogout() {
+            FlexiAuth.logout();
         }
 
-        // Listen for auth state changes
-        supabaseClient.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_OUT') {
-                window.location.href = 'login.html';
-            }
-        });
     </script>
 
     <style>
