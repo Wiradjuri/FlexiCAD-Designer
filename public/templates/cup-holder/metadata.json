@@ -1,0 +1,16 @@
+{
+  "title": "Universal Car Cup Holder Insert",
+  "description": "Adjustable car cup holder with spring-loaded grips for multiple cup sizes",
+  "category": "automotive",
+  "parameters": {
+    "cup_diameter_min": "Minimum cup diameter to hold in mm",
+    "cup_diameter_max": "Maximum cup diameter to hold in mm",
+    "insert_height": "Total height of insert in mm",
+    "grip_count": "Number of spring grips (3-6)",
+    "grip_thickness": "Thickness of grip arms in mm",
+    "base_diameter": "Outer diameter of base (fits car holder) in mm",
+    "base_height": "Height of base section in mm",
+    "spring_flex": "How much grips can flex inward in mm"
+  },
+  "tags": ["automotive", "cup holder", "car", "adjustable", "spring", "universal", "insert"]
+}

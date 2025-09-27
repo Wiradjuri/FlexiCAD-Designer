@@ -1,0 +1,24 @@
+{
+  "title": "Drone Frame",
+  "description": "Professional quadcopter frame with customizable motor mounts",
+  "category": "Aerospace",
+  "tags": ["drone", "quadcopter", "frame", "motor-mount", "aerospace", "professional"],
+  "difficulty": "Advanced",
+  "printTime": "3-5 hours",
+  "material": "PETG, Carbon Fiber PLA",
+  "features": [
+    "Parametric motor spacing and arm configuration",
+    "Integrated battery compartment",
+    "Flight controller mounting holes",
+    "Optional camera gimbal mount",
+    "Landing gear with shock absorption",
+    "Wire management channels",
+    "Weight-optimized design"
+  ],
+  "applications": [
+    "Custom racing drones",
+    "Photography/videography quadcopters",
+    "Research and development platforms",
+    "Educational drone projects"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "title": "Switch Holder",
+  "description": "Panel-mount switch housing for electronics",
+  "category": "electronics",
+  "tags": ["electronics", "switch", "panel", "mount", "housing"],
+  "difficulty": "Easy",
+  "printTime": "30-45 minutes",
+  "features": [
+    "Adjustable switch diameter",
+    "Variable panel thickness support",
+    "Optional mounting tabs",
+    "Clean panel integration",
+    "Easy installation"
+  ],
+  "materials": ["PLA", "ABS", "PETG"],
+  "infill": "25-30%",
+  "supports": false
+}

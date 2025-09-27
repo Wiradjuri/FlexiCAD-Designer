@@ -1,0 +1,19 @@
+{
+  "name": "Adjustable Phone Stand",
+  "description": "A sleek phone stand with adjustable angle for desk use. Compatible with most smartphones and small tablets. Features anti-slip base and phone holder.",
+  "category": "Accessories",
+  "difficulty": "Beginner",
+  "parameters": {
+    "base_width": "120",
+    "base_depth": "80", 
+    "base_height": "5",
+    "angle": "65",
+    "phone_thickness": "12",
+    "support_height": "60",
+    "anti_slip_grooves": "true"
+  },
+  "materials": ["PLA", "PETG", "TPU"],
+  "print_time": "2-3 hours",
+  "supports_required": false,
+  "infill": "15%"
+}

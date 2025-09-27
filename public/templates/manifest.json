@@ -11,6 +11,12 @@
       "name": "Car Dashboard Fascia",
       "description": "Custom dashboard fascia for aftermarket car stereo installation",
       "category": "Automotive"
+    },
+    {
+      "id": "phone-stand",
+      "name": "Adjustable Phone Stand",
+      "description": "Sleek phone stand with adjustable angle for desk use and cable management",
+      "category": "Accessories"
     }
   ]
 }

@@ -1,0 +1,18 @@
+{
+  "title": "License Plate Frame",
+  "description": "Custom mounting frame for license plates",
+  "category": "automotive",
+  "tags": ["automotive", "license", "plate", "frame", "mounting"],
+  "difficulty": "Easy",
+  "printTime": "2-3 hours",
+  "features": [
+    "Standard license plate compatibility",
+    "Adjustable border width",
+    "Corner mounting holes",
+    "Optional back support lip",
+    "Rounded corners for aesthetics"
+  ],
+  "materials": ["PLA", "PETG", "ABS"],
+  "infill": "20-25%",
+  "supports": false
+}
