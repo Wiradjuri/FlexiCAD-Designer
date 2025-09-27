@@ -430,12 +430,17 @@
             grid-template-columns: 1fr 1fr;
             gap: 2rem;
             margin-top: 2rem;
+            max-width: 100vw;
+            padding: 0 1rem;
+            box-sizing: border-box;
         }
 
         .input-section, .output-section {
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
+            min-width: 0; /* Allows grid items to shrink below their content size */
+            overflow: hidden;
         }
 
         .placeholder-card {
@@ -462,6 +467,8 @@
             border: 1px solid var(--border-color);
             border-radius: 6px;
             overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .code-header {
@@ -473,6 +480,8 @@
             border-bottom: 1px solid var(--border-color);
             font-family: monospace;
             font-size: 0.875rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
         .code-block {
@@ -486,12 +495,58 @@
             overflow-x: auto;
             max-height: 400px;
             overflow-y: auto;
+            width: 100%;
+            box-sizing: border-box;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
-        @media (max-width: 1024px) {
+        /* Ensure cards don't overflow */
+        .card {
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        /* Better button layout in code header */
+        .code-header > div {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 1200px) {
             .generator-layout {
                 grid-template-columns: 1fr;
                 gap: 1.5rem;
+                max-width: 100%;
+            }
+            
+            .code-block {
+                font-size: 0.8rem;
+                max-height: 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .generator-layout {
+                padding: 0 0.5rem;
+            }
+            
+            .code-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .code-header > div {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            
+            .code-block {
+                font-size: 0.75rem;
+                padding: 0.75rem;
             }
         }
     </style>
