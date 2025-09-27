@@ -1,0 +1,3765 @@
+{
+  "metadata": {
+    "generated_at": "2025-09-27T03:41:17.747Z",
+    "total_examples": 50,
+    "categories": [
+      "Advanced",
+      "Basics",
+      "Functions",
+      "Old",
+      "Parametric"
+    ],
+    "complexity_distribution": {
+      "expert": 23,
+      "advanced": 21,
+      "intermediate": 6
+    }
+  },
+  "enhanced_manifest": {
+    "version": 2,
+    "name": "FlexiCAD AI Training Manifest",
+    "description": "Comprehensive OpenSCAD learning materials for AI code generation",
+    "generated_at": "2025-09-27T03:30:00.000Z",
+    "categories": {
+      "Basics": {
+        "description": "Fundamental OpenSCAD concepts and simple shapes",
+        "skills": [
+          "CSG operations",
+          "basic shapes",
+          "transformations",
+          "text extrusion",
+          "linear extrude"
+        ],
+        "examples": [
+          {
+            "name": "CSG.scad",
+            "description": "Basic CSG (Constructive Solid Geometry) operations: union, intersection, difference",
+            "concepts": [
+              "union",
+              "intersection",
+              "difference",
+              "cube",
+              "sphere",
+              "translate"
+            ],
+            "use_case": "Combining and cutting shapes to create complex objects"
+          },
+          {
+            "name": "phone_case.scad",
+            "description": "Parametric phone case with camera cutouts and rounded corners",
+            "concepts": [
+              "parametric design",
+              "difference",
+              "hull",
+              "cylinder cutouts",
+              "customizable dimensions"
+            ],
+            "use_case": "Creating protective cases for electronic devices"
+          },
+          {
+            "name": "LetterBlock.scad",
+            "description": "3D letter blocks using text extrusion and boolean operations",
+            "concepts": [
+              "text",
+              "linear_extrude",
+              "difference",
+              "modules",
+              "parameters"
+            ],
+            "use_case": "Creating letter blocks, signage, embossed text"
+          },
+          {
+            "name": "linear_extrude.scad",
+            "description": "2D shapes extruded into 3D with various options",
+            "concepts": [
+              "linear_extrude",
+              "2D shapes",
+              "height",
+              "twist",
+              "scale"
+            ],
+            "use_case": "Converting 2D profiles into 3D objects"
+          },
+          {
+            "name": "rotate_extrude.scad",
+            "description": "Creating rotational objects like bowls, vases, and circular profiles",
+            "concepts": [
+              "rotate_extrude",
+              "profile creation",
+              "circular symmetry"
+            ],
+            "use_case": "Creating round objects, bowls, vases, wheels"
+          }
+        ]
+      },
+      "Advanced": {
+        "description": "Complex techniques, animations, and advanced OpenSCAD features",
+        "skills": [
+          "children()",
+          "recursion",
+          "animation",
+          "complex mathematics",
+          "advanced modules"
+        ],
+        "examples": [
+          {
+            "name": "parametric_gear.scad",
+            "description": "Mathematical gear generation with involute curves and parametric teeth",
+            "concepts": [
+              "parametric design",
+              "mathematical calculations",
+              "gear teeth",
+              "involute curves",
+              "loops"
+            ],
+            "use_case": "Creating mechanical gears, drive systems, rotating mechanisms"
+          },
+          {
+            "name": "children.scad",
+            "description": "Using children() to create reusable modules that work with any child geometry",
+            "concepts": [
+              "children()",
+              "modules",
+              "reusability",
+              "generic patterns"
+            ],
+            "use_case": "Creating reusable patterns and layouts for multiple objects"
+          },
+          {
+            "name": "animation.scad",
+            "description": "Time-based animations using $t variable for moving parts",
+            "concepts": [
+              "animation",
+              "$t variable",
+              "time functions",
+              "inverse kinematics"
+            ],
+            "use_case": "Creating animated demonstrations, mechanical simulations"
+          },
+          {
+            "name": "module_recursion.scad",
+            "description": "Recursive modules for generating fractal trees and complex patterns",
+            "concepts": [
+              "recursion",
+              "fractals",
+              "random generation",
+              "matrix transformations"
+            ],
+            "use_case": "Creating organic shapes, trees, fractal patterns"
+          }
+        ]
+      },
+      "Functions": {
+        "description": "Function definitions, list comprehensions, and mathematical operations",
+        "skills": [
+          "function definition",
+          "mathematical operations",
+          "list processing",
+          "recursion"
+        ],
+        "examples": [
+          {
+            "name": "functions.scad",
+            "description": "User-defined functions for calculations and data processing",
+            "concepts": [
+              "function definition",
+              "mathematical operations",
+              "return values"
+            ],
+            "use_case": "Creating reusable calculations, data processing"
+          },
+          {
+            "name": "list_comprehensions.scad",
+            "description": "Advanced list processing and generation techniques",
+            "concepts": [
+              "list comprehensions",
+              "for loops in expressions",
+              "data generation"
+            ],
+            "use_case": "Generating complex data sets, processing arrays"
+          }
+        ]
+      },
+      "Parametric": {
+        "description": "Customizable designs with user-adjustable parameters",
+        "skills": [
+          "parametric design",
+          "customization",
+          "variable parameters",
+          "user input"
+        ],
+        "examples": [
+          {
+            "name": "candleStand.scad",
+            "description": "Customizable candle holder with adjustable dimensions",
+            "concepts": [
+              "parametric design",
+              "customizable dimensions",
+              "practical objects"
+            ],
+            "use_case": "Creating holders, stands, customizable household items"
+          },
+          {
+            "name": "sign.scad",
+            "description": "Parametric signage with customizable text and dimensions",
+            "concepts": [
+              "text customization",
+              "parametric design",
+              "signage"
+            ],
+            "use_case": "Creating custom signs, nameplates, labels"
+          }
+        ]
+      }
+    },
+    "common_patterns": {
+      "enclosures": {
+        "description": "Creating protective cases and enclosures",
+        "examples": [
+          "phone_case.scad"
+        ],
+        "concepts": [
+          "difference operations",
+          "wall thickness",
+          "cutouts",
+          "mounting features"
+        ]
+      },
+      "mechanical_parts": {
+        "description": "Gears, brackets, and mechanical components",
+        "examples": [
+          "parametric_gear.scad"
+        ],
+        "concepts": [
+          "precise dimensions",
+          "tolerances",
+          "mechanical constraints"
+        ]
+      },
+      "decorative_objects": {
+        "description": "Artistic and decorative items",
+        "examples": [
+          "candleStand.scad",
+          "LetterBlock.scad"
+        ],
+        "concepts": [
+          "aesthetics",
+          "text integration",
+          "organic shapes"
+        ]
+      },
+      "parametric_design": {
+        "description": "User-customizable designs with adjustable parameters",
+        "examples": [
+          "phone_case.scad",
+          "parametric_gear.scad",
+          "candleStand.scad"
+        ],
+        "concepts": [
+          "variable parameters",
+          "user customization",
+          "scalable designs"
+        ]
+      }
+    },
+    "design_principles": {
+      "modularity": "Break complex designs into reusable modules",
+      "parametrization": "Use variables for dimensions that users might want to change",
+      "comments": "Include clear comments explaining the purpose and parameters",
+      "organization": "Structure code logically with clear sections",
+      "error_handling": "Use assert() statements for parameter validation",
+      "performance": "Use appropriate $fn values for curves and circles"
+    },
+    "ai_generation_guidelines": {
+      "always_include": [
+        "Clear parameter definitions at the top",
+        "Descriptive comments explaining the design",
+        "Modular structure when appropriate",
+        "Proper use of CSG operations",
+        "Reasonable default values for parameters"
+      ],
+      "user_request_patterns": {
+        "case_enclosure": "Use difference() operations with wall thickness considerations",
+        "mechanical_part": "Include precise dimensions and tolerances",
+        "decorative_item": "Focus on aesthetics and visual appeal",
+        "bracket_mount": "Include mounting holes and structural considerations",
+        "container_box": "Include lid options and internal divisions if requested"
+      },
+      "common_dimensions": {
+        "phone_width": "70-85mm typical",
+        "wall_thickness": "1-3mm typical",
+        "screw_holes": "M3=3mm, M4=4mm, M5=5mm",
+        "usb_connector": "12mm x 6mm typical"
+      }
+    },
+    "learning_progression": {
+      "beginner": [
+        "Basic shapes",
+        "CSG operations",
+        "Simple transformations"
+      ],
+      "intermediate": [
+        "Modules",
+        "Parameters",
+        "2D to 3D extrusion",
+        "Text integration"
+      ],
+      "advanced": [
+        "Children()",
+        "Recursion",
+        "Mathematical functions",
+        "Animation"
+      ],
+      "expert": [
+        "Complex algorithms",
+        "Inverse kinematics",
+        "Fractal generation"
+      ]
+    }
+  },
+  "examples": [
+    {
+      "filename": "animation.scad",
+      "path": "Advanced\\animation.scad",
+      "size": 3344,
+      "lastModified": "2025-09-27T01:15:14.825Z",
+      "content": "// animation.scad - Demo of animation usage\r\n\r\n// The animation functionality is based simply on a variable $t\r\n// that is changed automatically by OpenSCAD while repeatedly\r\n// showing the model.\r\n// To activate animation, select \"View->Animate\" from the\r\n// menu; this will cause three fields to appear\r\n// underneath the Preview console: Time, FPS & Steps.\r\n// To commence animation, enter values into the FPS and Steps input\r\n// fields (e.g. 5 FPS and 200 Steps for this animation).\r\n// This is not intended to directly produce real-time animations\r\n// but the image sequence can be exported to generate videos of\r\n// the animation.\r\n\r\n// Length of the 2 arm segments, change to see the effects on\r\n// the arm movements.\r\n\r\n//length of the red arm\r\narm1_length = 70;\r\n//length of the green arm\r\narm2_length = 50;\r\n\r\nr = 2;\r\n$fn = 30;\r\n\r\nplate();\r\npos = position($t);\r\narm(pos[0], pos[1], arm1_length, arm2_length);\r\n\r\n// Function describing the X/Y position that should be traced\r\n// by the arm over time.\r\n// The $t variable will be used as parameter for this function\r\n// so the range for t is [0..1].\r\nfunction position(t) = t < 0.5\r\n    ? [ 200 * t - 50, 30 * sin(5 * 360 * t) + 60 ]\r\n    : [ 50 * cos(360 * (t - 0.5)), 100 * -sin(360 * (t- 0.5)) + 60 ];\r\n\r\n// Inverse kinematics functions for a scara style arm\r\n// See http://forums.reprap.org/read.php?185,283327\r\nfunction sq(x, y) = x * x + y * y;\r\nfunction angB(x, y, l1, l2) = 180 - acos((l2 * l2 + l1 * l1 - sq(x, y)) / (2 * l1 * l2));\r\nfunction ang2(x, y, l1, l2) = 90 - acos((l2 * l2 - l1 * l1 + sq(x, y)) / (2 * l2 * sqrt(sq(x, y)))) - atan2(x, y);\r\nfunction ang1(x, y, l1, l2) = ang2(x, y, l1, l2) + angB(x, y, l1, l2);\r\n\r\n// Draw an arm segment with the given color and length.\r\nmodule segment(col, l) {\r\n    color(col) {\r\n        hull() {\r\n            sphere(r);\r\n            translate([l, 0, 0]) sphere(r);\r\n        }\r\n    }\r\n}\r\n\r\n// Draw the whole 2 segmented arm trying to reach position x/y.\r\n// Parameters l1 and l2 are the length of the two arm segments.\r\nmodule arm(x, y, l1, l2) {\r\n    a1 = ang1(x, y, l1, l2);\r\n    a2 = ang2(x, y, l1, l2);\r\n    sphere(r = 2 * r);\r\n    cylinder(r = 2, h = 6 * r, center = true);\r\n    rotate([0, 0, a1]) segment(\"red\", l1);\r\n    translate(l1 * [cos(a1), sin(a1), 0]) {\r\n        sphere(r = 2 * r);\r\n        rotate([0, 0, a2]) segment(\"green\", l2);\r\n    }\r\n    translate([x, y, -r/2])\r\n        cylinder(r1 = 0, r2 = r, h = 4 * r, center = true);\r\n}\r\n\r\nmodule curve() polygon([for (a = [ 0 : 0.004 : 1]) position(a)]);\r\n\r\n// Draws the plate and the traced function using small black cubes.\r\nmodule plate() {\r\n    %translate([0, 0, -3*r]) {\r\n        translate([0,25,0]) cube([150, 150, 0.1], center = true);\r\n        color(\"Black\") linear_extrude(0.1) difference() {\r\n            curve();\r\n            offset(-1) curve();\r\n        }\r\n    }\r\n}\r\n\r\necho(version=version());\r\n// Written in 2015 by Torsten Paul <Torsten.Paul@gmx.de>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// animation.scad - Demo of animation usage",
+        "parameters": 6,
+        "modules": 4,
+        "functions": 6,
+        "lines": 95,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 1
+          },
+          {
+            "name": "sphere",
+            "count": 4
+          },
+          {
+            "name": "cylinder",
+            "count": 2
+          },
+          {
+            "name": "difference",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 5
+          },
+          {
+            "name": "rotate",
+            "count": 2
+          },
+          {
+            "name": "linear_extrude",
+            "count": 1
+          },
+          {
+            "name": "hull",
+            "count": 1
+          },
+          {
+            "name": "for_loop",
+            "count": 1
+          },
+          {
+            "name": "module_definition",
+            "count": 4
+          },
+          {
+            "name": "function_definition",
+            "count": 6
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Advanced"
+    },
+    {
+      "filename": "assert.scad",
+      "path": "Advanced\\assert.scad",
+      "size": 1149,
+      "lastModified": "2025-09-27T01:15:14.826Z",
+      "content": "echo(version=version());\r\n\r\nfunction size(x) = assert(x % 2 == 0, \"Size must be an even number\") x;\r\n\r\nmodule ring(r = 10, cnt = 3, s = 6) {\r\n    assert(r >= 10, \"Parameter r must be >= 10\");\r\n    assert(cnt >= 3 && cnt <= 20, \"Parameter cnt must be between 3 and 20 (inclusive\");\r\n    for (a = [0 : cnt - 1]) {\r\n        rotate(a * 360 / cnt) translate([r, 0, 0]) cube(size(s), center = true);\r\n    }\r\n}\r\n\r\n// ring(5, 5, 4); // trigger assertion for parameter r\r\n\r\n// ring(10, 2, 4); // trigger assertion for parameter cnt\r\n\r\n// ring(10, 3, 5); // trigger assertion in function size()\r\n\r\ncolor(\"red\") ring(10, 3, 4);\r\ncolor(\"green\") ring(25, 9, 6);\r\ncolor(\"blue\") ring(40, 20, 8);\r\n\r\n// Written in 2018 by Torsten Paul <Torsten.Paul@gmx.de>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// ring(5, 5, 4); // trigger assertion for parameter r",
+        "parameters": 0,
+        "modules": 1,
+        "functions": 2,
+        "lines": 33,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 1
+          },
+          {
+            "name": "rotate",
+            "count": 1
+          },
+          {
+            "name": "for_loop",
+            "count": 1
+          },
+          {
+            "name": "module_definition",
+            "count": 1
+          },
+          {
+            "name": "function_definition",
+            "count": 2
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Advanced"
+    },
+    {
+      "filename": "children.scad",
+      "path": "Advanced\\children.scad",
+      "size": 1595,
+      "lastModified": "2025-09-27T01:15:14.826Z",
+      "content": "// children.scad - Usage of children()\r\n\r\n// The use of children() allows to write generic modules that\r\n// modify child modules regardless of how the child geometry\r\n// is created.\r\n\r\ncolor(\"red\")\r\n    make_ring_of(radius = 15, count = 6)\r\n        cube(8, center = true);\r\n\r\ncolor(\"green\")\r\n    make_ring_of(radius = 30, count = 12)\r\n        difference() {\r\n            sphere(5);\r\n            cylinder(r = 2, h = 12, center = true);\r\n        }\r\n\r\ncolor(\"cyan\")\r\n    make_ring_of(radius = 50, count = 4)\r\n        something();\r\n\r\nmodule make_ring_of(radius, count)\r\n{\r\n    for (a = [0 : count - 1]) {\r\n        angle = a * 360 / count;\r\n        translate(radius * [sin(angle), -cos(angle), 0])\r\n            rotate([0, 0, angle])\r\n                children();\r\n    }\r\n}\r\n\r\nmodule something()\r\n{\r\n    cube(10, center = true);\r\n    cylinder(r = 2, h = 12, $fn = 40);\r\n    translate([0, 0, 12])\r\n        rotate([90, 0, 0])\r\n            linear_extrude(height = 2, center = true)\r\n                text(\"SCAD\", 8, halign = \"center\");\r\n    translate([0, 0, 12])\r\n        cube([22, 1.6, 0.4], center = true);\r\n}\r\n\r\necho(version=version());\r\n// Written in 2015 by Torsten Paul <Torsten.Paul@gmx.de>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// children.scad - Usage of children()",
+        "parameters": 1,
+        "modules": 2,
+        "functions": 0,
+        "lines": 55,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 3
+          },
+          {
+            "name": "sphere",
+            "count": 1
+          },
+          {
+            "name": "cylinder",
+            "count": 2
+          },
+          {
+            "name": "difference",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 3
+          },
+          {
+            "name": "rotate",
+            "count": 2
+          },
+          {
+            "name": "linear_extrude",
+            "count": 1
+          },
+          {
+            "name": "text",
+            "count": 1
+          },
+          {
+            "name": "children",
+            "count": 3
+          },
+          {
+            "name": "for_loop",
+            "count": 1
+          },
+          {
+            "name": "module_definition",
+            "count": 2
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Advanced"
+    },
+    {
+      "filename": "children_indexed.scad",
+      "path": "Advanced\\children_indexed.scad",
+      "size": 1949,
+      "lastModified": "2025-09-27T01:15:14.826Z",
+      "content": "// children_indexed.scad - Usage of indexed children()\r\n\r\n// children() with a parameter allows access to a specific child\r\n// object with children(0) being the first one. In addition the\r\n// $children variable is automatically set to the number of child\r\n// objects.\r\n\r\ncolor(\"red\")\r\n    translate([-100, -20, 0])\r\n        align_in_grid_and_add_text();\r\n\r\ncolor(\"yellow\")\r\n    translate([-50, -20, 0])\r\n        align_in_grid_and_add_text() {\r\n            cube(5, center = true);\r\n        }\r\n\r\ncolor(\"cyan\")\r\n    translate([0, -20, 0])\r\n        align_in_grid_and_add_text() {\r\n            cube(5, center = true);\r\n            sphere(4);\r\n        }\r\n\r\ncolor(\"green\")\r\n    translate([50, -20, 0])\r\n        align_in_grid_and_add_text() {\r\n            cube(5, center = true);\r\n            sphere(4);\r\n            cylinder(r = 4, h = 5);\r\n        }\r\n\r\n\r\nmodule align_in_grid_and_add_text()\r\n{\r\n    if ($children == 0) {\r\n        linear_extrude(height = 1, center = true)\r\n          text(\"Nothing...\", 6, halign = \"center\");\r\n    } else {\r\n        t = $children == 1 ? \"one object\" : str($children, \" objects \");\r\n        linear_extrude(height = 1, center = true)\r\n          text(t, 6, halign = \"center\");\r\n\r\n        for (y = [0 : $children - 1])\r\n            for (x = [0 : $children - 1])\r\n                translate([15 * (x - ($children - 1) / 2), 20 * y + 40, 0])\r\n                    scale(1 + x / $children)\r\n                        children(y);\r\n    }\r\n}\r\n\r\necho(version=version());\r\n// Written in 2015 by Torsten Paul <Torsten.Paul@gmx.de>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// children_indexed.scad - Usage of indexed children()",
+        "parameters": 1,
+        "modules": 1,
+        "functions": 0,
+        "lines": 63,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 3
+          },
+          {
+            "name": "sphere",
+            "count": 2
+          },
+          {
+            "name": "cylinder",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 5
+          },
+          {
+            "name": "scale",
+            "count": 1
+          },
+          {
+            "name": "linear_extrude",
+            "count": 2
+          },
+          {
+            "name": "text",
+            "count": 7
+          },
+          {
+            "name": "children",
+            "count": 4
+          },
+          {
+            "name": "for_loop",
+            "count": 2
+          },
+          {
+            "name": "if_condition",
+            "count": 1
+          },
+          {
+            "name": "module_definition",
+            "count": 1
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Advanced"
+    },
+    {
+      "filename": "GEB.scad",
+      "path": "Advanced\\GEB.scad",
+      "size": 1862,
+      "lastModified": "2025-09-27T01:15:14.825Z",
+      "content": "font = \"Liberation Sans\";\r\n// Nicer, but not generally installed:\r\n// font = \"Bank Gothic\";\r\n\r\nmodule G() offset(0.3) text(\"G\", size=10, halign=\"center\", valign=\"center\", font = font);\r\nmodule E() offset(0.3) text(\"E\", size=10, halign=\"center\", valign=\"center\", font = font);\r\nmodule B() offset(0.5) text(\"B\", size=10, halign=\"center\", valign=\"center\", font = font);\r\n\r\n$fn=64;\r\n\r\nmodule GEB() {\r\nintersection() {\r\n    linear_extrude(height = 20, convexity = 3, center=true) B();\r\n    \r\n    rotate([90, 0, 0])\r\n      linear_extrude(height = 20, convexity = 3, center=true) E();\r\n    \r\n    rotate([90, 0, 90])\r\n      linear_extrude(height = 20, convexity = 3, center=true) G();\r\n  }\r\n}\r\n\r\ncolor(\"Ivory\") GEB();\r\n\r\ncolor(\"MediumOrchid\") \r\n  translate([0,0,-20])\r\n    linear_extrude(1) \r\n      difference() {\r\n        square(40, center=true);\r\n        projection() GEB();\r\n      }\r\n\r\ncolor(\"DarkMagenta\")\r\n  rotate([90,0,0]) \r\n    translate([0,0,-20])\r\n      linear_extrude(1) \r\n        difference() {\r\n          translate([0,0.5]) square([40,39], center=true);\r\n          projection() rotate([-90,0,0]) GEB();\r\n        }\r\n\r\ncolor(\"MediumSlateBlue\")\r\n  rotate([90,0,90]) \r\n    translate([0,0,-20])\r\n      linear_extrude(1)\r\n        difference() {\r\n          translate([-0.5,0.5]) square([39,39], center=true);\r\n          projection() rotate([0,-90,-90]) GEB();\r\n        }\r\n\r\necho(version=version());\r\n// Written in 2015 by Marius Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Nicer, but not generally installed:",
+        "parameters": 1,
+        "modules": 4,
+        "functions": 0,
+        "lines": 62,
+        "concepts": [
+          {
+            "name": "difference",
+            "count": 3
+          },
+          {
+            "name": "intersection",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 5
+          },
+          {
+            "name": "rotate",
+            "count": 6
+          },
+          {
+            "name": "linear_extrude",
+            "count": 6
+          },
+          {
+            "name": "text",
+            "count": 3
+          },
+          {
+            "name": "module_definition",
+            "count": 4
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Advanced"
+    },
+    {
+      "filename": "module_recursion.scad",
+      "path": "Advanced\\module_recursion.scad",
+      "size": 2190,
+      "lastModified": "2025-09-27T01:15:14.827Z",
+      "content": "// Recursive calls of modules can generate complex geometry, especially\r\n// fractal style objects.\r\n// The example uses a recursive module to generate a random tree as\r\n// described in http://natureofcode.com/book/chapter-8-fractals/\r\n\r\n// number of levels for the recursion\r\nlevels = 10; // [1:1:14]\r\n// length of the first segment\r\nlen = 100; // [10:10:200]\r\n// thickness of the first segment\r\nthickness = 5; //[1:1:20]\r\n\r\n// the identity matrix\r\nidentity = [ [ 1, 0, 0, 0 ], [ 0, 1, 0, 0 ], [ 0, 0, 1, 0 ], [ 0, 0, 0, 1 ] ];\r\n\r\n// random generator, to generate always the same output for the example,\r\n// this uses a seed for rands() and stores the array of random values in\r\n// the random variable. To generate different output, remove the seed or\r\n// replace the function rnd() to just call rands(s, e, 1)[0].\r\nrcnt = 1000;\r\nrandom = rands(0, 1, rcnt, 18);\r\nfunction rnd(s, e, r) = random[r % rcnt] * (e - s) + s;\r\n\r\n// generate 4x4 translation matrix\r\nfunction mt(x, y) = [ [ 1, 0, 0, x ], [ 0, 1, 0, y ], [ 0, 0, 1, 0 ], [ 0, 0, 0, 1 ] ];\r\n\r\n// generate 4x4 rotation matrix around Z axis\r\nfunction mr(a) = [ [ cos(a), -sin(a), 0, 0 ], [ sin(a), cos(a), 0, 0 ], [ 0, 0, 1, 0 ], [ 0, 0, 0, 1 ] ];\r\n\r\nmodule tree(length, thickness, count, m = identity, r = 1) {\r\n    color([0, 1 - (0.8 / levels * count), 0])\r\n        multmatrix(m)\r\n            square([thickness, length]);\r\n\r\n    if (count > 0) {\r\n        tree(rnd(0.6, 0.8, r) * length, 0.8 * thickness, count - 1, m * mt(0, length) * mr(rnd(20, 35, r + 1)), 8 * r);\r\n        tree(rnd(0.6, 0.8, r + 1) * length, 0.8 * thickness, count - 1, m * mt(0, length) * mr(-rnd(20, 35, r + 3)), 8 * r + 4);\r\n    }\r\n}\r\n\r\ntree(len, thickness, levels);\r\n\r\necho(version=version());\r\n// Written in 2015 by Torsten Paul <Torsten.Paul@gmx.de>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// described in http://natureofcode.com/book/chapter-8-fractals/",
+        "parameters": 6,
+        "modules": 2,
+        "functions": 4,
+        "lines": 54,
+        "concepts": [
+          {
+            "name": "if_condition",
+            "count": 1
+          },
+          {
+            "name": "module_definition",
+            "count": 2
+          },
+          {
+            "name": "function_definition",
+            "count": 4
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Advanced"
+    },
+    {
+      "filename": "offset.scad",
+      "path": "Advanced\\offset.scad",
+      "size": 1087,
+      "lastModified": "2025-09-27T01:15:14.827Z",
+      "content": "// offset.scad - Example for offset() usage in OpenSCAD\r\n\r\n$fn = 40;\r\n\r\nfoot_height = 20;\r\n\r\necho(version=version());\r\n\r\nmodule outline(wall = 1) {\r\n  difference() {\r\n    offset(wall / 2) children();\r\n    offset(-wall / 2) children();\r\n  }\r\n}\r\n\r\n// offsetting with a positive value allows to create rounded corners easily\r\nlinear_extrude(height = foot_height, scale = 0.5) {\r\n  offset(10) {\r\n    square(50, center = true);\r\n  }\r\n}\r\n\r\ntranslate([0, 0, foot_height]) {\r\n  linear_extrude(height = 20) {\r\n    outline(wall = 2) circle(15);\r\n  }\r\n}\r\n\r\n%cylinder(r = 14, h = 100);\r\n%translate([0, 0, 100]) sphere(r = 30);\r\n\r\n\r\n\r\n// Written in 2014 by Torsten Paul <Torsten.Paul@gmx.de>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// offset.scad - Example for offset() usage in OpenSCAD",
+        "parameters": 1,
+        "modules": 1,
+        "functions": 0,
+        "lines": 44,
+        "concepts": [
+          {
+            "name": "sphere",
+            "count": 1
+          },
+          {
+            "name": "cylinder",
+            "count": 1
+          },
+          {
+            "name": "difference",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 2
+          },
+          {
+            "name": "linear_extrude",
+            "count": 2
+          },
+          {
+            "name": "children",
+            "count": 2
+          },
+          {
+            "name": "module_definition",
+            "count": 1
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Advanced"
+    },
+    {
+      "filename": "parametric_gear.scad",
+      "path": "Advanced\\parametric_gear.scad",
+      "size": 1567,
+      "lastModified": "2025-09-27T03:35:29.453Z",
+      "content": "// parametric_gear.scad - Advanced Parametric Gear Example\r\n// This shows advanced techniques: parametric design, loops, mathematical calculations\r\n\r\n// Gear parameters\r\nteeth = 20;           // Number of teeth\r\nmodule_size = 2;      // Size of gear teeth\r\npressure_angle = 20;  // Pressure angle in degrees\r\nthickness = 5;        // Gear thickness\r\nbore_diameter = 8;    // Center hole diameter\r\n\r\n// Calculate gear dimensions\r\npitch_diameter = teeth * module_size;\r\nouter_diameter = pitch_diameter + 2 * module_size;\r\nroot_diameter = pitch_diameter - 2.5 * module_size;\r\n\r\n// Main gear\r\ndifference() {\r\n    // Gear body\r\n    cylinder(d = outer_diameter, h = thickness);\r\n    \r\n    // Center bore\r\n    cylinder(d = bore_diameter, h = thickness + 2, center = true);\r\n    \r\n    // Gear teeth (subtractive method)\r\n    for (i = [0:teeth-1]) {\r\n        rotate([0, 0, i * 360/teeth]) {\r\n            translate([pitch_diameter/2, 0, -1])\r\n                gear_tooth_cutout();\r\n        }\r\n    }\r\n}\r\n\r\n// Module for individual tooth cutout\r\nmodule gear_tooth_cutout() {\r\n    // Create tooth profile using involute curve approximation\r\n    linear_extrude(height = thickness + 2) {\r\n        polygon([\r\n            [-module_size/2, -module_size],\r\n            [module_size/2, -module_size], \r\n            [module_size/3, module_size],\r\n            [-module_size/3, module_size]\r\n        ]);\r\n    }\r\n}\r\n\r\n// Optional: Add hub reinforcement\r\ndifference() {\r\n    cylinder(d = bore_diameter + 6, h = thickness);\r\n    cylinder(d = bore_diameter, h = thickness + 2, center = true);\r\n}",
+      "analysis": {
+        "description": "// parametric_gear.scad - Advanced Parametric Gear Example",
+        "parameters": 8,
+        "modules": 1,
+        "functions": 0,
+        "lines": 50,
+        "concepts": [
+          {
+            "name": "cylinder",
+            "count": 4
+          },
+          {
+            "name": "difference",
+            "count": 2
+          },
+          {
+            "name": "translate",
+            "count": 1
+          },
+          {
+            "name": "rotate",
+            "count": 1
+          },
+          {
+            "name": "linear_extrude",
+            "count": 1
+          },
+          {
+            "name": "for_loop",
+            "count": 1
+          },
+          {
+            "name": "module_definition",
+            "count": 1
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Advanced"
+    },
+    {
+      "filename": "surface_image.scad",
+      "path": "Advanced\\surface_image.scad",
+      "size": 970,
+      "lastModified": "2025-09-27T01:15:14.828Z",
+      "content": "echo(version=version());\r\n\r\n// surface() can import images, the pixel values are converted\r\n// to grayscale and converted to values between 0 and 100.\r\n// The example takes 3 cuts from the height map and displays\r\n// those as 3 stacked layers.\r\n\r\nfor (a = [1, 2, 3])\r\n    color([a/6 + 0.5, 0, 0])\r\n       linear_extrude(height = 2 * a, convexity = 10)\r\n            projection(cut = true)\r\n                translate([0, 0, -30 * a])\r\n                    surface(\"surface_image.png\", center = true);\r\n\r\n\r\n\r\n// Written in 2015 by Torsten Paul <Torsten.Paul@gmx.de>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// surface() can import images, the pixel values are converted",
+        "parameters": 0,
+        "modules": 0,
+        "functions": 0,
+        "lines": 27,
+        "concepts": [
+          {
+            "name": "translate",
+            "count": 1
+          },
+          {
+            "name": "linear_extrude",
+            "count": 1
+          },
+          {
+            "name": "for_loop",
+            "count": 1
+          }
+        ],
+        "complexity": "intermediate"
+      },
+      "category": "Advanced"
+    },
+    {
+      "filename": "CSG-modules.scad",
+      "path": "Basics\\CSG-modules.scad",
+      "size": 2592,
+      "lastModified": "2025-09-27T01:15:14.828Z",
+      "content": "// CSG-modules.scad - Basic usage of modules, if, color, $fs/$fa\r\n\r\n// Change this to false to remove the helper geometry\r\ndebug = true;\r\n\r\n// Global resolution\r\n$fs = 0.1;  // Don't generate smaller facets than 0.1 mm\r\n$fa = 5;    // Don't generate larger angles than 5 degrees\r\n\r\n// Main geometry\r\ndifference() {\r\n    intersection() {\r\n        body();\r\n        intersector();\r\n    }\r\n    holes();\r\n}\r\n\r\n// Helpers\r\nif (debug) helpers();\r\n\r\n// Core geometric primitives.\r\n// These can be modified to create variations of the final object\r\n\r\nmodule body() {\r\n    color(\"Blue\") sphere(10);\r\n}\r\n\r\nmodule intersector() {\r\n    color(\"Red\") cube(15, center=true);\r\n}\r\n\r\nmodule holeObject() {\r\n    color(\"Lime\") cylinder(h=20, r=5, center=true);\r\n}\r\n\r\n// Various modules for visualizing intermediate components\r\n\r\nmodule intersected() {\r\n    intersection() {\r\n        body();\r\n        intersector();\r\n    }\r\n}\r\n\r\nmodule holeA() rotate([0,90,0]) holeObject();\r\nmodule holeB() rotate([90,0,0]) holeObject();\r\nmodule holeC() holeObject();\r\n\r\nmodule holes() {\r\n    union() {\r\n        holeA();\r\n        holeB();\r\n        holeC();\r\n    }\r\n}\r\n\r\nmodule helpers() {\r\n    // Inner module since it's only needed inside helpers\r\n    module line() color(\"Black\") cylinder(r=1, h=10, center=true);\r\n\r\n    scale(0.5) {\r\n        translate([-30,0,-40]) {\r\n            intersected();\r\n            translate([-15,0,-35]) body();\r\n            translate([15,0,-35]) intersector();\r\n            translate([-7.5,0,-17.5]) rotate([0,30,0]) line();\r\n            translate([7.5,0,-17.5]) rotate([0,-30,0]) line();\r\n        }\r\n        translate([30,0,-40]) {\r\n            holes();\r\n            translate([-10,0,-35]) holeA();\r\n            translate([10,0,-35]) holeB();\r\n            translate([30,0,-35]) holeC();\r\n            translate([5,0,-17.5]) rotate([0,-20,0]) line();\r\n            translate([-5,0,-17.5]) rotate([0,30,0]) line();\r\n            translate([15,0,-17.5]) rotate([0,-45,0]) line();\r\n        }\r\n        translate([-20,0,-22.5]) rotate([0,45,0]) line();\r\n        translate([20,0,-22.5]) rotate([0,-45,0]) line();\r\n    }\r\n}\r\n\r\necho(version=version());\r\n// Written by Marius Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// CSG-modules.scad - Basic usage of modules, if, color, $fs/$fa",
+        "parameters": 1,
+        "modules": 11,
+        "functions": 0,
+        "lines": 95,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 1
+          },
+          {
+            "name": "sphere",
+            "count": 1
+          },
+          {
+            "name": "cylinder",
+            "count": 2
+          },
+          {
+            "name": "difference",
+            "count": 1
+          },
+          {
+            "name": "union",
+            "count": 1
+          },
+          {
+            "name": "intersection",
+            "count": 2
+          },
+          {
+            "name": "translate",
+            "count": 14
+          },
+          {
+            "name": "rotate",
+            "count": 9
+          },
+          {
+            "name": "scale",
+            "count": 1
+          },
+          {
+            "name": "if_condition",
+            "count": 1
+          },
+          {
+            "name": "module_definition",
+            "count": 11
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Basics"
+    },
+    {
+      "filename": "CSG.scad",
+      "path": "Basics\\CSG.scad",
+      "size": 806,
+      "lastModified": "2025-09-27T01:15:14.829Z",
+      "content": "// CSG.scad - Basic example of CSG usage\r\n\r\ntranslate([-24,0,0]) {\r\n    union() {\r\n        cube(15, center=true);\r\n        sphere(10);\r\n    }\r\n}\r\n\r\nintersection() {\r\n    cube(15, center=true);\r\n    sphere(10);\r\n}\r\n\r\ntranslate([24,0,0]) {\r\n    difference() {\r\n        cube(15, center=true);\r\n        sphere(10);\r\n    }\r\n}\r\n\r\necho(version=version());\r\n// Written by Marius Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// CSG.scad - Basic example of CSG usage",
+        "parameters": 0,
+        "modules": 0,
+        "functions": 0,
+        "lines": 33,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 3
+          },
+          {
+            "name": "sphere",
+            "count": 3
+          },
+          {
+            "name": "difference",
+            "count": 1
+          },
+          {
+            "name": "union",
+            "count": 1
+          },
+          {
+            "name": "intersection",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 2
+          }
+        ],
+        "complexity": "intermediate"
+      },
+      "category": "Basics"
+    },
+    {
+      "filename": "LetterBlock.scad",
+      "path": "Basics\\LetterBlock.scad",
+      "size": 1236,
+      "lastModified": "2025-09-27T01:15:14.829Z",
+      "content": "// LetterBlock.scad - Basic usage of text() and linear_extrude()\r\n\r\n// Module instantiation\r\nLetterBlock(\"M\");\r\n\r\n// Module definition.\r\n// size=30 defines an optional parameter with a default value.\r\nmodule LetterBlock(letter, size=30) {\r\n    difference() {\r\n        translate([0,0,size/4]) cube([size,size,size/2], center=true);\r\n        translate([0,0,size/6]) {\r\n            // convexity is needed for correct preview\r\n            // since characters can be highly concave\r\n            linear_extrude(height=size, convexity=4)\r\n                text(letter, \r\n                     size=size*22/30,\r\n                     font=\"Bitstream Vera Sans\",\r\n                     halign=\"center\",\r\n                     valign=\"center\");\r\n        }\r\n    }\r\n}\r\n\r\necho(version=version());\r\n// Written by Marius Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// LetterBlock.scad - Basic usage of text() and linear_extrude()",
+        "parameters": 4,
+        "modules": 1,
+        "functions": 0,
+        "lines": 35,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 1
+          },
+          {
+            "name": "difference",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 2
+          },
+          {
+            "name": "linear_extrude",
+            "count": 2
+          },
+          {
+            "name": "text",
+            "count": 2
+          },
+          {
+            "name": "module_definition",
+            "count": 1
+          }
+        ],
+        "complexity": "intermediate"
+      },
+      "category": "Basics"
+    },
+    {
+      "filename": "linear_extrude.scad",
+      "path": "Basics\\linear_extrude.scad",
+      "size": 1310,
+      "lastModified": "2025-09-27T01:15:14.829Z",
+      "content": "echo(version=version());\r\n\r\n// simple 2D -> 3D extrusion of a rectangle\r\ncolor(\"red\")\r\n    translate([0, -30, 0])\r\n        linear_extrude(height = 20)\r\n            square([20, 10], center = true);\r\n\r\n// using the scale parameter a frustum can be constructed\r\ncolor(\"green\")\r\n    translate([-30, 0, 0])\r\n        linear_extrude(height = 20, scale = 0.2)\r\n            square([20, 10], center = true);\r\n\r\n// with twist the extruded shape will rotate around the Z axis\r\ncolor(\"cyan\")\r\n    translate([30, 0, 0])\r\n        linear_extrude(height = 20, twist = 90)\r\n            square([20, 10], center = true);\r\n\r\n// combining both relatively complex shapes can be created\r\ncolor(\"gray\")\r\n    translate([0, 30, 0])\r\n        linear_extrude(height = 40, twist = -360, scale = 0, center = true, slices = 200)\r\n            square([20, 10], center = true);\r\n\r\n// Written in 2015 by Torsten Paul <Torsten.Paul@gmx.de>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// simple 2D -> 3D extrusion of a rectangle",
+        "parameters": 0,
+        "modules": 0,
+        "functions": 0,
+        "lines": 37,
+        "concepts": [
+          {
+            "name": "translate",
+            "count": 4
+          },
+          {
+            "name": "linear_extrude",
+            "count": 4
+          }
+        ],
+        "complexity": "intermediate"
+      },
+      "category": "Basics"
+    },
+    {
+      "filename": "logo.scad",
+      "path": "Basics\\logo.scad",
+      "size": 1279,
+      "lastModified": "2025-09-27T01:15:14.830Z",
+      "content": "// logo.scad - Basic example of module, top-level variable and $fn usage\r\n\r\nLogo(50);\r\n\r\n// The $fn parameter will influence all objects inside this module\r\n// It can, optionally, be overridden when instantiating the module\r\nmodule Logo(size=50, $fn=100) {\r\n    // Temporary variables\r\n    hole = size/2;\r\n    cylinderHeight = size * 1.25;\r\n\r\n    // One positive object (sphere) and three negative objects (cylinders)\r\n    difference() {\r\n        sphere(d=size);\r\n        \r\n        cylinder(d=hole, h=cylinderHeight, center=true);\r\n        // The '#' operator highlights the object\r\n        #rotate([90, 0, 0]) cylinder(d=hole, h=cylinderHeight, center=true);\r\n        rotate([0, 90, 0]) cylinder(d=hole, h=cylinderHeight, center=true);\r\n    }\r\n}\r\n\r\necho(version=version());\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n\r\n",
+      "analysis": {
+        "description": "// logo.scad - Basic example of module, top-level variable and $fn usage",
+        "parameters": 2,
+        "modules": 1,
+        "functions": 0,
+        "lines": 36,
+        "concepts": [
+          {
+            "name": "sphere",
+            "count": 1
+          },
+          {
+            "name": "cylinder",
+            "count": 3
+          },
+          {
+            "name": "difference",
+            "count": 1
+          },
+          {
+            "name": "rotate",
+            "count": 2
+          },
+          {
+            "name": "module_definition",
+            "count": 1
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Basics"
+    },
+    {
+      "filename": "logo_and_text.scad",
+      "path": "Basics\\logo_and_text.scad",
+      "size": 1598,
+      "lastModified": "2025-09-27T01:15:14.830Z",
+      "content": "// logo_and_text.scad - Example for use<> and text()\r\n\r\nuse <logo.scad> // Imports the Logo() module from logo.scad into this namespace\r\n\r\n// Set the initial viewport parameters\r\n$vpr = [90, 0, 0];\r\n$vpt = [300, 0, 80];\r\n$vpd = 1600;\r\n\r\nlogosize = 120;\r\n\r\ntranslate([110, 0, 80]) {\r\n  translate([0, 0, 30]) rotate([25, 25, -40]) Logo(logosize);\r\n  translate([100, 0, 40])  green() t(\"Open\", s = 42, spacing = 1.05);\r\n  translate([247, 0, 40])  corn()  t(\"SCAD\" , s = 42, spacing = 0.9);\r\n  translate([100, 0, 0])   black() t(\"The Programmers\");\r\n  translate([160, 0, -30]) black() t(\"Solid 3D CAD Modeller\");\r\n}\r\n\r\n// Helper to create 3D text with correct font and orientation\r\nmodule t(t, s = 18, style = \":style=Bold\", spacing = 1) {\r\n  rotate([90, 0, 0])\r\n    linear_extrude(height = 1)\r\n      text(t, size = s,\r\n           spacing=spacing,\r\n           font = str(\"Liberation Sans\", style),\r\n           $fn = 16);\r\n}\r\n\r\n// Color helpers\r\nmodule green() color([157/255,203/255,81/255]) children();\r\nmodule corn() color([249/255,210/255,44/255]) children();\r\nmodule black() color([0, 0, 0]) children();\r\n\r\necho(version=version());\r\n// Written in 2014 by Torsten Paul <Torsten.Paul@gmx.de>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// logo_and_text.scad - Example for use<> and text()",
+        "parameters": 3,
+        "modules": 5,
+        "functions": 0,
+        "lines": 46,
+        "concepts": [
+          {
+            "name": "translate",
+            "count": 6
+          },
+          {
+            "name": "rotate",
+            "count": 2
+          },
+          {
+            "name": "linear_extrude",
+            "count": 1
+          },
+          {
+            "name": "text",
+            "count": 2
+          },
+          {
+            "name": "children",
+            "count": 3
+          },
+          {
+            "name": "module_definition",
+            "count": 5
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Basics"
+    },
+    {
+      "filename": "phone_case.scad",
+      "path": "Basics\\phone_case.scad",
+      "size": 1983,
+      "lastModified": "2025-09-27T03:34:51.524Z",
+      "content": "// phone_case.scad - Parametric Phone Case Example\r\n// This example shows how to create a customizable phone case with camera cutouts\r\n\r\n// Parameters - users can modify these\r\nphone_width = 75;      // Width of phone in mm\r\nphone_height = 150;    // Height of phone in mm  \r\nphone_thickness = 8;   // Thickness of phone in mm\r\ncase_thickness = 2;    // Wall thickness of case\r\ncamera_diameter = 20;  // Diameter of camera cutout\r\ncorner_radius = 5;     // Rounded corner radius\r\n\r\n// Main phone case\r\ndifference() {\r\n    // Outer case with rounded corners\r\n    hull() {\r\n        translate([corner_radius, corner_radius, 0])\r\n            cylinder(r=corner_radius, h=phone_thickness + case_thickness);\r\n        translate([phone_width + case_thickness - corner_radius, corner_radius, 0])\r\n            cylinder(r=corner_radius, h=phone_thickness + case_thickness);\r\n        translate([corner_radius, phone_height + case_thickness - corner_radius, 0])\r\n            cylinder(r=corner_radius, h=phone_thickness + case_thickness);\r\n        translate([phone_width + case_thickness - corner_radius, phone_height + case_thickness - corner_radius, 0])\r\n            cylinder(r=corner_radius, h=phone_thickness + case_thickness);\r\n    }\r\n    \r\n    // Inner phone cavity\r\n    translate([case_thickness, case_thickness, case_thickness])\r\n        cube([phone_width, phone_height, phone_thickness + 1]);\r\n    \r\n    // Camera cutout (top center)\r\n    translate([phone_width/2 + case_thickness, phone_height - 25 + case_thickness, -1])\r\n        cylinder(h=case_thickness + 2, d=camera_diameter);\r\n    \r\n    // Charging port cutout (bottom center)\r\n    translate([phone_width/2 + case_thickness - 15, -1, case_thickness + phone_thickness/2])\r\n        cube([30, case_thickness + 2, 8]);\r\n}\r\n\r\n// Optional: Add phone case grip rings\r\ntranslate([phone_width/2 + case_thickness, phone_height/2 + case_thickness, 0]) {\r\n    difference() {\r\n        cylinder(d=25, h=3);\r\n        cylinder(d=15, h=4);\r\n    }\r\n}",
+      "analysis": {
+        "description": "// phone_case.scad - Parametric Phone Case Example",
+        "parameters": 6,
+        "modules": 0,
+        "functions": 0,
+        "lines": 45,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 2
+          },
+          {
+            "name": "cylinder",
+            "count": 7
+          },
+          {
+            "name": "difference",
+            "count": 2
+          },
+          {
+            "name": "translate",
+            "count": 8
+          },
+          {
+            "name": "hull",
+            "count": 1
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Basics"
+    },
+    {
+      "filename": "projection.scad",
+      "path": "Basics\\projection.scad",
+      "size": 2076,
+      "lastModified": "2025-09-27T01:15:14.830Z",
+      "content": "echo(version=version());\r\n\r\n%import(\"projection.stl\");\r\n\r\n// projection() without the cut = true parameter will project\r\n// the outline of the object onto the X/Y plane. The result is\r\n// a 2D shape.\r\n\r\ncolor(\"red\")\r\n    translate([0, 0, -20])\r\n        linear_extrude(height = 2, center = true)\r\n            difference() {\r\n                square(30, center = true);\r\n                projection()\r\n                    import(\"projection.stl\");\r\n            }\r\n\r\ncolor(\"green\")\r\n    rotate([0, 90, 0])\r\n        translate([0, 0, -20])\r\n            linear_extrude(height = 2, center = true)\r\n                difference() {\r\n                    square(30, center = true);\r\n                    projection()\r\n                        rotate([0, 90, 0])\r\n                            import(\"projection.stl\");\r\n                }\r\n\r\ncolor(\"cyan\")\r\n    rotate([-90, 0, 0])\r\n        translate([0, 0, 20])\r\n            linear_extrude(height = 2, center = true)\r\n                difference() {\r\n                    square(30, center = true);\r\n                    projection()\r\n                        rotate([90, 0, 0])\r\n                            import(\"projection.stl\");\r\n                }\r\n\r\n// Including the cut = true uses the outline of the cut at\r\n// the X/Y plane.at Z = 0. This can make internal features\r\n// of the model visible.\r\n\r\ncolor(\"yellow\", 0.5)\r\n    translate([0, 0, 20])\r\n        linear_extrude(height = 2, center = true)\r\n            difference() {\r\n                square(30, center = true);\r\n                projection(cut = true)\r\n                    import(\"projection.stl\");\r\n            }\r\n\r\n\r\n\r\n// Written in 2015 by Torsten Paul <Torsten.Paul@gmx.de>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// projection() without the cut = true parameter will project",
+        "parameters": 0,
+        "modules": 0,
+        "functions": 0,
+        "lines": 65,
+        "concepts": [
+          {
+            "name": "difference",
+            "count": 4
+          },
+          {
+            "name": "translate",
+            "count": 4
+          },
+          {
+            "name": "rotate",
+            "count": 4
+          },
+          {
+            "name": "linear_extrude",
+            "count": 4
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Basics"
+    },
+    {
+      "filename": "rotate_extrude.scad",
+      "path": "Basics\\rotate_extrude.scad",
+      "size": 1875,
+      "lastModified": "2025-09-27T01:15:14.834Z",
+      "content": "echo(version=version());\r\n\r\n// rotate_extrude() rotates a 2D shape around the Z axis. \r\n// Note that the 2D shape must be either completely on the \r\n// positive or negative side of the X axis.\r\ncolor(\"red\")\r\n    rotate_extrude()\r\n        translate([10, 0])\r\n            square(5);\r\n\r\n// rotate_extrude() uses the global $fn/$fa/$fs settings, but\r\n// it's possible to give a different value as parameter.\r\ncolor(\"cyan\")\r\n    translate([40, 0, 0])\r\n        rotate_extrude($fn = 80)\r\n            text(\"  J\");\r\n\r\n// Using a shape that touches the X axis is allowed and produces\r\n// 3D objects that don't have a hole in the center.\r\ncolor(\"green\")\r\n    translate([0, 30, 0])\r\n        rotate_extrude($fn = 80)\r\n            polygon( points=[[0,0],[8,4],[4,8],[4,12],[12,16],[0,20]] );\r\n\r\n\r\n// By default rotate_extrude forms a full 360 degree circle, \r\n// but a partial rotation can be performed by using the angle parameter.\r\n// Positive angles create an arc starting from the X axis, going counter-clockwise.\r\n// Negative angles generate an arc in the clockwise direction.\r\ncolor(\"magenta\") \r\n  translate([40,40]){\r\n    rotate_extrude(angle=180)\r\n      translate([12.5,0])\r\n        square(5);\r\n    translate([7.5,0])\r\n      rotate_extrude(angle=180)\r\n        translate([5,0])\r\n          square(5);\r\n    translate([-7.5,0])\r\n      rotate_extrude(angle=-180)\r\n        translate([5,0])\r\n          square(5);\r\n  }\r\n\r\n\r\n// Written in 2015 by Torsten Paul <Torsten.Paul@gmx.de>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Positive angles create an arc starting from the X axis, going counter-clockwise.",
+        "parameters": 0,
+        "modules": 0,
+        "functions": 0,
+        "lines": 56,
+        "concepts": [
+          {
+            "name": "translate",
+            "count": 9
+          },
+          {
+            "name": "rotate_extrude",
+            "count": 8
+          },
+          {
+            "name": "text",
+            "count": 1
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Basics"
+    },
+    {
+      "filename": "text_on_cube.scad",
+      "path": "Basics\\text_on_cube.scad",
+      "size": 1786,
+      "lastModified": "2025-09-27T01:15:14.834Z",
+      "content": "// text_on_cube.scad - Example for text() usage in OpenSCAD\r\n\r\necho(version=version());\r\n\r\nfont = \"Liberation Sans\"; //[\"Liberation Sans\", \"Liberation Sans:style=Bold\", \"Liberation Sans:style=Italic\", \"Liberation Mono\", \"Liberation Serif\"]\r\n\r\ncube_size = 60;\r\nletter_size = 50;\r\nletter_height = 5;\r\n\r\no = cube_size / 2 - letter_height / 2;\r\n\r\nmodule letter(l) {\r\n  // Use linear_extrude() to make the letters 3D objects as they\r\n  // are only 2D shapes when only using text()\r\n  linear_extrude(height = letter_height) {\r\n    text(l, size = letter_size, font = font, halign = \"center\", valign = \"center\", $fn = 16);\r\n  }\r\n}\r\n\r\ndifference() {\r\n  union() {\r\n    color(\"gray\") cube(cube_size, center = true);\r\n    translate([0, -o, 0]) rotate([90, 0, 0]) letter(\"C\");\r\n    translate([o, 0, 0]) rotate([90, 0, 90]) letter(\"U\");\r\n    translate([0, o, 0]) rotate([90, 0, 180]) letter(\"B\");\r\n    translate([-o, 0, 0]) rotate([90, 0, -90]) letter(\"E\");\r\n  }\r\n\r\n  // Put some symbols on top and bottom using symbols from the\r\n  // Unicode symbols table.\r\n  // (see https://en.wikipedia.org/wiki/Miscellaneous_Symbols)\r\n  //\r\n  // Note that depending on the font used, not all the symbols\r\n  // are actually available.\r\n  translate([0, 0, o])  letter(\"\\u263A\");\r\n  translate([0, 0, -o - letter_height])  letter(\"\\u263C\");\r\n}\r\n\r\n\r\n\r\n// Written in 2014 by Torsten Paul <Torsten.Paul@gmx.de>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// text_on_cube.scad - Example for text() usage in OpenSCAD",
+        "parameters": 5,
+        "modules": 1,
+        "functions": 0,
+        "lines": 52,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 1
+          },
+          {
+            "name": "difference",
+            "count": 1
+          },
+          {
+            "name": "union",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 6
+          },
+          {
+            "name": "rotate",
+            "count": 4
+          },
+          {
+            "name": "linear_extrude",
+            "count": 2
+          },
+          {
+            "name": "text",
+            "count": 3
+          },
+          {
+            "name": "module_definition",
+            "count": 1
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Basics"
+    },
+    {
+      "filename": "echo.scad",
+      "path": "Functions\\echo.scad",
+      "size": 1771,
+      "lastModified": "2025-09-27T01:15:14.835Z",
+      "content": "echo(version=version());\r\n\r\n// Using echo() in expression context can help with debugging\r\n// recursive functions. See console window for output of the\r\n// examples below.\r\n\r\n// Simple example just outputting the function input parameters.\r\nfunction f1(x, y) = echo(\"f1: \", x, y) 0.5 * x * x + 4 * y + 1;\r\n\r\nr1 = f1(3, 5);\r\n\r\n// To output the result, there are multiple possibilities, the\r\n// easiest is to use let() to assign the result to a variable\r\n// (y here) which is used for both echo() output and result.\r\nfunction f2(x) = let(y = pow(x, 3)) echo(\"f2: \", y) y;\r\n\r\nr2 = f2(4);\r\n\r\n// Another option is using a helper function where the argument\r\n// is evaluated first and then passed to the result() helper\r\n// where it's printed using echo() and returned as result.\r\nfunction result(x) = echo(\"f3: \", x) x;\r\nfunction f3(x) = result(x * x - 5);\r\n\r\nr3 = f3(5);\r\n\r\n// A more complex example is a recursive function. Combining\r\n// the two different ways of printing values before and after\r\n// evaluation it's possible to output the input value x when\r\n// descending into the recursion and the result y collected\r\n// when returning.\r\nfunction f4(x) = echo(\"f4: \", x = x)\r\n                 let(y = x == 1 ? 1 : x * f4(x - 1))\r\n                 echo(\"f4: \", y = y)\r\n                 y;\r\n\r\nr4 = f4(5);\r\n\r\n// Written in 2018 by Torsten Paul <Torsten.Paul@gmx.de>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Using echo() in expression context can help with debugging",
+        "parameters": 4,
+        "modules": 0,
+        "functions": 7,
+        "lines": 49,
+        "concepts": [
+          {
+            "name": "function_definition",
+            "count": 7
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Functions"
+    },
+    {
+      "filename": "functions.scad",
+      "path": "Functions\\functions.scad",
+      "size": 1248,
+      "lastModified": "2025-09-27T01:15:14.835Z",
+      "content": "echo(version=version());\r\n\r\n// Functions can be defined to simplify code using lots of\r\n// calculations.\r\n\r\n// Simple example with a single function argument (which should\r\n// be a number) and returning a number calculated based on that.\r\nfunction f(x) = 0.5 * x + 1;\r\n\r\ncolor(\"red\")\r\n    for (a = [ -100 : 5 : 100 ])\r\n        translate([a, f(a), 0]) cube(2, center = true);\r\n\r\n// Functions can call other functions and return complex values\r\n// too. In this case a 3 element vector is returned which can\r\n// be used as point in 3D space or as vector (in the mathematical\r\n// meaning) for translations and other transformations.\r\nfunction g(x) = [ 5 * x + 20, f(x) * f(x) - 50, 0 ];\r\n\r\ncolor(\"green\")\r\n    for (a = [ -200 : 10 : 200 ])\r\n        translate(g(a / 8)) sphere(1);\r\n\r\n\r\n\r\n// Written in 2015 by Torsten Paul <Torsten.Paul@gmx.de>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Functions can be defined to simplify code using lots of",
+        "parameters": 0,
+        "modules": 0,
+        "functions": 3,
+        "lines": 36,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 1
+          },
+          {
+            "name": "sphere",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 2
+          },
+          {
+            "name": "for_loop",
+            "count": 2
+          },
+          {
+            "name": "function_definition",
+            "count": 3
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Functions"
+    },
+    {
+      "filename": "list_comprehensions.scad",
+      "path": "Functions\\list_comprehensions.scad",
+      "size": 1795,
+      "lastModified": "2025-09-27T01:15:14.836Z",
+      "content": "// list_comprehensions.scad - Examples of list comprehension usage\r\n\r\n// Basic list comprehension:\r\n// Returns a 2D vertex per iteration of the for loop\r\n// Note: subsequent assignments inside the for loop is allowed\r\nmodule ngon(num, r) {\r\n  polygon([for (i=[0:num-1], a=i*360/num) [ r*cos(a), r*sin(a) ]]);\r\n}\r\n\r\nngon(3, 10);\r\ntranslate([20,0]) ngon(6, 8);\r\ntranslate([36,0]) ngon(10, 6);\r\n\r\n// More complex list comprehension:\r\n// Similar to ngon(), but uses an inner function to calculate\r\n// the vertices. the let() keyword allows assignment of temporary variables.\r\nmodule rounded_ngon(num, r, rounding = 0) {\r\n  function v(a) = let (d = 360/num, v = floor((a+d/2)/d)*d) (r-rounding) * [cos(v), sin(v)];\r\n  polygon([for (a=[0:360-1]) v(a) + rounding*[cos(a),sin(a)]]);\r\n}\r\n\r\ntranslate([0,22]) rounded_ngon(3, 10, 5);\r\ntranslate([20,22]) rounded_ngon(6, 8, 4);\r\ntranslate([36,22]) rounded_ngon(10, 6, 3);\r\n\r\n// Gear/star generator\r\n// Uses a list comprehension taking a list of radii to generate a star shape\r\nmodule star(num, radii) {\r\n  function r(a) = (floor(a / 10) % 2) ? 10 : 8;\r\n  polygon([for (i=[0:num-1], a=i*360/num, r=radii[i%len(radii)]) [ r*cos(a), r*sin(a) ]]);\r\n}\r\n\r\ntranslate([0,44]) star(20, [6,10]);\r\ntranslate([20,44]) star(40, [6,8,8,6]);\r\ntranslate([36,44]) star(30, [3,4,5,6,5,4]);\r\n\r\necho(version=version());\r\n// Written by Marius Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// list_comprehensions.scad - Examples of list comprehension usage",
+        "parameters": 0,
+        "modules": 3,
+        "functions": 3,
+        "lines": 48,
+        "concepts": [
+          {
+            "name": "translate",
+            "count": 8
+          },
+          {
+            "name": "for_loop",
+            "count": 3
+          },
+          {
+            "name": "module_definition",
+            "count": 3
+          },
+          {
+            "name": "function_definition",
+            "count": 3
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Functions"
+    },
+    {
+      "filename": "polygon_areas.scad",
+      "path": "Functions\\polygon_areas.scad",
+      "size": 1805,
+      "lastModified": "2025-09-27T01:15:14.836Z",
+      "content": "// polygon_areas.scad: Another recursion example \r\n\r\n// Draw all geometry\r\ntranslate([0,20]) color(\"Red\") text(\"Areas:\", size=8, halign=\"center\");\r\ntranslate([-44,0]) shapeWithArea(3, 10);\r\ntranslate([-22,0]) shapeWithArea(4, 10);\r\ntranslate([0,0]) shapeWithArea(6, 10);\r\ntranslate([22,0]) shapeWithArea(10, 10);\r\ntranslate([44,0]) shapeWithArea(360, 10);\r\n\r\n// One shape with corresponding text\r\nmodule shapeWithArea(num, r) {\r\n    polygon(ngon(num, r));\r\n    translate([0,-20]) \r\n        color(\"Cyan\") \r\n            text(str(round(area(ngon(num, r)))), halign=\"center\", size=8);\r\n}\r\n\r\n// Simple list comprehension for creating N-gon vertices\r\nfunction ngon(num, r) = \r\n  [for (i=[0:num-1], a=i*360/num) [ r*cos(a), r*sin(a) ]];\r\n\r\n// Area of a triangle with the 3rd vertex in the origin\r\nfunction triarea(v0, v1) = cross(v0, v1) / 2;\r\n\r\n// Area of a polygon using the Shoelace formula\r\nfunction area(vertices) =\r\n  let (areas = [let (num=len(vertices))\r\n                  for (i=[0:num-1]) \r\n                    triarea(vertices[i], vertices[(i+1)%num])\r\n               ])\r\n      sum(areas);\r\n\r\n// Recursive helper function: Sums all values in a list.\r\n// In this case, sum all partial areas into the final area.\r\nfunction sum(values,s=0) =\r\n  s == len(values) - 1 ? values[s] : values[s] + sum(values,s+1);\r\n\r\n\r\necho(version=version());\r\n// Written in 2015 by Marius Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Simple list comprehension for creating N-gon vertices",
+        "parameters": 1,
+        "modules": 1,
+        "functions": 4,
+        "lines": 51,
+        "concepts": [
+          {
+            "name": "translate",
+            "count": 7
+          },
+          {
+            "name": "text",
+            "count": 2
+          },
+          {
+            "name": "for_loop",
+            "count": 2
+          },
+          {
+            "name": "module_definition",
+            "count": 1
+          },
+          {
+            "name": "function_definition",
+            "count": 4
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Functions"
+    },
+    {
+      "filename": "recursion.scad",
+      "path": "Functions\\recursion.scad",
+      "size": 1156,
+      "lastModified": "2025-09-27T01:15:14.837Z",
+      "content": "// recursionscad:  Basic recursion example \r\n\r\n// Recursive functions are very powerful for calculating values.\r\n// A good number of algorithms make use of recursive definitions,\r\n// e.g the caluclation of the factorial of a number.\r\n// The ternary operator \" ? : \" is the easiest way to define the\r\n// termination condition.\r\n// Note how the following simple implementation will never terminate\r\n// when called with a negative value. This will produce an error after\r\n// some time when OpenSCAD detects the endless recursive call.\r\nfunction factorial(n) = n == 0 ? 1 : factorial(n - 1) * n;\r\n\r\ncolor(\"cyan\") text(str(\"6! = \", factorial(6)), halign = \"center\");\r\n\r\necho(version=version());\r\n// Written in 2015 by Torsten Paul <Torsten.Paul@gmx.de>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// recursionscad:  Basic recursion example",
+        "parameters": 0,
+        "modules": 0,
+        "functions": 1,
+        "lines": 26,
+        "concepts": [
+          {
+            "name": "text",
+            "count": 1
+          },
+          {
+            "name": "function_definition",
+            "count": 1
+          }
+        ],
+        "complexity": "intermediate"
+      },
+      "category": "Functions"
+    },
+    {
+      "filename": "example001.scad",
+      "path": "Old\\example001.scad",
+      "size": 972,
+      "lastModified": "2025-09-27T01:15:14.837Z",
+      "content": "module example001()\r\n{\r\n  function r_from_dia(d) = d / 2;\r\n\r\n  module rotcy(rot, r, h) {\r\n    rotate(90, rot)\r\n      cylinder(r = r, h = h, center = true);\r\n  }\r\n\r\n  difference() {\r\n    sphere(r = r_from_dia(size));\r\n    rotcy([0, 0, 0], cy_r, cy_h);\r\n    rotcy([1, 0, 0], cy_r, cy_h);\r\n    rotcy([0, 1, 0], cy_r, cy_h);\r\n  }\r\n\r\n  size = 50;\r\n  hole = 25;\r\n\r\n  cy_r = r_from_dia(hole);\r\n  cy_h = r_from_dia(size * 2.5);\r\n}\r\n\r\necho(version=version());\r\n\r\nexample001();\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Written by Clifford Wolf <clifford@clifford.at> and Marius",
+        "parameters": 4,
+        "modules": 2,
+        "functions": 1,
+        "lines": 39,
+        "concepts": [
+          {
+            "name": "sphere",
+            "count": 1
+          },
+          {
+            "name": "cylinder",
+            "count": 1
+          },
+          {
+            "name": "difference",
+            "count": 1
+          },
+          {
+            "name": "rotate",
+            "count": 1
+          },
+          {
+            "name": "module_definition",
+            "count": 2
+          },
+          {
+            "name": "function_definition",
+            "count": 1
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example002.scad",
+      "path": "Old\\example002.scad",
+      "size": 1018,
+      "lastModified": "2025-09-27T01:15:14.838Z",
+      "content": "\r\nmodule example002()\r\n{\r\n  intersection() {\r\n    difference() {\r\n      union() {\r\n        cube([30, 30, 30], center = true);\r\n        translate([0, 0, -25])\r\n          cube([15, 15, 50], center = true);\r\n      }\r\n      union() {\r\n        cube([50, 10, 10], center = true);\r\n        cube([10, 50, 10], center = true);\r\n        cube([10, 10, 50], center = true);\r\n      }\r\n    }\r\n    translate([0, 0, 5])\r\n      cylinder(h = 50, r1 = 20, r2 = 5, center = true);\r\n  }\r\n}\r\n\r\necho(version=version());\r\n\r\nexample002();\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Written by Clifford Wolf <clifford@clifford.at> and Marius",
+        "parameters": 0,
+        "modules": 1,
+        "functions": 0,
+        "lines": 37,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 5
+          },
+          {
+            "name": "cylinder",
+            "count": 1
+          },
+          {
+            "name": "difference",
+            "count": 1
+          },
+          {
+            "name": "union",
+            "count": 2
+          },
+          {
+            "name": "intersection",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 2
+          },
+          {
+            "name": "module_definition",
+            "count": 1
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example003.scad",
+      "path": "Old\\example003.scad",
+      "size": 938,
+      "lastModified": "2025-09-27T01:15:14.838Z",
+      "content": "\r\nmodule example003()\r\n{\r\n  difference() {\r\n    union() {\r\n      cube([30, 30, 30], center = true);\r\n      cube([40, 15, 15], center = true);\r\n      cube([15, 40, 15], center = true);\r\n      cube([15, 15, 40], center = true);\r\n    }\r\n    union() {\r\n      cube([50, 10, 10], center = true);\r\n      cube([10, 50, 10], center = true);\r\n      cube([10, 10, 50], center = true);\r\n    }\r\n  }\r\n}\r\n\r\necho(version=version());\r\n\r\nexample003();\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Written by Clifford Wolf <clifford@clifford.at> and Marius",
+        "parameters": 0,
+        "modules": 1,
+        "functions": 0,
+        "lines": 34,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 7
+          },
+          {
+            "name": "difference",
+            "count": 1
+          },
+          {
+            "name": "union",
+            "count": 2
+          },
+          {
+            "name": "module_definition",
+            "count": 1
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example004.scad",
+      "path": "Old\\example004.scad",
+      "size": 647,
+      "lastModified": "2025-09-27T01:15:14.838Z",
+      "content": "\r\nmodule example004()\r\n{\r\n  difference() {\r\n    cube(30, center = true);\r\n    sphere(20);\r\n  }\r\n}\r\n\r\necho(version=version());\r\n\r\nexample004();\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Written by Clifford Wolf <clifford@clifford.at> and Marius",
+        "parameters": 0,
+        "modules": 1,
+        "functions": 0,
+        "lines": 25,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 1
+          },
+          {
+            "name": "sphere",
+            "count": 1
+          },
+          {
+            "name": "difference",
+            "count": 1
+          },
+          {
+            "name": "module_definition",
+            "count": 1
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example005.scad",
+      "path": "Old\\example005.scad",
+      "size": 1031,
+      "lastModified": "2025-09-27T01:15:14.839Z",
+      "content": "\r\nmodule example005()\r\n{\r\n  translate([0, 0, -120]) {\r\n    difference() {\r\n      cylinder(h = 50, r = 100);\r\n      translate([0, 0, 10]) cylinder(h = 50, r = 80);\r\n      translate([100, 0, 35]) cube(50, center = true);\r\n    }\r\n    for (i = [0:5]) {\r\n      echo(360*i/6, sin(360*i/6)*80, cos(360*i/6)*80);\r\n      translate([sin(360*i/6)*80, cos(360*i/6)*80, 0 ])\r\n        cylinder(h = 200, r=10);\r\n    }\r\n    translate([0, 0, 200])\r\n      cylinder(h = 80, r1 = 120, r2 = 0);\r\n  }\r\n}\r\n\r\necho(version=version());\r\n\r\nexample005();\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Written by Clifford Wolf <clifford@clifford.at> and Marius",
+        "parameters": 0,
+        "modules": 1,
+        "functions": 0,
+        "lines": 35,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 1
+          },
+          {
+            "name": "cylinder",
+            "count": 4
+          },
+          {
+            "name": "difference",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 5
+          },
+          {
+            "name": "for_loop",
+            "count": 1
+          },
+          {
+            "name": "module_definition",
+            "count": 1
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example006.scad",
+      "path": "Old\\example006.scad",
+      "size": 1845,
+      "lastModified": "2025-09-27T01:15:14.839Z",
+      "content": "module rounded_cube(size,r,center=false)\r\n{\r\n  s = is_list(size) ? size : [size,size,size];\r\n  translate(center ? -s/2 : [0,0,0])\r\n    hull() {\r\n      translate([    r,    r,    r]) sphere(r=r);\r\n      translate([    r,    r,s.z-r]) sphere(r=r);\r\n      translate([    r,s.y-r,    r]) sphere(r=r);\r\n      translate([    r,s.y-r,s.z-r]) sphere(r=r);\r\n      translate([s.x-r,    r,    r]) sphere(r=r);\r\n      translate([s.x-r,    r,s.z-r]) sphere(r=r);\r\n      translate([s.x-r,s.y-r,    r]) sphere(r=r);\r\n      translate([s.x-r,s.y-r,s.z-r]) sphere(r=r);\r\n    }\r\n}\r\n\r\nmodule example006()\r\n{\r\n\r\n  difference() {\r\n    rounded_cube(100, 10, center=true);\r\n    union() {\r\n      for (i = [\r\n        [ 0, 0, [ [0, 0] ] ],\r\n        [ 90, 0, [ [-20, -20], [+20, +20] ] ],\r\n        [ 180, 0, [ [-20, -25], [-20, 0], [-20, +25], [+20, -25], [+20, 0], [+20, +25] ] ],\r\n        [ 270, 0, [ [0, 0], [-25, -25], [+25, -25], [-25, +25], [+25, +25] ] ],\r\n        [ 0, 90, [ [-25, -25], [0, 0], [+25, +25] ] ],\r\n        [ 0, -90, [ [-25, -25], [+25, -25], [-25, +25], [+25, +25] ] ]\r\n      ]) {\r\n      rotate(i[0], [0, 0, 1])\r\n        rotate(i[1], [1, 0, 0])\r\n          translate([0, -50, 0])\r\n            for (j = i[2]) {\r\n              translate([j[0], 0, j[1]]) sphere(10);\r\n            }\r\n      }\r\n    }\r\n  }\r\n}\r\n\r\necho(version=version());\r\n\r\nexample006();\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Written by Clifford Wolf <clifford@clifford.at> and Marius",
+        "parameters": 1,
+        "modules": 2,
+        "functions": 0,
+        "lines": 57,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 2
+          },
+          {
+            "name": "sphere",
+            "count": 9
+          },
+          {
+            "name": "difference",
+            "count": 1
+          },
+          {
+            "name": "union",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 11
+          },
+          {
+            "name": "rotate",
+            "count": 2
+          },
+          {
+            "name": "hull",
+            "count": 1
+          },
+          {
+            "name": "for_loop",
+            "count": 2
+          },
+          {
+            "name": "module_definition",
+            "count": 2
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example007.scad",
+      "path": "Old\\example007.scad",
+      "size": 1775,
+      "lastModified": "2025-09-27T01:15:14.840Z",
+      "content": "\r\nmodule cutout()\r\n{\r\n    intersection() {\r\n      rotate(90, [1, 0, 0])\r\n        translate([0, 0, -50])\r\n          linear_extrude(height = 100, convexity = 1)\r\n            import(file = \"example007.dxf\", layer = \"cutout1\");\r\n      \r\n      rotate(90, [0, 0, 1])\r\n        rotate(90, [1, 0, 0])\r\n          translate([0, 0, -50])\r\n            linear_extrude(height = 100, convexity = 2)\r\n              import(file = \"example007.dxf\", layer = \"cutout2\");\r\n    }\r\n}\r\n\r\nmodule clip()\r\n{\r\n  difference() {\r\n    rotate_extrude(convexity = 3, $fn = 0, $fa = 12, $fs = 2) {\r\n      import(file = \"example007.dxf\", layer = \"dorn\");\r\n    }\r\n    for (r = [0, 90])\r\n      rotate(r, [0, 0, 1])\r\n        cutout();\r\n  }\r\n}\r\n\r\nmodule cutview()\r\n{\r\n  difference() {\r\n    difference() {\r\n      translate([0, 0, -10]) clip();\r\n\r\n      rotate(20, [0, 0, 1])\r\n        rotate(-20, [0, 1, 0])\r\n          translate([18, 0, 0])\r\n            cube(30, center = true);\r\n    }\r\n\r\n    # render(convexity = 5) intersection() {\r\n      translate([0, 0, -10])\r\n        clip();\r\n    \r\n      rotate(20, [0, 0, 1])\r\n        rotate(-20, [0, 1, 0])\r\n          translate([18, 0, 0])\r\n            cube(30, center = true);\r\n    }\r\n  }\r\n}\r\n\r\necho(version=version());\r\n\r\ntranslate([0, 0, -10]) clip();\r\n\r\n// cutview();\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// cutview();",
+        "parameters": 0,
+        "modules": 3,
+        "functions": 0,
+        "lines": 71,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 2
+          },
+          {
+            "name": "difference",
+            "count": 3
+          },
+          {
+            "name": "intersection",
+            "count": 2
+          },
+          {
+            "name": "translate",
+            "count": 7
+          },
+          {
+            "name": "rotate",
+            "count": 8
+          },
+          {
+            "name": "linear_extrude",
+            "count": 2
+          },
+          {
+            "name": "rotate_extrude",
+            "count": 1
+          },
+          {
+            "name": "for_loop",
+            "count": 1
+          },
+          {
+            "name": "module_definition",
+            "count": 3
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example008.scad",
+      "path": "Old\\example008.scad",
+      "size": 1410,
+      "lastModified": "2025-09-27T01:15:14.841Z",
+      "content": "echo(version=version());\r\n\r\ndifference() {\r\n  intersection() {\r\n    translate([ -25, -25, -25])\r\n      linear_extrude(height = 50, convexity = 3)\r\n        import(file = \"example008.dxf\", layer = \"G\");\r\n    \r\n    rotate(90, [1, 0, 0])\r\n      translate([ -25, -125, -25])\r\n        linear_extrude(height = 50, convexity = 3)\r\n          import(file = \"example008.dxf\", layer = \"E\");\r\n    \r\n    rotate(90, [0, 1, 0])\r\n      translate([ -125, -125, -25])\r\n        linear_extrude(height = 50, convexity = 3)\r\n          import(file = \"example008.dxf\", layer = \"B\");\r\n  }\r\n\r\n  intersection() {\r\n    translate([ -125, -25, -26])\r\n      linear_extrude(height = 52, convexity = 1)\r\n        import(file = \"example008.dxf\", layer = \"X\");\r\n\r\n    rotate(90, [0, 1, 0])\r\n      translate([ -125, -25, -26])\r\n        linear_extrude(height = 52, convexity = 1)\r\n          import(file = \"example008.dxf\", layer = \"X\");\r\n  }\r\n}\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Written by Clifford Wolf <clifford@clifford.at> and Marius",
+        "parameters": 0,
+        "modules": 0,
+        "functions": 0,
+        "lines": 43,
+        "concepts": [
+          {
+            "name": "difference",
+            "count": 1
+          },
+          {
+            "name": "intersection",
+            "count": 2
+          },
+          {
+            "name": "translate",
+            "count": 5
+          },
+          {
+            "name": "rotate",
+            "count": 3
+          },
+          {
+            "name": "linear_extrude",
+            "count": 5
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example009.scad",
+      "path": "Old\\example009.scad",
+      "size": 1521,
+      "lastModified": "2025-09-27T01:15:14.842Z",
+      "content": "echo(version=version());\r\n\r\nbodywidth = dxf_dim(file = \"example009.dxf\", name = \"bodywidth\");\r\nfanwidth = dxf_dim(file = \"example009.dxf\", name = \"fanwidth\");\r\nplatewidth = dxf_dim(file = \"example009.dxf\", name = \"platewidth\");\r\nfan_side_center = dxf_cross(file = \"example009.dxf\", layer = \"fan_side_center\");\r\nfanrot = dxf_dim(file = \"example009.dxf\", name = \"fanrot\");\r\n\r\n% linear_extrude(height = bodywidth, center = true, convexity = 10)\r\n  import(file = \"example009.dxf\", layer = \"body\");\r\n\r\n% for (z = [+(bodywidth/2 + platewidth/2),\r\n    -(bodywidth/2 + platewidth/2)]) {\r\n  translate([0, 0, z])\r\n    linear_extrude(height = platewidth, center = true, convexity = 10)\r\n      import(file = \"example009.dxf\", layer = \"plate\");\r\n}\r\n\r\nintersection() {\r\n  linear_extrude(height = fanwidth, center = true, convexity = 10, twist = -fanrot)\r\n    import(file = \"example009.dxf\", layer = \"fan_top\");\r\n    \r\n  rotate_extrude(convexity = 10)\r\n    import(file = \"example009.dxf\", layer = \"fan_side\", origin = [0, -40]);\r\n}\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Written by Clifford Wolf <clifford@clifford.at> and Marius",
+        "parameters": 5,
+        "modules": 0,
+        "functions": 0,
+        "lines": 38,
+        "concepts": [
+          {
+            "name": "intersection",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 1
+          },
+          {
+            "name": "linear_extrude",
+            "count": 3
+          },
+          {
+            "name": "rotate_extrude",
+            "count": 1
+          },
+          {
+            "name": "for_loop",
+            "count": 1
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example010.scad",
+      "path": "Old\\example010.scad",
+      "size": 848,
+      "lastModified": "2025-09-27T01:15:14.843Z",
+      "content": "\r\n// example010.dat generated using octave:\r\n//   d = (sin(1:0.2:10)' * cos(1:0.2:10)) * 10;\r\n//   save(\"example010.dat\", \"d\");\r\n\r\necho(version=version());\r\n\r\nintersection() {\r\n  surface(file = \"example010.dat\", center = true, convexity = 5);\r\n  \r\n  rotate(45, [0, 0, 1])\r\n    surface(file = \"example010.dat\", center = true, convexity = 5);\r\n}\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// example010.dat generated using octave:",
+        "parameters": 0,
+        "modules": 0,
+        "functions": 0,
+        "lines": 26,
+        "concepts": [
+          {
+            "name": "intersection",
+            "count": 1
+          },
+          {
+            "name": "rotate",
+            "count": 1
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example011.scad",
+      "path": "Old\\example011.scad",
+      "size": 758,
+      "lastModified": "2025-09-27T01:15:14.845Z",
+      "content": "echo(version=version());\r\n\r\npolyhedron(\r\n  points = [\r\n    [10, 0, 0],\r\n    [0, 10, 0],\r\n    [-10, 0, 0],\r\n    [0, -10, 0],\r\n    [0, 0, 10]\r\n  ],\r\n  triangles = [\r\n    [0, 1, 2, 3],\r\n    [4, 1, 0],\r\n    [4, 2, 1],\r\n    [4, 3, 2],\r\n    [4, 0, 3]\r\n  ]\r\n);\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Written by Clifford Wolf <clifford@clifford.at> and Marius",
+        "parameters": 2,
+        "modules": 0,
+        "functions": 0,
+        "lines": 31,
+        "concepts": [],
+        "complexity": "advanced"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example012.scad",
+      "path": "Old\\example012.scad",
+      "size": 741,
+      "lastModified": "2025-09-27T01:15:14.845Z",
+      "content": "// example012.stl is generated from Basics/LetterBlock.scad\r\n\r\necho(version=version());\r\n\r\ndifference() {\r\n  sphere(20);\r\n  \r\n  translate([ -2.92, 0.5, +20 ])\r\n    rotate([180, 0, 180])\r\n      import(\"example012.stl\", convexity = 5);\r\n}\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// example012.stl is generated from Basics/LetterBlock.scad",
+        "parameters": 0,
+        "modules": 0,
+        "functions": 0,
+        "lines": 24,
+        "concepts": [
+          {
+            "name": "sphere",
+            "count": 1
+          },
+          {
+            "name": "difference",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 1
+          },
+          {
+            "name": "rotate",
+            "count": 1
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example013.scad",
+      "path": "Old\\example013.scad",
+      "size": 901,
+      "lastModified": "2025-09-27T01:15:14.847Z",
+      "content": "echo(version=version());\r\n\r\nintersection() {\r\n  linear_extrude(height = 100, center = true, convexity= 3)\r\n    import(file = \"example013.dxf\");\r\n  rotate([0, 90, 0])\r\n    linear_extrude(height = 100, center = true, convexity= 3)\r\n      import(file = \"example013.dxf\");\r\n  rotate([90, 0, 0])\r\n    linear_extrude(height = 100, center = true, convexity= 3)\r\n      import(file = \"example013.dxf\");\r\n}\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Written by Clifford Wolf <clifford@clifford.at> and Marius",
+        "parameters": 0,
+        "modules": 0,
+        "functions": 0,
+        "lines": 25,
+        "concepts": [
+          {
+            "name": "intersection",
+            "count": 1
+          },
+          {
+            "name": "rotate",
+            "count": 2
+          },
+          {
+            "name": "linear_extrude",
+            "count": 3
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example014.scad",
+      "path": "Old\\example014.scad",
+      "size": 694,
+      "lastModified": "2025-09-27T01:15:14.847Z",
+      "content": "echo(version=version());\r\n\r\nintersection_for(i = [\r\n      [0, 0, 0],\r\n      [10, 20, 300],\r\n      [200, 40, 57],\r\n      [20, 88, 57]\r\n    ])\r\n  rotate(i) cube([100, 20, 20], center = true);\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Written by Clifford Wolf <clifford@clifford.at> and Marius",
+        "parameters": 0,
+        "modules": 0,
+        "functions": 0,
+        "lines": 22,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 1
+          },
+          {
+            "name": "rotate",
+            "count": 1
+          },
+          {
+            "name": "for_loop",
+            "count": 1
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example015.scad",
+      "path": "Old\\example015.scad",
+      "size": 1055,
+      "lastModified": "2025-09-27T01:15:14.847Z",
+      "content": "\r\nmodule shape()\r\n{\r\n  difference() {\r\n    translate([ -35, -35 ]) intersection() {\r\n      union() {\r\n        difference() {\r\n          square(100, true);\r\n          square(50, true);\r\n        }\r\n        translate([ 50, 50 ]) square(15, true);\r\n      }\r\n      rotate(45) translate([ 0, -15 ]) square([ 100, 30 ]);\r\n    }\r\n  \r\n    rotate(-45) scale([ 0.7, 1.3 ]) circle(5);\r\n  }\r\n  \r\n  import(file = \"example009.dxf\", layer = \"body\", convexity = 6, scale=2);\r\n}\r\n\r\necho(version=version());\r\n\r\n// linear_extrude(convexity = 10, center = true)\r\nshape();\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// linear_extrude(convexity = 10, center = true)",
+        "parameters": 0,
+        "modules": 1,
+        "functions": 0,
+        "lines": 38,
+        "concepts": [
+          {
+            "name": "difference",
+            "count": 2
+          },
+          {
+            "name": "union",
+            "count": 1
+          },
+          {
+            "name": "intersection",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 3
+          },
+          {
+            "name": "rotate",
+            "count": 2
+          },
+          {
+            "name": "scale",
+            "count": 1
+          },
+          {
+            "name": "linear_extrude",
+            "count": 1
+          },
+          {
+            "name": "module_definition",
+            "count": 1
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example016.scad",
+      "path": "Old\\example016.scad",
+      "size": 1180,
+      "lastModified": "2025-09-27T01:15:14.848Z",
+      "content": "// chopped_blocks.stl is derived from Basics/LetterBlock.scad\r\n// The exported STL was converted to binary using MeshLab\r\n\r\nmodule blk1() {\r\n  cube([ 65, 28, 28 ], center = true);\r\n}\r\n\r\nmodule blk2() {\r\n  difference() {\r\n    translate([ 0, 0, 7.5 ]) cube([ 60, 28, 14 ], center = true);\r\n    cube([ 8, 32, 32 ], center = true);\r\n  }\r\n}\r\n\r\nmodule chop() {\r\n  translate([ -18, 0, 0 ])\r\n    import(file = \"example016.stl\", convexity = 12);\r\n}\r\n\r\necho(version=version());\r\n\r\ndifference() {\r\n  blk1();\r\n  for (alpha = [0, 90, 180, 270]) {\r\n    rotate(alpha, [ 1, 0, 0])\r\n      render(convexity = 12)\r\n        difference() {\r\n          blk2();\r\n          chop();\r\n        }\r\n  }\r\n}\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// chopped_blocks.stl is derived from Basics/LetterBlock.scad",
+        "parameters": 0,
+        "modules": 3,
+        "functions": 0,
+        "lines": 45,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 3
+          },
+          {
+            "name": "difference",
+            "count": 3
+          },
+          {
+            "name": "translate",
+            "count": 2
+          },
+          {
+            "name": "rotate",
+            "count": 1
+          },
+          {
+            "name": "for_loop",
+            "count": 1
+          },
+          {
+            "name": "module_definition",
+            "count": 3
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example017.scad",
+      "path": "Old\\example017.scad",
+      "size": 4941,
+      "lastModified": "2025-09-27T01:15:14.849Z",
+      "content": "\r\n// To render the DXF file from the command line:\r\n// openscad -o example017.dxf -D'mode=\"parts\"' example017.scad\r\n\r\n//Mode can be either \"parts\",  \"exploded\" or \"assembled\".\r\nmode = \"assembled\"; // [\"parts\",  \"exploded\", \"assembled\"]\r\n\r\nthickness = 6;\r\nlocklen1 = 15;\r\nlocklen2 = 10;\r\nboltlen = 15;\r\nmidhole = 10;\r\ninner1_to_inner2 = 50;\r\ntotal_height = 80;\r\n\r\nmodule shape_tripod()\r\n{\r\n  x1 = 0;\r\n  x2 = x1 + thickness;\r\n  x3 = x2 + locklen1;\r\n  x4 = x3 + thickness;\r\n  x5 = x4 + inner1_to_inner2;\r\n  x6 = x5 - thickness;\r\n  x7 = x6 - locklen2;\r\n  x8 = x7 - thickness;\r\n  x9 = x8 - thickness;\r\n  x10 = x9 - thickness;\r\n  \r\n  y1 = 0;\r\n  y2 = y1 + thickness;\r\n  y3 = y2 + thickness;\r\n  y4 = y3 + thickness;\r\n  y5 = y3 + total_height - 3*thickness;\r\n  y6 = y5 + thickness;\r\n  \r\n  union() {\r\n    difference() {\r\n      polygon([\r\n        [ x1, y2 ], [ x2, y2 ],\r\n        [ x2, y1 ], [ x3, y1 ], [ x3, y2 ],\r\n        [ x4, y2 ], [ x4, y1 ], [ x5, y1 ],\r\n        [ x5 + thickness, y3 ], [ x5, y4 ],\r\n        [ x5, y5 ],\r\n        [ x6, y5 ], [ x6, y6 ], [ x7, y6 ], [ x7, y5 ], [ x8, y5 ],\r\n        [ x8, y6 ], [ x9, y5 ],\r\n        [ x9, y4 ], [ x10, y3 ],\r\n        [ x2, y3 ]\r\n      ]);\r\n      translate([ x10, y4 ]) circle(thickness);\r\n      translate([ x5 + thickness, y4 ]) circle(thickness);\r\n    }\r\n  \r\n    translate([ x5, y1 ]) square([ boltlen - thickness, thickness*2 ]);\r\n  \r\n    translate([ x5 + boltlen - thickness, y2 ]) circle(thickness);\r\n  \r\n    translate([ x2, y2 ]) intersection() {\r\n      circle(thickness);\r\n      translate([ -thickness*2, 0 ]) square(thickness*2);\r\n    }\r\n  \r\n    translate([ x8, y5 ]) intersection() {\r\n      circle(thickness);\r\n      translate([ -thickness*2, 0 ]) square(thickness*2);\r\n    }\r\n  }\r\n}\r\n\r\nmodule shape_inner_disc()\r\n{\r\n  difference() {\r\n    circle(midhole + boltlen + 2*thickness + locklen2);\r\n    for (alpha = [ 0, 120, 240 ]) {\r\n      rotate(alpha) translate([ 0, midhole + boltlen + thickness + locklen2/2 ]) square([ thickness, locklen2 ], true);\r\n    }\r\n    circle(midhole + boltlen);\r\n  }\r\n}\r\n\r\nmodule shape_outer_disc()\r\n{\r\n  difference() {\r\n    circle(midhole + boltlen + inner1_to_inner2 + 2*thickness + locklen1);\r\n    for (alpha = [ 0, 120, 240 ]) {\r\n      rotate(alpha) translate([ 0, midhole + boltlen + inner1_to_inner2 + thickness + locklen1/2 ]) square([ thickness, locklen1 ], true);\r\n    }\r\n    circle(midhole + boltlen + inner1_to_inner2);\r\n  }\r\n}\r\n\r\nmodule parts()\r\n{\r\n  tripod_x_off = locklen1 - locklen2 + inner1_to_inner2;\r\n  tripod_y_off = max(midhole + boltlen + inner1_to_inner2 + 4*thickness + locklen1, total_height);\r\n\r\n  shape_inner_disc();\r\n  shape_outer_disc();\r\n\r\n  for (s = [ [1,1], [-1,1], [1,-1] ]) {\r\n    scale(s) translate([ tripod_x_off, -tripod_y_off ]) shape_tripod();\r\n  }\r\n}\r\n\r\nmodule exploded()\r\n{\r\n  translate([ 0, 0, total_height + 2*thickness ]) linear_extrude(height = thickness, convexity = 4) shape_inner_disc();\r\n  linear_extrude(height = thickness, convexity = 4) shape_outer_disc();\r\n\r\n  color([ 0.7, 0.7, 1 ]) for (alpha = [ 0, 120, 240 ]) {\r\n    rotate(alpha)\r\n      translate([ 0, thickness*2 + locklen1 + inner1_to_inner2 + boltlen + midhole, 1.5*thickness ])\r\n        rotate([ 90, 0, -90 ])\r\n          linear_extrude(height = thickness, convexity = 10, center = true) shape_tripod();\r\n  }\r\n}\r\n\r\nmodule bottle()\r\n{\r\n  r = boltlen + midhole;\r\n  h = total_height - thickness*2;\r\n\r\n  rotate_extrude(convexity = 2) {\r\n    square([ r, h ]);\r\n\r\n    translate([ 0, h ]) {\r\n      intersection() {\r\n        square([ r, r ]);\r\n        scale([ 1, 0.7 ]) circle(r);\r\n      }\r\n    }\r\n    translate([ 0, h+r ]) {\r\n      intersection() {\r\n        translate([ 0, -r/2 ]) square([ r/2, r ]);\r\n        circle(r/2);\r\n      }\r\n    }\r\n  }\r\n}\r\n\r\nmodule assembled()\r\n{\r\n  translate([ 0, 0, total_height - thickness ]) linear_extrude(height = thickness, convexity = 4) shape_inner_disc();\r\n  linear_extrude(height = thickness, convexity = 4) shape_outer_disc();\r\n\r\n  color([ 0.7, 0.7, 1 ]) for (alpha = [ 0, 120, 240 ]) {\r\n    rotate(alpha)\r\n      translate([ 0, thickness*2 + locklen1 + inner1_to_inner2 + boltlen + midhole, 0 ])\r\n        rotate([ 90, 0, -90 ])\r\n          linear_extrude(height = thickness, convexity = 10, center = true) shape_tripod();\r\n  }\r\n\r\n  % translate([ 0, 0, thickness*2]) bottle();\r\n}\r\n\r\necho(version=version());\r\n\r\nif (mode == \"parts\") parts();\r\n\r\nif (mode == \"exploded\") exploded();\r\n\r\nif (mode == \"assembled\") assembled();\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// openscad -o example017.dxf -D'mode=\"parts\"' example017.scad",
+        "parameters": 28,
+        "modules": 7,
+        "functions": 0,
+        "lines": 174,
+        "concepts": [
+          {
+            "name": "difference",
+            "count": 3
+          },
+          {
+            "name": "union",
+            "count": 1
+          },
+          {
+            "name": "intersection",
+            "count": 4
+          },
+          {
+            "name": "translate",
+            "count": 19
+          },
+          {
+            "name": "rotate",
+            "count": 6
+          },
+          {
+            "name": "scale",
+            "count": 2
+          },
+          {
+            "name": "linear_extrude",
+            "count": 6
+          },
+          {
+            "name": "rotate_extrude",
+            "count": 1
+          },
+          {
+            "name": "for_loop",
+            "count": 5
+          },
+          {
+            "name": "if_condition",
+            "count": 3
+          },
+          {
+            "name": "module_definition",
+            "count": 7
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example018.scad",
+      "path": "Old\\example018.scad",
+      "size": 1017,
+      "lastModified": "2025-09-27T01:15:14.849Z",
+      "content": "\r\nmodule step(len, mod)\r\n{\r\n  for (i = [0:$children-1]) {\r\n    translate([ len*(i - ($children-1)/2), 0, 0 ]) children((i+mod) % $children);\r\n  }\r\n}\r\n\r\necho(version=version());\r\n\r\nfor (i = [1:4]) {\r\n  translate([0, -250+i*100, 0]) step(100, i) {\r\n    sphere(30);\r\n    cube(60, true);\r\n    cylinder(r = 30, h = 50, center = true);\r\n  \r\n    union() {\r\n      cube(45, true);\r\n      rotate([45, 0, 0]) cube(50, true);\r\n      rotate([0, 45, 0]) cube(50, true);\r\n      rotate([0, 0, 45]) cube(50, true);\r\n    }\r\n  }\r\n}\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Written by Clifford Wolf <clifford@clifford.at> and Marius",
+        "parameters": 0,
+        "modules": 1,
+        "functions": 0,
+        "lines": 37,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 5
+          },
+          {
+            "name": "sphere",
+            "count": 1
+          },
+          {
+            "name": "cylinder",
+            "count": 1
+          },
+          {
+            "name": "union",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 2
+          },
+          {
+            "name": "rotate",
+            "count": 3
+          },
+          {
+            "name": "children",
+            "count": 1
+          },
+          {
+            "name": "for_loop",
+            "count": 2
+          },
+          {
+            "name": "module_definition",
+            "count": 1
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example019.scad",
+      "path": "Old\\example019.scad",
+      "size": 780,
+      "lastModified": "2025-09-27T01:15:14.849Z",
+      "content": "\r\nfunction get_cylinder_h(p) = lookup(p, [\r\n    [ -200, 5 ],\r\n    [ -50, 20 ],\r\n    [ -20, 18 ],\r\n    [ +80, 25 ],\r\n    [ +150, 2 ]\r\n  ]);\r\n\r\necho(version=version());\r\nfor (i = [-100:5:+100]) {\r\n  translate([ i, 0, -30 ]) cylinder(r1 = 6, r2 = 2, h = get_cylinder_h(i)*3);\r\n}\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Written by Clifford Wolf <clifford@clifford.at> and Marius",
+        "parameters": 0,
+        "modules": 0,
+        "functions": 1,
+        "lines": 26,
+        "concepts": [
+          {
+            "name": "cylinder",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 1
+          },
+          {
+            "name": "for_loop",
+            "count": 1
+          },
+          {
+            "name": "function_definition",
+            "count": 1
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example020.scad",
+      "path": "Old\\example020.scad",
+      "size": 2801,
+      "lastModified": "2025-09-27T01:15:14.850Z",
+      "content": "\r\nmodule screw(type = 2, r1 = 15, r2 = 20, n = 7, h = 100, t = 8)\r\n{\r\n  linear_extrude(height = h, twist = 360*t/n, convexity = t)\r\n  difference() {\r\n    circle(r2);\r\n    for (i = [0:n-1]) {\r\n        if (type == 1) rotate(i*360/n) polygon([\r\n            [ 2*r2, 0 ],\r\n            [ r2, 0 ],\r\n            [ r1*cos(180/n), r1*sin(180/n) ],\r\n            [ r2*cos(360/n), r2*sin(360/n) ],\r\n            [ 2*r2*cos(360/n), 2*r2*sin(360/n) ],\r\n        ]);\r\n        if (type == 2) rotate(i*360/n) polygon([\r\n            [ 2*r2, 0 ],\r\n            [ r2, 0 ],\r\n            [ r1*cos(90/n), r1*sin(90/n) ],\r\n            [ r1*cos(180/n), r1*sin(180/n) ],\r\n            [ r2*cos(270/n), r2*sin(270/n) ],\r\n            [ 2*r2*cos(270/n), 2*r2*sin(270/n) ],\r\n        ]);\r\n    }\r\n  }\r\n}\r\n\r\nmodule nut(type = 2, r1 = 16, r2 = 21, r3 = 30, s = 6, n = 7, h = 100/5, t = 8/5)\r\n{\r\n  difference() {\r\n    cylinder($fn = s, r = r3, h = h);\r\n    translate([ 0, 0, -h/2 ]) screw(type, r1, r2, n, h*2, t*2);\r\n  }\r\n}\r\n\r\nmodule spring(r1 = 100, r2 = 10, h = 100, hr = 12)\r\n{\r\n  stepsize = 1/16;\r\n  module segment(i1, i2) {\r\n    alpha1 = i1 * 360*r2/hr;\r\n    alpha2 = i2 * 360*r2/hr;\r\n    len1 = sin(acos(i1*2-1))*r2;\r\n    len2 = sin(acos(i2*2-1))*r2;\r\n    if (len1 < 0.01) {\r\n      polygon([\r\n        [ cos(alpha1)*r1, sin(alpha1)*r1 ],\r\n        [ cos(alpha2)*(r1-len2), sin(alpha2)*(r1-len2) ],\r\n        [ cos(alpha2)*(r1+len2), sin(alpha2)*(r1+len2) ]\r\n      ]);\r\n    }\r\n    if (len2 < 0.01) {\r\n      polygon([\r\n        [ cos(alpha1)*(r1+len1), sin(alpha1)*(r1+len1) ],\r\n        [ cos(alpha1)*(r1-len1), sin(alpha1)*(r1-len1) ],\r\n        [ cos(alpha2)*r1, sin(alpha2)*r1 ],\r\n      ]);\r\n    }\r\n    if (len1 >= 0.01 && len2 >= 0.01) {\r\n      polygon([\r\n        [ cos(alpha1)*(r1+len1), sin(alpha1)*(r1+len1) ],\r\n        [ cos(alpha1)*(r1-len1), sin(alpha1)*(r1-len1) ],\r\n        [ cos(alpha2)*(r1-len2), sin(alpha2)*(r1-len2) ],\r\n        [ cos(alpha2)*(r1+len2), sin(alpha2)*(r1+len2) ]\r\n      ]);\r\n    }\r\n  }\r\n  linear_extrude(height = 100, twist = 180*h/hr,\r\n                 $fn = (hr/r2)/stepsize, convexity = 5) {\r\n    for (i = [ stepsize : stepsize : 1+stepsize/2 ])\r\n      segment(i-stepsize, min(i, 1));\r\n  }\r\n}\r\n\r\necho(version=version());\r\ntranslate([ -30, 0, 0 ]) screw();\r\n\r\ntranslate([ 30, 0, 0 ]) nut();\r\n\r\nspring();\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Written by Clifford Wolf <clifford@clifford.at> and Marius",
+        "parameters": 5,
+        "modules": 4,
+        "functions": 0,
+        "lines": 91,
+        "concepts": [
+          {
+            "name": "cylinder",
+            "count": 1
+          },
+          {
+            "name": "difference",
+            "count": 2
+          },
+          {
+            "name": "translate",
+            "count": 3
+          },
+          {
+            "name": "rotate",
+            "count": 2
+          },
+          {
+            "name": "linear_extrude",
+            "count": 2
+          },
+          {
+            "name": "for_loop",
+            "count": 2
+          },
+          {
+            "name": "if_condition",
+            "count": 5
+          },
+          {
+            "name": "module_definition",
+            "count": 4
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example021.scad",
+      "path": "Old\\example021.scad",
+      "size": 1329,
+      "lastModified": "2025-09-27T01:15:14.850Z",
+      "content": "\r\nmodule thing()\r\n{\r\n  $fa = 30;\r\n  difference() {\r\n    sphere(r = 25);\r\n    cylinder(h = 62.5, r1 = 12.5, r2 = 6.25, center = true);\r\n    rotate(90, [ 1, 0, 0 ]) cylinder(h = 62.5,\r\n        r1 = 12.5, r2 = 6.25, center = true);\r\n    rotate(90, [ 0, 1, 0 ]) cylinder(h = 62.5,\r\n        r1 = 12.5, r2 = 6.25, center = true);\r\n  }\r\n}\r\n\r\nmodule demo_proj()\r\n{\r\n  linear_extrude(center = true, height = 0.5) projection(cut = false) thing();\r\n  % thing();\r\n}\r\n\r\nmodule demo_cut()\r\n{\r\n  for (i=[-20:5:+20]) {\r\n     rotate(-30, [ 1, 1, 0 ]) translate([ 0, 0, -i ])\r\n      linear_extrude(center = true, height = 0.5) projection(cut = true)\r\n        translate([ 0, 0, i ]) rotate(+30, [ 1, 1, 0 ]) thing();\r\n  }\r\n  % thing();\r\n}\r\n\r\necho(version=version());\r\ntranslate([ -30, 0, 0 ]) demo_proj();\r\ntranslate([ +30, 0, 0 ]) demo_cut();\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Written by Clifford Wolf <clifford@clifford.at> and Marius",
+        "parameters": 2,
+        "modules": 3,
+        "functions": 0,
+        "lines": 46,
+        "concepts": [
+          {
+            "name": "sphere",
+            "count": 1
+          },
+          {
+            "name": "cylinder",
+            "count": 3
+          },
+          {
+            "name": "difference",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 4
+          },
+          {
+            "name": "rotate",
+            "count": 4
+          },
+          {
+            "name": "linear_extrude",
+            "count": 2
+          },
+          {
+            "name": "for_loop",
+            "count": 1
+          },
+          {
+            "name": "module_definition",
+            "count": 3
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example022.scad",
+      "path": "Old\\example022.scad",
+      "size": 1802,
+      "lastModified": "2025-09-27T01:15:14.851Z",
+      "content": "// size is a vector [w, h, d]\r\nmodule roundedBox(size, radius, sidesonly)\r\n{\r\n  rot = [ [0,0,0], [90,0,90], [90,90,0] ];\r\n  if (sidesonly) {\r\n    cube(size - [2*radius,0,0], true);\r\n    cube(size - [0,2*radius,0], true);\r\n    for (x = [radius-size[0]/2, -radius+size[0]/2],\r\n         y = [radius-size[1]/2, -radius+size[1]/2]) {\r\n      translate([x,y,0]) cylinder(r=radius, h=size[2], center=true);\r\n    }\r\n  }\r\n  else {\r\n    cube([size[0], size[1]-radius*2, size[2]-radius*2], center=true);\r\n    cube([size[0]-radius*2, size[1], size[2]-radius*2], center=true);\r\n    cube([size[0]-radius*2, size[1]-radius*2, size[2]], center=true);\r\n\r\n    for (axis = [0:2]) {\r\n      for (x = [radius-size[axis]/2, -radius+size[axis]/2],\r\n          y = [radius-size[(axis+1)%3]/2, -radius+size[(axis+1)%3]/2]) {\r\n        rotate(rot[axis]) \r\n          translate([x,y,0]) \r\n          cylinder(h=size[(axis+2)%3]-2*radius, r=radius, center=true);\r\n      }\r\n    }\r\n    for (x = [radius-size[0]/2, -radius+size[0]/2],\r\n        y = [radius-size[1]/2, -radius+size[1]/2],\r\n        z = [radius-size[2]/2, -radius+size[2]/2]) {\r\n      translate([x,y,z]) sphere(radius);\r\n    }\r\n  }\r\n}\r\n\r\necho(version=version());\r\ntranslate([-15,0,0])roundedBox([20,30,40], 5, true);\r\ntranslate([15,0,0]) roundedBox([20,30,40], 5, false);\r\n\r\n// Written by Clifford Wolf <clifford@clifford.at> and Marius\r\n// Kintel <marius@kintel.net>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// size is a vector [w, h, d]",
+        "parameters": 5,
+        "modules": 1,
+        "functions": 0,
+        "lines": 49,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 5
+          },
+          {
+            "name": "sphere",
+            "count": 1
+          },
+          {
+            "name": "cylinder",
+            "count": 2
+          },
+          {
+            "name": "translate",
+            "count": 5
+          },
+          {
+            "name": "rotate",
+            "count": 1
+          },
+          {
+            "name": "for_loop",
+            "count": 4
+          },
+          {
+            "name": "if_condition",
+            "count": 1
+          },
+          {
+            "name": "module_definition",
+            "count": 1
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example023.scad",
+      "path": "Old\\example023.scad",
+      "size": 1259,
+      "lastModified": "2025-09-27T01:15:14.851Z",
+      "content": "// Example combining MCAD/fonts.scad with search() function.\r\n\r\nuse <MCAD/fonts.scad>\r\n\r\necho(version=version());\r\n\r\nthisFont=8bit_polyfont();\r\nx_shift=thisFont[0][0];\r\ny_shift=thisFont[0][1];\r\n\r\nhours=[\"one\",\"two\",\"three\",\"four\",\"five\",\"six\",\"seven\",\"eight\",\"nine\",\"ten\",\"eleven\",\"twelve\"];\r\n\r\nmodule clock_hour_words(word_offset=20.0,word_height=2.0) {\r\n  for(i=[0:(len(hours)-1)]) {\r\n    hourHandAngle=(i+1)*360/len(hours);\r\n    theseIndicies=search(hours[i],thisFont[2],1,1);\r\n    rotate(90-hourHandAngle) translate([word_offset,0])\r\n    for( j=[0:(len(theseIndicies)-1)] ) translate([j*x_shift,-y_shift/2]) {\r\n      linear_extrude(height=word_height) polygon(points=thisFont[2][theseIndicies[j]][6][0],paths=thisFont[2][theseIndicies[j]][6][1]);\r\n    }\r\n  }\r\n}\r\n\r\nclock_hour_words(word_offset=16.0,word_height=5.0);\r\n\r\n// Written by Andrew Plumb\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Example combining MCAD/fonts.scad with search() function.",
+        "parameters": 6,
+        "modules": 1,
+        "functions": 0,
+        "lines": 36,
+        "concepts": [
+          {
+            "name": "translate",
+            "count": 2
+          },
+          {
+            "name": "rotate",
+            "count": 1
+          },
+          {
+            "name": "linear_extrude",
+            "count": 1
+          },
+          {
+            "name": "for_loop",
+            "count": 2
+          },
+          {
+            "name": "module_definition",
+            "count": 1
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "example024.scad",
+      "path": "Old\\example024.scad",
+      "size": 1199,
+      "lastModified": "2025-09-27T01:15:14.851Z",
+      "content": "// Menger Sponge\r\n\r\n// Size of edge of sponge\r\nD=100;\r\n// Fractal depth (number of iterations)\r\nn=3;\r\n\r\necho(version=version());\r\n\r\nmodule menger() {\r\n  difference() {\r\n    cube(D, center=true);\r\n    for (v=[[0,0,0], [0,0,90], [0,90,0]])\r\n      rotate(v) menger_negative(side=D, maxside=D, level=n);\r\n  }\r\n}\r\n\r\nmodule menger_negative(side=1, maxside=1, level=1) {\r\n  l=side/3;\r\n  cube([maxside*1.1, l, l], center=true);\r\n  if (level > 1) {\r\n    for (i=[-1:1], j=[-1:1])\r\n      if (i || j)\r\n        translate([0, i*l, j*l])\r\n          menger_negative(side=l, maxside=maxside, level=level-1);\r\n  }\r\n}\r\n\r\ndifference() {\r\n  rotate([45, atan(1/sqrt(2)), 0]) menger();\r\n  translate([0,0,-D]) cube(2*D, center=true);\r\n}\r\n\r\n// Written by Nathan Hellweg, Emmett Lalish and Marius Kintel May 13, 2013\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// Menger Sponge",
+        "parameters": 3,
+        "modules": 2,
+        "functions": 0,
+        "lines": 44,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 3
+          },
+          {
+            "name": "difference",
+            "count": 2
+          },
+          {
+            "name": "translate",
+            "count": 2
+          },
+          {
+            "name": "rotate",
+            "count": 2
+          },
+          {
+            "name": "for_loop",
+            "count": 2
+          },
+          {
+            "name": "if_condition",
+            "count": 2
+          },
+          {
+            "name": "module_definition",
+            "count": 2
+          }
+        ],
+        "complexity": "advanced"
+      },
+      "category": "Old"
+    },
+    {
+      "filename": "candleStand.scad",
+      "path": "Parametric\\candleStand.scad",
+      "size": 2948,
+      "lastModified": "2025-09-27T01:15:14.853Z",
+      "content": "/*[ Candle Stand ]*/\r\n//Length of candle stand\r\nlength=50; // [70:large,50:medium,30:small]\r\n\r\n// Center stand\r\ncylinder(length,width-2);\r\n\r\n//Radius of ring of stand\r\nradius=25;\r\n\r\n/* [ Number of candle holders ]*/\r\n// Number of candle holders\r\ncount=7; //[3:14]\r\n\r\n//Do you want center Candle\r\ncenterCandle=true;\r\n\r\n/* [ Candle Holder ]*/\r\n//Length of candle holder\r\ncandleSize=7;\r\n\r\n//Width of candle holder\r\nwidth=4;\r\n\r\n//Size of hole for candle holder\r\nholeSize=3;\r\n\r\nCenterCandleWidth=4;\r\n\r\n/*[Properties of support]*/\r\n\r\nheightOfSupport=3;\r\nwidthOfSupport=3;\r\n\r\n/*[Properties of Ring]*/\r\n\r\nheightOfRing=4;\r\n\r\nwidthOfRing=23;\r\n\r\n\r\n//Create center candle\r\ntranslate([0,0,length-candleSize/2])\r\nif(centerCandle){\r\n    difference(){\r\n        $fn=360;\r\n        cylinder(candleSize,r=CenterCandleWidth);\r\n        cylinder(candleSize+1,r=CenterCandleWidth-2);\r\n    }\r\n}else{\r\n        sphere(CenterCandleWidth);\r\n}\r\n\r\n//make ring \r\ntranslate([0,0,length-candleSize/2]){\r\n    make(radius, count,candleSize,length);\r\n    //make bottom cover for candle holders\r\n    make_ring_of(radius, count){\r\n        cylinder(1,r=width);\r\n    }\r\n}\r\n\r\n\r\n//Base of candle stand\r\nfor (a = [0 : count - 1]) {\r\n    rotate(a*360/count) {\r\n    translate([0, -width/2, 0]) \r\n        cube([radius, widthOfSupport, heightOfSupport]);\r\n    }\r\n}\r\n\r\n//make ring with candle holders\r\nmodule make(radius, count,candleSize,length){\r\n    \r\n    $fa = 0.5;\r\n    $fs = 0.5;\r\n    difference(){\r\n        union(){\r\n             //making holders\r\n            make_ring_of(radius, count){ \r\n                cylinder(candleSize,r=width);\r\n            }\r\n            \r\n            //Attaching holders to stand\r\n            for (a = [0 : count - 1]) {\r\n                rotate(a*360/count) {\r\n                translate([0, -width/2, 0]) \r\n                    cube([radius, widthOfSupport, heightOfSupport]);\r\n                }\r\n            }\r\n            \r\n            // make ring\r\n            linear_extrude(heightOfRing, convexity=2)\r\n            difference(){    \r\n                circle(radius);\r\n                circle(widthOfRing);\r\n            }\r\n        }\r\n        //Making holes in candle holder\r\n        make_ring_of(radius, count){\r\n            cylinder(candleSize+1,r=holeSize);\r\n        }\r\n    }\r\n}\r\n\r\n\r\nmodule make_ring_of(radius, count){\r\n    for (a = [0 : count - 1]) {\r\n        angle = a * 360 / count;\r\n        translate(radius * [cos(angle), -sin(angle), 0])\r\n                children();\r\n    }\r\n}\r\n\r\n// Written by Amarjeet Singh Kapoor <amarjeet.kapoor1@gmail.com>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "//Length of candle stand",
+        "parameters": 13,
+        "modules": 2,
+        "functions": 0,
+        "lines": 125,
+        "concepts": [
+          {
+            "name": "cube",
+            "count": 2
+          },
+          {
+            "name": "sphere",
+            "count": 1
+          },
+          {
+            "name": "cylinder",
+            "count": 6
+          },
+          {
+            "name": "difference",
+            "count": 3
+          },
+          {
+            "name": "union",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 5
+          },
+          {
+            "name": "rotate",
+            "count": 2
+          },
+          {
+            "name": "linear_extrude",
+            "count": 1
+          },
+          {
+            "name": "children",
+            "count": 1
+          },
+          {
+            "name": "for_loop",
+            "count": 3
+          },
+          {
+            "name": "if_condition",
+            "count": 1
+          },
+          {
+            "name": "module_definition",
+            "count": 2
+          }
+        ],
+        "complexity": "expert"
+      },
+      "category": "Parametric"
+    },
+    {
+      "filename": "sign.scad",
+      "path": "Parametric\\sign.scad",
+      "size": 1769,
+      "lastModified": "2025-09-27T01:15:14.854Z",
+      "content": "// First example of parameteric model\r\n//   \r\n//    syntax: \r\n//        //Description\r\n//        variable=value; //Parameter\r\n//        \r\n//        This type of comment tells the name of group to which parameters below\r\n//        this comment will belong \r\n//    \r\n//       /*[ group name ]*/ \r\n//\r\n\r\n\r\n//Below comment tells the group to which a variable will belong\r\n/*[ properties of Sign]*/\r\n\r\n//The resolution of the curves. Higher values give smoother curves but may increase the model render time.\r\nresolution = 10; //[10, 20, 30, 50, 100]\r\n\r\n//The horizontal radius of the outer ellipse of the sign.\r\nradius = 80;//[60 : 200]\r\n\r\n//Total height of the sign\r\nheight = 2;//[1 : 10]\r\n\r\n/*[ Content To be written ] */\r\n\r\n//Message to be write \r\nMessage = \"Welcome to...\"; //[\"Welcome to...\", \"Happy Birthday!\", \"Happy Anniversary\", \"Congratulations\", \"Thank You\"]\r\n\r\n//Name of Person, company etc.\r\nTo = \"Parametric Designs\";\r\n\r\n$fn = resolution;\r\n\r\nscale([1, 0.5]) difference() {\r\n    cylinder(r = radius, h = 2 * height, center = true);\r\n    translate([0, 0, height])\r\n        cylinder(r = radius - 10, h = height + 1, center = true);\r\n}\r\nlinear_extrude(height = height) {\r\n    translate([0, --4]) text(Message, halign = \"center\");\r\n    translate([0, -16]) text(To, halign = \"center\");\r\n}\r\n\r\n// Written by Amarjeet Singh Kapoor <amarjeet.kapoor1@gmail.com>\r\n//\r\n// To the extent possible under law, the author(s) have dedicated all\r\n// copyright and related and neighboring rights to this software to the\r\n// public domain worldwide. This software is distributed without any\r\n// warranty.\r\n//\r\n// You should have received a copy of the CC0 Public Domain\r\n// Dedication along with this software.\r\n// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.\r\n",
+      "analysis": {
+        "description": "// First example of parameteric model",
+        "parameters": 5,
+        "modules": 0,
+        "functions": 0,
+        "lines": 56,
+        "concepts": [
+          {
+            "name": "cylinder",
+            "count": 2
+          },
+          {
+            "name": "difference",
+            "count": 1
+          },
+          {
+            "name": "translate",
+            "count": 3
+          },
+          {
+            "name": "scale",
+            "count": 1
+          },
+          {
+            "name": "linear_extrude",
+            "count": 1
+          },
+          {
+            "name": "text",
+            "count": 2
+          }
+        ],
+        "complexity": "intermediate"
+      },
+      "category": "Parametric"
+    }
+  ],
+  "learning_index": {
+    "by_category": {
+      "Advanced": [
+        "animation.scad",
+        "assert.scad",
+        "children.scad",
+        "children_indexed.scad",
+        "GEB.scad",
+        "module_recursion.scad",
+        "offset.scad",
+        "parametric_gear.scad",
+        "surface_image.scad"
+      ],
+      "Basics": [
+        "CSG-modules.scad",
+        "CSG.scad",
+        "LetterBlock.scad",
+        "linear_extrude.scad",
+        "logo.scad",
+        "logo_and_text.scad",
+        "phone_case.scad",
+        "projection.scad",
+        "rotate_extrude.scad",
+        "text_on_cube.scad"
+      ],
+      "Functions": [
+        "echo.scad",
+        "functions.scad",
+        "list_comprehensions.scad",
+        "polygon_areas.scad",
+        "recursion.scad"
+      ],
+      "Old": [
+        "example001.scad",
+        "example002.scad",
+        "example003.scad",
+        "example004.scad",
+        "example005.scad",
+        "example006.scad",
+        "example007.scad",
+        "example008.scad",
+        "example009.scad",
+        "example010.scad",
+        "example011.scad",
+        "example012.scad",
+        "example013.scad",
+        "example014.scad",
+        "example015.scad",
+        "example016.scad",
+        "example017.scad",
+        "example018.scad",
+        "example019.scad",
+        "example020.scad",
+        "example021.scad",
+        "example022.scad",
+        "example023.scad",
+        "example024.scad"
+      ],
+      "Parametric": [
+        "candleStand.scad",
+        "sign.scad"
+      ]
+    },
+    "by_complexity": {
+      "expert": [
+        "animation.scad",
+        "children.scad",
+        "children_indexed.scad",
+        "GEB.scad",
+        "parametric_gear.scad",
+        "CSG-modules.scad",
+        "logo.scad",
+        "rotate_extrude.scad",
+        "echo.scad",
+        "list_comprehensions.scad",
+        "polygon_areas.scad",
+        "example005.scad",
+        "example006.scad",
+        "example007.scad",
+        "example008.scad",
+        "example015.scad",
+        "example016.scad",
+        "example017.scad",
+        "example018.scad",
+        "example020.scad",
+        "example021.scad",
+        "example022.scad",
+        "candleStand.scad"
+      ],
+      "advanced": [
+        "assert.scad",
+        "module_recursion.scad",
+        "offset.scad",
+        "logo_and_text.scad",
+        "phone_case.scad",
+        "projection.scad",
+        "text_on_cube.scad",
+        "functions.scad",
+        "example001.scad",
+        "example002.scad",
+        "example003.scad",
+        "example004.scad",
+        "example009.scad",
+        "example010.scad",
+        "example011.scad",
+        "example012.scad",
+        "example013.scad",
+        "example014.scad",
+        "example019.scad",
+        "example023.scad",
+        "example024.scad"
+      ],
+      "intermediate": [
+        "surface_image.scad",
+        "CSG.scad",
+        "LetterBlock.scad",
+        "linear_extrude.scad",
+        "recursion.scad",
+        "sign.scad"
+      ]
+    },
+    "by_concept": {
+      "cube": [
+        {
+          "file": "animation.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "assert.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "children.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "children_indexed.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "CSG-modules.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "CSG.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "LetterBlock.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "phone_case.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "text_on_cube.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "functions.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example002.scad",
+          "usage_count": 5
+        },
+        {
+          "file": "example003.scad",
+          "usage_count": 7
+        },
+        {
+          "file": "example004.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example005.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example006.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example007.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example014.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example016.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "example018.scad",
+          "usage_count": 5
+        },
+        {
+          "file": "example022.scad",
+          "usage_count": 5
+        },
+        {
+          "file": "example024.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "candleStand.scad",
+          "usage_count": 2
+        }
+      ],
+      "sphere": [
+        {
+          "file": "animation.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "children.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "children_indexed.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "offset.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "CSG-modules.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "CSG.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "logo.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "functions.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example001.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example004.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example006.scad",
+          "usage_count": 9
+        },
+        {
+          "file": "example012.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example018.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example021.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example022.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "candleStand.scad",
+          "usage_count": 1
+        }
+      ],
+      "cylinder": [
+        {
+          "file": "animation.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "children.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "children_indexed.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "offset.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "parametric_gear.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "CSG-modules.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "logo.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "phone_case.scad",
+          "usage_count": 7
+        },
+        {
+          "file": "example001.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example002.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example005.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "example018.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example019.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example020.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example021.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "example022.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "candleStand.scad",
+          "usage_count": 6
+        },
+        {
+          "file": "sign.scad",
+          "usage_count": 2
+        }
+      ],
+      "difference": [
+        {
+          "file": "animation.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "children.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "GEB.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "offset.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "parametric_gear.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "CSG-modules.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "CSG.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "LetterBlock.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "logo.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "phone_case.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "projection.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "text_on_cube.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example001.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example002.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example003.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example004.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example005.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example006.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example007.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "example008.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example012.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example015.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example016.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "example017.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "example020.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example021.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example024.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "candleStand.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "sign.scad",
+          "usage_count": 1
+        }
+      ],
+      "translate": [
+        {
+          "file": "animation.scad",
+          "usage_count": 5
+        },
+        {
+          "file": "assert.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "children.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "children_indexed.scad",
+          "usage_count": 5
+        },
+        {
+          "file": "GEB.scad",
+          "usage_count": 5
+        },
+        {
+          "file": "offset.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "parametric_gear.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "surface_image.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "CSG-modules.scad",
+          "usage_count": 14
+        },
+        {
+          "file": "CSG.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "LetterBlock.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "linear_extrude.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "logo_and_text.scad",
+          "usage_count": 6
+        },
+        {
+          "file": "phone_case.scad",
+          "usage_count": 8
+        },
+        {
+          "file": "projection.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "rotate_extrude.scad",
+          "usage_count": 9
+        },
+        {
+          "file": "text_on_cube.scad",
+          "usage_count": 6
+        },
+        {
+          "file": "functions.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "list_comprehensions.scad",
+          "usage_count": 8
+        },
+        {
+          "file": "polygon_areas.scad",
+          "usage_count": 7
+        },
+        {
+          "file": "example002.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example005.scad",
+          "usage_count": 5
+        },
+        {
+          "file": "example006.scad",
+          "usage_count": 11
+        },
+        {
+          "file": "example007.scad",
+          "usage_count": 7
+        },
+        {
+          "file": "example008.scad",
+          "usage_count": 5
+        },
+        {
+          "file": "example009.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example012.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example015.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "example016.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example017.scad",
+          "usage_count": 19
+        },
+        {
+          "file": "example018.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example019.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example020.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "example021.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "example022.scad",
+          "usage_count": 5
+        },
+        {
+          "file": "example023.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example024.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "candleStand.scad",
+          "usage_count": 5
+        },
+        {
+          "file": "sign.scad",
+          "usage_count": 3
+        }
+      ],
+      "rotate": [
+        {
+          "file": "animation.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "assert.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "children.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "GEB.scad",
+          "usage_count": 6
+        },
+        {
+          "file": "parametric_gear.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "CSG-modules.scad",
+          "usage_count": 9
+        },
+        {
+          "file": "logo.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "logo_and_text.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "projection.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "text_on_cube.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "example001.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example006.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example007.scad",
+          "usage_count": 8
+        },
+        {
+          "file": "example008.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "example010.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example012.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example013.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example014.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example015.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example016.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example017.scad",
+          "usage_count": 6
+        },
+        {
+          "file": "example018.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "example020.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example021.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "example022.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example023.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example024.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "candleStand.scad",
+          "usage_count": 2
+        }
+      ],
+      "linear_extrude": [
+        {
+          "file": "animation.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "children.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "children_indexed.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "GEB.scad",
+          "usage_count": 6
+        },
+        {
+          "file": "offset.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "parametric_gear.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "surface_image.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "LetterBlock.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "linear_extrude.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "logo_and_text.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "projection.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "text_on_cube.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example007.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example008.scad",
+          "usage_count": 5
+        },
+        {
+          "file": "example009.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "example013.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "example015.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example017.scad",
+          "usage_count": 6
+        },
+        {
+          "file": "example020.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example021.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example023.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "candleStand.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "sign.scad",
+          "usage_count": 1
+        }
+      ],
+      "hull": [
+        {
+          "file": "animation.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "phone_case.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example006.scad",
+          "usage_count": 1
+        }
+      ],
+      "for_loop": [
+        {
+          "file": "animation.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "assert.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "children.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "children_indexed.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "parametric_gear.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "surface_image.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "functions.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "list_comprehensions.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "polygon_areas.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example005.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example006.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example007.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example009.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example014.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example016.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example017.scad",
+          "usage_count": 5
+        },
+        {
+          "file": "example018.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example019.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example020.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example021.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example022.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "example023.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example024.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "candleStand.scad",
+          "usage_count": 3
+        }
+      ],
+      "module_definition": [
+        {
+          "file": "animation.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "assert.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "children.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "children_indexed.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "GEB.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "module_recursion.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "offset.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "parametric_gear.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "CSG-modules.scad",
+          "usage_count": 11
+        },
+        {
+          "file": "LetterBlock.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "logo.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "logo_and_text.scad",
+          "usage_count": 5
+        },
+        {
+          "file": "text_on_cube.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "list_comprehensions.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "polygon_areas.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example001.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example002.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example003.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example004.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example005.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example006.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example007.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "example015.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example016.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "example017.scad",
+          "usage_count": 7
+        },
+        {
+          "file": "example018.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example020.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "example021.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "example022.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example023.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example024.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "candleStand.scad",
+          "usage_count": 2
+        }
+      ],
+      "function_definition": [
+        {
+          "file": "animation.scad",
+          "usage_count": 6
+        },
+        {
+          "file": "assert.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "module_recursion.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "echo.scad",
+          "usage_count": 7
+        },
+        {
+          "file": "functions.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "list_comprehensions.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "polygon_areas.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "recursion.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example001.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example019.scad",
+          "usage_count": 1
+        }
+      ],
+      "text": [
+        {
+          "file": "children.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "children_indexed.scad",
+          "usage_count": 7
+        },
+        {
+          "file": "GEB.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "LetterBlock.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "logo_and_text.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "rotate_extrude.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "text_on_cube.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "polygon_areas.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "recursion.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "sign.scad",
+          "usage_count": 2
+        }
+      ],
+      "children": [
+        {
+          "file": "children.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "children_indexed.scad",
+          "usage_count": 4
+        },
+        {
+          "file": "offset.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "logo_and_text.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "example018.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "candleStand.scad",
+          "usage_count": 1
+        }
+      ],
+      "scale": [
+        {
+          "file": "children_indexed.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "CSG-modules.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example015.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example017.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "sign.scad",
+          "usage_count": 1
+        }
+      ],
+      "if_condition": [
+        {
+          "file": "children_indexed.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "module_recursion.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "CSG-modules.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example017.scad",
+          "usage_count": 3
+        },
+        {
+          "file": "example020.scad",
+          "usage_count": 5
+        },
+        {
+          "file": "example022.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example024.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "candleStand.scad",
+          "usage_count": 1
+        }
+      ],
+      "intersection": [
+        {
+          "file": "GEB.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "CSG-modules.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "CSG.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example002.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example007.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example008.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example009.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example010.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example013.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example015.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example017.scad",
+          "usage_count": 4
+        }
+      ],
+      "union": [
+        {
+          "file": "CSG-modules.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "CSG.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "text_on_cube.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example002.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example003.scad",
+          "usage_count": 2
+        },
+        {
+          "file": "example006.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example015.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example017.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example018.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "candleStand.scad",
+          "usage_count": 1
+        }
+      ],
+      "rotate_extrude": [
+        {
+          "file": "rotate_extrude.scad",
+          "usage_count": 8
+        },
+        {
+          "file": "example007.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example009.scad",
+          "usage_count": 1
+        },
+        {
+          "file": "example017.scad",
+          "usage_count": 1
+        }
+      ]
+    }
+  }
+}
