@@ -28,160 +28,90 @@
     <div class="container">
         <div class="page-header">
             <h1 class="page-title">About FlexiCAD Designer</h1>
-            <p class="page-subtitle">Revolutionizing 3D design with AI-powered OpenSCAD generation</p>
+            <p class="page-subtitle">AI-powered 3D design made simple</p>
         </div>
 
         <div class="card">
             <div class="card-title">What is FlexiCAD Designer?</div>
             <div class="card-description">
-                FlexiCAD Designer is an innovative web platform that combines the power of artificial intelligence 
-                with the precision of OpenSCAD to make 3D design accessible to everyone. Whether you're a seasoned 
-                engineer or a complete beginner, our platform helps you create professional-quality 3D models with 
-                simple natural language descriptions.
+                FlexiCAD Designer combines artificial intelligence with OpenSCAD to make 3D design accessible to everyone. 
+                Simply describe what you want to create, and our AI generates clean, professional OpenSCAD code ready for 3D printing.
             </div>
         </div>
 
         <div class="card-grid">
             <div class="card">
-                <div class="card-title">🧠 AI-Powered Generation</div>
+                <div class="card-title">🧠 AI-Powered</div>
                 <div class="card-description">
-                    Our advanced AI models understand 3D design concepts and translate your ideas into clean, 
-                    parameterized OpenSCAD code. Simply describe what you want to create, and watch your vision 
-                    come to life.
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">📐 OpenSCAD Integration</div>
-                <div class="card-description">
-                    Built on OpenSCAD, the powerful open-source CAD software, FlexiCAD generates code that's 
-                    compatible with the entire OpenSCAD ecosystem. Export your designs for 3D printing or 
-                    further modification.
+                    Describe your design in plain English and watch AI transform your ideas into precise OpenSCAD code.
                 </div>
             </div>
 
             <div class="card">
                 <div class="card-title">🎨 Template Library</div>
                 <div class="card-description">
-                    Access hundreds of professionally designed templates covering electronics enclosures, 
-                    mechanical parts, household items, and artistic creations. Perfect starting points for 
-                    your projects.
+                    Browse professionally designed templates for electronics, mechanical parts, and household items.
                 </div>
             </div>
 
             <div class="card">
                 <div class="card-title">☁️ Cloud-Based</div>
                 <div class="card-description">
-                    No software installation required. Access FlexiCAD from any device with a web browser. 
-                    Your designs are securely stored in the cloud and available wherever you go.
+                    No software installation required. Access your designs from anywhere with secure cloud storage.
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📐 OpenSCAD Compatible</div>
+                <div class="card-description">
+                    All generated code works with OpenSCAD and is ready for 3D printing or further modification.
                 </div>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-title">How It Works</div>
+            <div class="card-title">Get Started</div>
             <div class="card-description">
-                <ol class="content-list">
-                    <li><strong>Describe Your Idea:</strong> Use natural language to describe the 3D object you want to create. Be as detailed or as general as you like.</li>
-                    <li><strong>AI Generation:</strong> Our AI processes your description and generates optimized OpenSCAD code that brings your idea to life.</li>
-                    <li><strong>Review & Customize:</strong> View the generated code, make modifications if needed, and see your design take shape.</li>
-                    <li><strong>Save & Export:</strong> Save your design to your personal library and export the code for 3D printing or further development.</li>
-                </ol>
-            </div>
-        </div>
-
-        <div class="card-grid">
-            <div class="card">
-                <div class="card-title">Perfect for Engineers</div>
-                <div class="card-description">
-                    Rapidly prototype mechanical parts, create custom enclosures, and generate parametric designs 
-                    that can be easily modified for different specifications.
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Ideal for Makers</div>
-                <div class="card-description">
-                    Design custom parts for your projects, create replacement components, and bring your creative 
-                    ideas to life with precision 3D models ready for printing.
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Great for Educators</div>
-                <div class="card-description">
-                    Teach 3D design concepts without complex software. Students can focus on design thinking while 
-                    the AI handles the technical implementation.
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Accessible to Beginners</div>
-                <div class="card-description">
-                    No CAD experience required. Start with simple descriptions and gradually learn OpenSCAD 
-                    concepts through AI-generated examples.
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-title">Get Started Today</div>
-            <div class="card-description">
-                Ready to revolutionize your 3D design workflow? Create a free account and start generating 
-                professional-quality OpenSCAD models in seconds.
+                Ready to create your first AI-generated 3D design? Start with our template library or jump straight into the AI generator.
             </div>
             <div class="card-actions mt-2">
-                <a href="login.html" class="btn btn-primary" id="getStartedBtn">Get Started</a>
+                <a href="ai.html" class="btn btn-primary" id="getStartedBtn">Try AI Generator</a>
                 <a href="templates.html" class="btn btn-secondary">Browse Templates</a>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-title">Technical Specifications</div>
-            <div class="card-description">
-                <ul class="content-list">
-                    <li><strong>AI Model:</strong> GPT-4 optimized for OpenSCAD code generation</li>
-                    <li><strong>Output Format:</strong> Clean, parameterized OpenSCAD code</li>
-                    <li><strong>Template Categories:</strong> Electronics, Mechanical, Household, Artistic</li>
-                    <li><strong>Cloud Storage:</strong> Secure, encrypted design storage</li>
-                    <li><strong>Export Options:</strong> .scad files, direct download</li>
-                    <li><strong>Browser Support:</strong> Chrome, Firefox, Safari, Edge</li>
-                </ul>
             </div>
         </div>
     </div>
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        // Initialize Supabase client
-        const { createClient } = supabase;
-        const supabaseClient = createClient(
-            window.FlexiCADConfig.supabase.url,
-            window.FlexiCADConfig.supabase.anonKey
-        );
-
-        // Check if user is logged in
-        checkAuthStatus();
-
-        async function checkAuthStatus() {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            
-            if (user) {
-                const navUser = document.getElementById('navUser');
+        // Simple auth check - redirect to AI generator if logged in, login page if not
+        const user = sessionStorage.getItem('flexicad_user');
+        
+        if (user) {
+            const navUser = document.querySelector('.nav-user');
+            if (navUser) {
                 navUser.classList.remove('nav-user-hidden');
                 navUser.style.display = 'flex';
-                document.getElementById('userInfo').textContent = user.email;
-                document.getElementById('getStartedBtn').href = 'home.html';
-                document.getElementById('getStartedBtn').textContent = 'Go to Dashboard';
+            }
+            
+            const userInfo = document.getElementById('userInfo');
+            if (userInfo) {
+                const userData = JSON.parse(user);
+                userInfo.textContent = userData.email;
+            }
+            
+            // Update button to go to AI generator if logged in
+            const getStartedBtn = document.getElementById('getStartedBtn');
+            if (getStartedBtn) {
+                getStartedBtn.href = 'ai.html';
+                getStartedBtn.textContent = 'Try AI Generator';
             }
         }
 
         async function handleLogout() {
             try {
-                const { error } = await supabaseClient.auth.signOut();
-                if (error) throw error;
-                
-                window.location.href = 'login.html';
+                // Clear session storage
+                sessionStorage.removeItem('flexicad_user');
+                window.location.href = 'index.html';
             } catch (error) {
                 console.error('Error logging out:', error);
                 alert('Error logging out. Please try again.');

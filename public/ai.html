@@ -235,6 +235,8 @@
             document.getElementById('resultFileName').textContent = `${generation.name.toLowerCase().replace(/\s+/g, '-')}.scad`;
             document.getElementById('generatedCode').textContent = generation.code;
             
+            // Hide placeholder and show results
+            document.getElementById('placeholderSection').classList.add('hidden');
             document.getElementById('resultSection').classList.remove('hidden');
         }
 
