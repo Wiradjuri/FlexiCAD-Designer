@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FlexiCAD Designer - Login</title>
     <link rel="stylesheet" href="css/dark-theme.css">
-    <script src="config/config.js"></script>
 </head>
 <body>
     <nav class="nav">
@@ -163,6 +162,21 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // Initialize auth system
             await window.flexicadAuth.init();
+            
+            // Set initial state - Register tab active, show pricing
+            document.querySelector('.pricing-column').style.display = 'flex';
+            document.querySelector('.main-content').style.gridTemplateColumns = '1fr 1fr';
+            
+            // Add responsive check for mobile
+            function checkMobileLayout() {
+                if (window.innerWidth <= 768) {
+                    document.querySelector('.main-content').style.gridTemplateColumns = '1fr';
+                    document.querySelector('.pricing-column').style.display = 'flex';
+                }
+            }
+            
+            checkMobileLayout();
+            window.addEventListener('resize', checkMobileLayout);
             
             // Check URL parameters for status messages
             const urlStatus = window.flexicadAuth.checkURLParams();

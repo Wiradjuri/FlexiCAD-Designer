@@ -1,63 +1,185 @@
 // FlexiCAD Payment-First Authentication System
-// This system ensures no user account exists until payment is completed
+// Production-ready authentication with Supabase integration and payment enforcement
 
 class FlexiCADAuth {
     constructor() {
         this.user = null;
         this.paymentStatus = null;
         this.isInitialized = false;
+        this.supabaseClient = null;
+        this.authStateChangeListener = null;
     }
 
-    // Initialize authentication system
+    // Initialize authentication system with Supabase
     async init() {
         try {
-            // Check if user is logged in (from session storage)
-            const userStr = sessionStorage.getItem('flexicad_user');
-            if (userStr) {
-                this.user = JSON.parse(userStr);
+            console.log('🔄 Initializing FlexiCAD Authentication System...');
+
+            // Initialize Supabase client
+            await this.initializeSupabase();
+
+            // Check current Supabase session
+            const { data: { session }, error } = await this.supabaseClient.auth.getSession();
+            
+            if (error) {
+                console.error('Session check error:', error);
             }
 
-            // If we have a user, check their payment status
-            if (this.user) {
+            if (session && session.user) {
+                console.log('✅ Found existing Supabase session');
+                this.user = session.user;
+                
+                // Sync with session storage
+                sessionStorage.setItem('flexicad_user', JSON.stringify(this.user));
+                
+                // Check payment status
                 await this.checkPaymentStatus();
+            } else {
+                // No Supabase session, check session storage for fallback
+                const userStr = sessionStorage.getItem('flexicad_user');
+                if (userStr) {
+                    console.log('📦 Found user in session storage (fallback)');
+                    this.user = JSON.parse(userStr);
+                    await this.checkPaymentStatus();
+                }
             }
+
+            // Set up auth state change listener
+            this.setupAuthStateListener();
 
             this.isInitialized = true;
+            console.log('✅ Authentication system initialized');
+            
             return { success: true, user: this.user, paymentStatus: this.paymentStatus };
         } catch (error) {
-            console.error('Auth initialization error:', error);
+            console.error('❌ Auth initialization error:', error);
             this.isInitialized = true;
             return { success: false, error: error.message };
         }
     }
 
-    // Check if user has paid (all users should have paid in this system)
+    // Initialize Supabase client
+    async initializeSupabase() {
+        try {
+            // Check if Supabase library is loaded
+            if (typeof window.supabase === 'undefined') {
+                throw new Error('Supabase library not loaded. Please include the Supabase CDN script.');
+            }
+
+            // Ensure config is loaded
+            if (typeof CONFIG === 'undefined') {
+                throw new Error('CONFIG not loaded. Please include config.js first.');
+            }
+
+            // Validate configuration
+            if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY) {
+                throw new Error('Supabase configuration missing. Please set SUPABASE_URL and SUPABASE_ANON_KEY.');
+            }
+
+            if (CONFIG.SUPABASE_URL === 'https://your-project.supabase.co' || 
+                CONFIG.SUPABASE_ANON_KEY === 'your-anon-key') {
+                throw new Error('Please update your Supabase configuration with real values.');
+            }
+
+            // Create Supabase client directly
+            this.supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
+                auth: {
+                    persistSession: true,
+                    storageKey: 'flexicad_auth_token',
+                    storage: window.localStorage
+                }
+            });
+
+            console.log('✅ Supabase client initialized successfully');
+            return this.supabaseClient;
+        } catch (error) {
+            console.error('❌ Failed to initialize Supabase:', error);
+            throw new Error(`Authentication system unavailable: ${error.message}`);
+        }
+    }
+
+    // Set up auth state change listener
+    setupAuthStateListener() {
+        if (!this.supabaseClient) return;
+
+        this.authStateChangeListener = this.supabaseClient.auth.onAuthStateChange(
+            async (event, session) => {
+                console.log('🔄 Auth state change:', event);
+                
+                if (event === 'SIGNED_IN' && session) {
+                    this.user = session.user;
+                    sessionStorage.setItem('flexicad_user', JSON.stringify(this.user));
+                    await this.checkPaymentStatus();
+                } else if (event === 'SIGNED_OUT') {
+                    this.user = null;
+                    this.paymentStatus = null;
+                    sessionStorage.removeItem('flexicad_user');
+                    sessionStorage.removeItem('flexicad_session_token');
+                }
+            }
+        );
+    }
+
+    // Check payment status from profiles table (payment-first enforcement)
     async checkPaymentStatus() {
         if (!this.user || !this.user.id) {
-            this.paymentStatus = { is_paid: false, subscription_plan: 'none' };
+            this.paymentStatus = { is_paid: false, subscription_plan: 'none', is_active: false };
             return this.paymentStatus;
         }
 
         try {
-            const response = await fetch(`/.netlify/functions/check-payment-status?userId=${this.user.id}`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            console.log('🔄 Checking payment status for user:', this.user.id);
+
+            if (!this.supabaseClient) {
+                await this.initializeSupabase();
             }
 
-            this.paymentStatus = await response.json();
-            console.log('Payment status:', this.paymentStatus);
-            
-            // In payment-first system, if user exists but isn't paid, something is wrong
-            if (!this.paymentStatus.is_paid) {
-                console.error('🚨 User exists but is not paid - this should not happen in payment-first system');
-                this.logout(); // Force logout for security
+            // Query the profiles table directly
+            const { data: profile, error } = await this.supabaseClient
+                .from('profiles')
+                .select('is_paid, subscription_plan, is_active, stripe_customer_id, created_at')
+                .eq('id', this.user.id)
+                .single();
+
+            if (error) {
+                console.error('❌ Profile query error:', error);
+                throw new Error(`Profile lookup failed: ${error.message}`);
             }
-            
+
+            if (!profile) {
+                console.error('🚨 No profile found for authenticated user - payment-first violation');
+                throw new Error('User profile not found. This should not happen in payment-first system.');
+            }
+
+            this.paymentStatus = {
+                is_paid: profile.is_paid || false,
+                subscription_plan: profile.subscription_plan || 'none',
+                is_active: profile.is_active || false,
+                stripe_customer_id: profile.stripe_customer_id,
+                created_at: profile.created_at
+            };
+
+            console.log('✅ Payment status loaded:', this.paymentStatus);
+
+            // In payment-first system, all authenticated users should be paid and active
+            if (!this.paymentStatus.is_paid || !this.paymentStatus.is_active) {
+                console.error('🚨 Payment-first violation detected:', {
+                    user_id: this.user.id,
+                    is_paid: this.paymentStatus.is_paid,
+                    is_active: this.paymentStatus.is_active
+                });
+                // Don't auto-logout here, let calling function handle it
+            }
+
             return this.paymentStatus;
         } catch (error) {
-            console.error('Payment status check failed:', error);
-            this.paymentStatus = { is_paid: false, subscription_plan: 'none', error: error.message };
+            console.error('❌ Payment status check failed:', error);
+            this.paymentStatus = { 
+                is_paid: false, 
+                subscription_plan: 'none', 
+                is_active: false,
+                error: error.message 
+            };
             return this.paymentStatus;
         }
     }
@@ -134,69 +256,98 @@ class FlexiCADAuth {
         }
     }
 
-    // Login function that checks payment after successful auth
+    // Production-ready login with integrated Supabase and payment checking
     async login(email, password) {
         try {
-            const response = await fetch('/.netlify/functions/auth-proxy', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'signin',
-                    email: email,
-                    password: password
-                })
+            console.log('🔄 Starting login process for:', email);
+
+            if (!this.supabaseClient) {
+                await this.initializeSupabase();
+            }
+
+            // Attempt Supabase login
+            const { data, error } = await this.supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: password
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error?.message || 'Login failed');
+            if (error) {
+                console.error('❌ Supabase login error:', error);
+                throw new Error(error.message);
             }
 
-            const result = await response.json();
+            if (!data.user) {
+                throw new Error('Login failed - no user data returned');
+            }
+
+            console.log('✅ Supabase login successful');
             
-            if (result.error) {
-                throw new Error(result.error.message);
-            }
-
-            // Store user info
-            this.user = result.data.user;
+            // User data is automatically set by auth state listener
+            this.user = data.user;
             sessionStorage.setItem('flexicad_user', JSON.stringify(this.user));
-            
-            if (result.sessionToken) {
-                sessionStorage.setItem('flexicad_session_token', result.sessionToken);
-            }
 
-            // Check payment status - in payment-first system, all users should be paid
+            // Check payment status in profiles table
             await this.checkPaymentStatus();
 
-            // If somehow user is not paid, this is an error condition
+            // In payment-first system, all users should be paid
             if (!this.paymentStatus.is_paid) {
-                console.error('🚨 Logged in user is not paid - this should not happen in payment-first system');
-                this.logout();
-                throw new Error('Account access issue. Please contact support.');
+                console.error('🚨 User exists but not paid - payment-first violation');
+                await this.supabaseClient.auth.signOut();
+                throw new Error('Account payment issue. Please contact support or re-register.');
             }
 
+            console.log('✅ Login complete with payment verification');
+            
             return { 
                 success: true, 
                 user: this.user, 
                 paymentStatus: this.paymentStatus
             };
         } catch (error) {
-            console.error('Login error:', error);
+            console.error('❌ Login error:', error);
             return { success: false, error: error.message };
         }
     }
 
-    // Logout function
-    logout() {
-        this.user = null;
-        this.paymentStatus = null;
-        sessionStorage.removeItem('flexicad_user');
-        sessionStorage.removeItem('flexicad_session_token');
-        sessionStorage.removeItem('flexicad_registration_email');
-        window.location.href = '/index.html';
+    // Production-ready logout with proper cleanup
+    async logout() {
+        try {
+            console.log('🔄 Logging out user...');
+
+            // Sign out from Supabase
+            if (this.supabaseClient) {
+                const { error } = await this.supabaseClient.auth.signOut();
+                if (error) {
+                    console.error('Supabase logout error:', error);
+                }
+            }
+
+            // Clean up auth state listener
+            if (this.authStateChangeListener) {
+                this.authStateChangeListener.data?.subscription?.unsubscribe();
+                this.authStateChangeListener = null;
+            }
+
+            // Clear local state
+            this.user = null;
+            this.paymentStatus = null;
+
+            // Clear session storage
+            sessionStorage.removeItem('flexicad_user');
+            sessionStorage.removeItem('flexicad_session_token');
+            sessionStorage.removeItem('flexicad_registration_email');
+
+            console.log('✅ Logout complete');
+
+            // Redirect to login page
+            window.location.href = '/index.html';
+        } catch (error) {
+            console.error('❌ Logout error:', error);
+            // Force cleanup even if logout fails
+            this.user = null;
+            this.paymentStatus = null;
+            window.location.href = '/index.html';
+        }
     }
 
     // Check URL parameters for checkout status

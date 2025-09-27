@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head></head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlexiCAD Auth System Test</title>
+    <link rel="stylesheet" href="css/dark-theme.css">
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">Authentication System Test</h1>
+            <p class="page-subtitle">Production-ready authentication testing</p>
+        </div>
+
+        <div class="card">
+            <h2>🔧 Configuration Status</h2>
+            <div id="configStatus">
+                <div class="result info">Checking configuration...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🔗 Supabase Connection</h2>
+            <div id="supabaseStatus">
+                <div class="result info">Testing Supabase connection...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🔐 Authentication System</h2>
+            <div id="authStatus">
+                <div class="result info">Initializing authentication...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>💳 Payment Status Check</h2>
+            <div id="paymentStatus">
+                <div class="result info">Authentication required for payment check</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>✅ Overall System Status</h2>
+            <div id="overallStatus">
+                <div class="result info">Running tests...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🧪 Manual Test Actions</h2>
+            <div class="form-group">
+                <button id="testConfigBtn" class="btn btn-primary">Test Config Reload</button>
+                <button id="testSupabaseBtn" class="btn btn-secondary">Test Supabase Init</button>
+                <button id="testAuthBtn" class="btn btn-secondary">Test Auth Init</button>
+                <button id="clearStorageBtn" class="btn btn-danger">Clear Storage</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config/env-config.js"></script>
+    <script src="config/config.js"></script>
+    <script src="js/flexicad-auth.js"></script>
+
+    <script>
+        let testResults = {
+            config: false,
+            supabase: false,
+            auth: false,
+            payment: false
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🧪 Starting authentication system tests...');
+            
+            await runAllTests();
+            setupManualTests();
+        });
+
+        async function runAllTests() {
+            await testConfiguration();
+            await testSupabaseConnection();
+            await testAuthSystem();
+            await testPaymentSystem();
+            updateOverallStatus();
+        }
+
+        async function testConfiguration() {
+            const statusDiv = document.getElementById('configStatus');
+            
+            try {
+                // Test config loading
+                if (typeof CONFIG === 'undefined') {
+                    throw new Error('CONFIG not loaded');
+                }
+
+                if (!CONFIG.initialized) {
+                    throw new Error('CONFIG not initialized');
+                }
+
+                const configInfo = [
+                    `✅ CONFIG loaded and initialized`,
+                    `📍 Supabase URL: ${CONFIG.SUPABASE_URL?.substring(0, 30)}...`,
+                    `🔑 Anon Key: ${CONFIG.SUPABASE_ANON_KEY?.substring(0, 20)}...`,
+                    `🎯 Payment First: ${CONFIG.PAYMENT_FIRST}`,
+                    `🐛 Debug Mode: ${CONFIG.FEATURES?.DEBUG_AUTH}`
+                ];
+
+                statusDiv.innerHTML = `<div class="result success">${configInfo.join('<br>')}</div>`;
+                testResults.config = true;
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="result error">❌ Configuration Error: ${error.message}</div>`;
+                testResults.config = false;
+            }
+        }
+
+        async function testSupabaseConnection() {
+            const statusDiv = document.getElementById('supabaseStatus');
+            
+            try {
+                // Test Supabase client initialization
+                const supabaseClient = await window.getSupabaseClient();
+                
+                if (!supabaseClient) {
+                    throw new Error('Supabase client not initialized');
+                }
+
+                // Test basic connection
+                const { data, error } = await supabaseClient.auth.getSession();
+                
+                if (error && error.message !== 'No session found') {
+                    throw new Error(`Session check failed: ${error.message}`);
+                }
+
+                const connectionInfo = [
+                    `✅ Supabase client initialized`,
+                    `🔗 Connection established`,
+                    `📅 Session status: ${data?.session ? 'Active session found' : 'No active session'}`,
+                    `🆔 User ID: ${data?.session?.user?.id || 'Not logged in'}`
+                ];
+
+                statusDiv.innerHTML = `<div class="result success">${connectionInfo.join('<br>')}</div>`;
+                testResults.supabase = true;
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="result error">❌ Supabase Connection Error: ${error.message}</div>`;
+                testResults.supabase = false;
+            }
+        }
+
+        async function testAuthSystem() {
+            const statusDiv = document.getElementById('authStatus');
+            
+            try {
+                // Test auth system initialization
+                const result = await window.flexicadAuth.init();
+                
+                if (!result.success && result.error) {
+                    throw new Error(result.error);
+                }
+
+                const authInfo = [
+                    `✅ Auth system initialized: ${window.flexicadAuth.isInitialized}`,
+                    `👤 Current user: ${result.user ? result.user.email : 'Not logged in'}`,
+                    `💳 Payment status: ${result.paymentStatus ? (result.paymentStatus.is_paid ? 'Paid' : 'Not paid') : 'Unknown'}`,
+                    `🔄 Auth state listener: ${window.flexicadAuth.authStateChangeListener ? 'Active' : 'Not active'}`
+                ];
+
+                statusDiv.innerHTML = `<div class="result success">${authInfo.join('<br>')}</div>`;
+                testResults.auth = true;
+
+                // If user is logged in, enable payment test
+                if (result.user) {
+                    document.getElementById('paymentStatus').innerHTML = 
+                        `<div class="result info">💳 Payment Status: ${JSON.stringify(result.paymentStatus, null, 2)}</div>`;
+                    testResults.payment = true;
+                }
+
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="result error">❌ Auth System Error: ${error.message}</div>`;
+                testResults.auth = false;
+            }
+        }
+
+        async function testPaymentSystem() {
+            if (!window.flexicadAuth.user) {
+                document.getElementById('paymentStatus').innerHTML = 
+                    `<div class="result info">ℹ️ Login required to test payment system</div>`;
+                return;
+            }
+
+            const statusDiv = document.getElementById('paymentStatus');
+            
+            try {
+                const paymentStatus = await window.flexicadAuth.checkPaymentStatus();
+                
+                const paymentInfo = [
+                    `💳 Payment Status: ${paymentStatus.is_paid ? '✅ Paid' : '❌ Not Paid'}`,
+                    `🎯 Plan: ${paymentStatus.subscription_plan}`,
+                    `🟢 Active: ${paymentStatus.is_active ? '✅ Yes' : '❌ No'}`,
+                    `🏪 Stripe Customer: ${paymentStatus.stripe_customer_id || 'Not set'}`,
+                    `📅 Created: ${paymentStatus.created_at || 'Unknown'}`
+                ];
+
+                const resultClass = paymentStatus.is_paid && paymentStatus.is_active ? 'success' : 'warning';
+                statusDiv.innerHTML = `<div class="result ${resultClass}">${paymentInfo.join('<br>')}</div>`;
+                
+                testResults.payment = paymentStatus.is_paid && paymentStatus.is_active;
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="result error">❌ Payment Check Error: ${error.message}</div>`;
+                testResults.payment = false;
+            }
+        }
+
+        function updateOverallStatus() {
+            const statusDiv = document.getElementById('overallStatus');
+            const totalTests = Object.keys(testResults).length;
+            const passedTests = Object.values(testResults).filter(result => result === true).length;
+            
+            const overallInfo = [
+                `📊 Tests Passed: ${passedTests}/${totalTests}`,
+                `🔧 Configuration: ${testResults.config ? '✅' : '❌'}`,
+                `🔗 Supabase: ${testResults.supabase ? '✅' : '❌'}`,
+                `🔐 Authentication: ${testResults.auth ? '✅' : '❌'}`,
+                `💳 Payment System: ${testResults.payment ? '✅' : '❌'}`
+            ];
+
+            const resultClass = passedTests === totalTests ? 'success' : 
+                                passedTests > totalTests / 2 ? 'warning' : 'error';
+            
+            statusDiv.innerHTML = `<div class="result ${resultClass}">${overallInfo.join('<br>')}</div>`;
+        }
+
+        function setupManualTests() {
+            document.getElementById('testConfigBtn').addEventListener('click', async () => {
+                console.log('🧪 Testing config reload...');
+                await testConfiguration();
+                updateOverallStatus();
+            });
+
+            document.getElementById('testSupabaseBtn').addEventListener('click', async () => {
+                console.log('🧪 Testing Supabase initialization...');
+                window.supabaseManager.reset();
+                await testSupabaseConnection();
+                updateOverallStatus();
+            });
+
+            document.getElementById('testAuthBtn').addEventListener('click', async () => {
+                console.log('🧪 Testing auth initialization...');
+                window.flexicadAuth.isInitialized = false;
+                await testAuthSystem();
+                updateOverallStatus();
+            });
+
+            document.getElementById('clearStorageBtn').addEventListener('click', () => {
+                console.log('🧹 Clearing storage...');
+                sessionStorage.clear();
+                localStorage.clear();
+                location.reload();
+            });
+        }
+    </script>
+
+    <style>
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .result {
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 0.5rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-line;
+        }
+        .result.success {
+            background: var(--success-bg, #1a3d2e);
+            color: var(--success-text, #4ade80);
+            border: 1px solid var(--success-border, #166534);
+        }
+        .result.error {
+            background: var(--error-bg, #3d1a1a);
+            color: var(--error-text, #f87171);
+            border: 1px solid var(--error-border, #dc2626);
+        }
+        .result.warning {
+            background: var(--warning-bg, #3d2f1a);
+            color: var(--warning-text, #fbbf24);
+            border: 1px solid var(--warning-border, #d97706);
+        }
+        .result.info {
+            background: var(--info-bg, #1a2b3d);
+            color: var(--info-text, #60a5fa);
+            border: 1px solid var(--info-border, #2563eb);
+        }
+        .form-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+    </style>
+</body>
+</html>
