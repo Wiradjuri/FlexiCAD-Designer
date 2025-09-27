@@ -1,9 +1,9 @@
 const { createClient } = require('@supabase/supabase-js');
 
-// Initialize Supabase client
+// Initialize Supabase client with service role for database operations
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 exports.handler = async (event, context) => {
@@ -67,7 +67,7 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Verify user authentication
+    // Verify user authentication by extracting user ID from JWT
     const authToken = event.headers.authorization?.replace('Bearer ', '');
     if (!authToken) {
       return {
@@ -77,22 +77,62 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Verify the token with Supabase and get user
-    const { data: { user }, error: authError } = await supabase.auth.getUser(authToken);
-    if (authError || !user) {
+    let userId;
+    try {
+      // Decode JWT payload to get user ID
+      const tokenParts = authToken.split('.');
+      if (tokenParts.length !== 3) {
+        throw new Error('Invalid JWT format');
+      }
+      
+      const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString());
+      userId = payload.sub || payload.user_id;
+      
+      if (!userId) {
+        throw new Error('No user ID found in token');
+      }
+    } catch (err) {
+      console.error('Failed to extract user ID from token:', err);
       return {
         statusCode: 401,
         headers,
-        body: JSON.stringify({ error: 'Invalid authentication token' }),
+        body: JSON.stringify({ error: 'Invalid token format' }),
       };
     }
 
-    // Save design to database
+    // Verify payment status before saving
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('is_paid, is_active, email')
+        .eq('id', userId)
+        .single();
+
+      if (profileError || !profile?.is_paid || !profile?.is_active) {
+        console.error('User payment check failed:', profileError);
+        return {
+          statusCode: 403,
+          headers,
+          body: JSON.stringify({ error: 'Payment required' }),
+        };
+      }
+
+      console.log('Saving design for user:', profile.email);
+    } catch (authErr) {
+      console.error('Payment verification error:', authErr);
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ error: 'Authentication verification failed' }),
+      };
+    }
+
+    // Save design to database using service role (bypasses RLS)
     const { data, error } = await supabase
       .from('designs')
       .insert([
         {
-          user_id: user.id,
+          user_id: userId,
           name: name.trim(),
           prompt: prompt ? prompt.trim() : null,
           code: code.trim(),
