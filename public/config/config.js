@@ -1,6 +1,6 @@
 // Configuration for FlexiCAD Designer
 const CONFIG = {
-    // Supabase configuration - REPLACE WITH YOUR VALUES
+    // Supabase configuration - NEVER PUT REAL KEYS HERE!
     SUPABASE_URL: 'https://your-project-id.supabase.co',
     SUPABASE_ANON_KEY: 'your-anon-key-here',
     
