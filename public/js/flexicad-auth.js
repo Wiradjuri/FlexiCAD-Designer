@@ -202,9 +202,9 @@ class FlexiCADAuth {
             await this.checkPaymentStatus();
         }
 
-        // In payment-first system, all logged in users should be paid
-        if (!this.paymentStatus.is_paid) {
-            console.log('🚨 User not paid - forcing logout (should not happen in payment-first system)');
+        // In payment-first system, all logged in users should be paid and active
+        if (!this.paymentStatus.is_paid || !this.paymentStatus.is_active) {
+            console.log('🚨 User not paid or not active - forcing logout (should not happen in payment-first system)');
             this.logout();
             return false;
         }
@@ -289,9 +289,9 @@ class FlexiCADAuth {
             // Check payment status in profiles table
             await this.checkPaymentStatus();
 
-            // In payment-first system, all users should be paid
-            if (!this.paymentStatus.is_paid) {
-                console.error('🚨 User exists but not paid - payment-first violation');
+            // In payment-first system, all users should be paid and active
+            if (!this.paymentStatus.is_paid || !this.paymentStatus.is_active) {
+                console.error('🚨 User exists but not paid or not active - payment-first violation');
                 await this.supabaseClient.auth.signOut();
                 throw new Error('Account payment issue. Please contact support or re-register.');
             }
