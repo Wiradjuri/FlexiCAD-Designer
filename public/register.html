@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlexiCAD Designer - Login</title>
+    <title>FlexiCAD Designer - Register</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="css/dark-theme.css">
 </head>
 <body>
@@ -160,6 +161,25 @@
         let currentPlan = 'monthly';
         
         document.addEventListener('DOMContentLoaded', async () => {
+            // Show payment message if redirected from auth system
+            const paymentMessage = sessionStorage.getItem('payment_message');
+            if (paymentMessage) {
+                console.log('📢 Showing payment message:', paymentMessage);
+                
+                // Create and show message
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'auth-message warning';
+                messageDiv.textContent = paymentMessage;
+                
+                const formContainer = document.querySelector('.form-container');
+                if (formContainer) {
+                    formContainer.insertBefore(messageDiv, formContainer.firstChild);
+                }
+                
+                // Clear the message
+                sessionStorage.removeItem('payment_message');
+            }
+            
             // Initialize auth system
             await window.flexicadAuth.init();
             
@@ -526,6 +546,17 @@
             margin-top: 0.5rem;
             font-size: 0.9rem;
             color: var(--text-secondary);
+        }
+        .auth-message {
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .auth-message.warning {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid #ffc107;
+            color: #ffc107;
         }
     </style>
 </body>

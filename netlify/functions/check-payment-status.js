@@ -33,7 +33,7 @@ exports.handler = async (event, context) => {
         // Query profile to check payment status
         const { data: profile, error } = await supabase
             .from('profiles')
-            .select('is_paid, subscription_plan, is_active, stripe_customer_id, payment_date, created_at')
+            .select('is_paid, subscription_plan, is_active, stripe_customer_id, created_at')
             .eq('id', userId)
             .single();
 
@@ -80,7 +80,6 @@ exports.handler = async (event, context) => {
                     subscription_plan: profile.subscription_plan,
                     is_active: profile.is_active,
                     stripe_customer_id: profile.stripe_customer_id,
-                    payment_date: profile.payment_date,
                     created_at: profile.created_at
                 }
             })

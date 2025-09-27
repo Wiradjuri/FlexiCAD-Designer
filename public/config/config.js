@@ -9,19 +9,12 @@ if (typeof CONFIG === 'undefined') {
 
 // Only initialize if not already done
 if (!CONFIG.initialized) {
-    // Supabase configuration - uses environment variables when available
-    CONFIG.SUPABASE_URL = typeof window !== 'undefined' && window.ENV?.SUPABASE_URL ? 
-        window.ENV.SUPABASE_URL : 
-        'https://fifqqnflxwfgnidawxzw.supabase.co'; // Your actual Supabase URL
+    // Supabase configuration - injected at build time for security
+    CONFIG.SUPABASE_URL = 'https://fifqqnflxwfgnidawxzw.supabase.co';
+    CONFIG.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpZnFxbmZseHdmZ25pZGF3eHp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MzUyNDUsImV4cCI6MjA3NDUxMTI0NX0.-49wxfcA9xwEbTHzuSL3RFGS9QCLaH9Dyb8lw_zSDk0';
     
-    CONFIG.SUPABASE_ANON_KEY = typeof window !== 'undefined' && window.ENV?.SUPABASE_ANON_KEY ? 
-        window.ENV.SUPABASE_ANON_KEY : 
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpZnFxbmZseHdmZ25pZGF3eHp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MzUyNDUsImV4cCI6MjA3NDUxMTI0NX0.-49wxfcA9xwEbTHzuSL3RFGS9QCLaH9Dyb8lw_zSDk0'; // Your actual anon key
-    
-    // Stripe configuration - uses environment variables when available
-    CONFIG.STRIPE_PUBLISHABLE_KEY = typeof window !== 'undefined' && window.ENV?.STRIPE_PUBLISHABLE_KEY ? 
-        window.ENV.STRIPE_PUBLISHABLE_KEY : 
-        'pk_live_51S0HmuPJgpJveDpNR9rM9NxgbmAGtLpBWkG4JkWwGcAw4IzOeSlKFXe9ggnyIFCfi6hm1UvcPXqiyFZD1jFGCv0P00I2jQNOw8'; // Your actual publishable key
+    // Stripe configuration - injected at build time for security  
+    CONFIG.STRIPE_PUBLISHABLE_KEY = 'pk_live_51S0HmuPJgpJveDpNR9rM9NxgbmAGtLpBWkG4JkWwGcAw4IzOeSlKFXe9ggnyIFCfi6hm1UvcPXqiyFZD1jFGCv0P00I2jQNOw8';
     
     // Application settings
     CONFIG.APP_NAME = 'FlexiCAD Designer';
@@ -73,17 +66,17 @@ CONFIG.validate = function() {
     const errors = [];
     
     // Check Supabase configuration
-    if (!this.SUPABASE_URL || this.SUPABASE_URL.includes('your-project-id')) {
-        errors.push('Supabase URL not configured - please set your actual project URL');
+    if (!this.SUPABASE_URL || this.SUPABASE_URL.includes('{{') || this.SUPABASE_URL.includes('your-project-id')) {
+        errors.push('Supabase URL not configured - environment variables not injected at build time');
     }
     
-    if (!this.SUPABASE_ANON_KEY || this.SUPABASE_ANON_KEY.includes('YOUR_ACTUAL_ANON_KEY_HERE')) {
-        errors.push('Supabase anon key not configured - please set your actual anon key');
+    if (!this.SUPABASE_ANON_KEY || this.SUPABASE_ANON_KEY.includes('{{') || this.SUPABASE_ANON_KEY.includes('YOUR_ACTUAL_ANON_KEY_HERE')) {
+        errors.push('Supabase anon key not configured - environment variables not injected at build time');
     }
     
     // Check Stripe configuration
-    if (!this.STRIPE_PUBLISHABLE_KEY || this.STRIPE_PUBLISHABLE_KEY.includes('your_actual_stripe_publishable_key_here')) {
-        errors.push('Stripe publishable key not configured - please set your actual publishable key');
+    if (!this.STRIPE_PUBLISHABLE_KEY || this.STRIPE_PUBLISHABLE_KEY.includes('{{') || this.STRIPE_PUBLISHABLE_KEY.includes('your_actual_stripe_publishable_key_here')) {
+        errors.push('Stripe publishable key not configured - environment variables not injected at build time');
     }
     
     if (errors.length > 0) {
@@ -101,9 +94,12 @@ CONFIG.get = function(path) {
     return path.split('.').reduce((obj, key) => obj && obj[key], this);
 };
 
-// Make CONFIG available globally
+// Make CONFIG available globally with multiple naming conventions for compatibility
 if (typeof window !== 'undefined') {
     window.CONFIG = CONFIG;
+    window.flexicadConfig = CONFIG;
+    window.FlexiCADConfig = CONFIG;
+    window.FLEXICAD_CONFIG = CONFIG;
 }
 
 // Export for modules if needed

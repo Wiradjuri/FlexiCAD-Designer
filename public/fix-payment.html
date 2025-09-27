@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Payment Status - FlexiCAD</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="css/dark-theme.css">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>🔧 Fix Payment Status</h1>
+            <p>Update your account to have paid status for development/testing.</p>
+            
+            <div class="form-group">
+                <label for="email">Your Email:</label>
+                <input type="email" id="email" class="form-input" placeholder="Enter your email address">
+            </div>
+            
+            <button id="fixBtn" class="button button-primary">
+                Fix My Payment Status
+            </button>
+            
+            <div id="status" style="margin-top: 20px; padding: 15px; border-radius: 6px; display: none;"></div>
+            
+            <div class="actions" style="margin-top: 20px;">
+                <button onclick="window.location.href='/'" class="button">
+                    Back to Login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('fixBtn').addEventListener('click', async () => {
+            const email = document.getElementById('email').value.trim();
+            const statusDiv = document.getElementById('status');
+            const fixBtn = document.getElementById('fixBtn');
+            
+            if (!email) {
+                showStatus('Please enter your email address', 'error');
+                return;
+            }
+            
+            fixBtn.disabled = true;
+            fixBtn.textContent = 'Fixing...';
+            
+            try {
+                const response = await fetch('/.netlify/functions/simple-payment-fix', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('✅ Payment status fixed successfully! You can now login.', 'success');
+                    
+                    // Auto redirect after 3 seconds
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 3000);
+                } else {
+                    showStatus('❌ Error: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showStatus('❌ Network error: ' + error.message, 'error');
+            } finally {
+                fixBtn.disabled = false;
+                fixBtn.textContent = 'Fix My Payment Status';
+            }
+        });
+        
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'block';
+            statusDiv.textContent = message;
+            
+            // Reset classes
+            statusDiv.className = '';
+            
+            if (type === 'success') {
+                statusDiv.style.backgroundColor = 'rgba(40, 167, 69, 0.2)';
+                statusDiv.style.borderColor = '#28a745';
+                statusDiv.style.color = '#28a745';
+                statusDiv.style.border = '1px solid #28a745';
+            } else if (type === 'error') {
+                statusDiv.style.backgroundColor = 'rgba(220, 53, 69, 0.2)';
+                statusDiv.style.borderColor = '#dc3545';
+                statusDiv.style.color = '#dc3545';
+                statusDiv.style.border = '1px solid #dc3545';
+            }
+        }
+        
+        // Pre-fill email from URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const emailParam = urlParams.get('email');
+        if (emailParam) {
+            document.getElementById('email').value = emailParam;
+        }
+    </script>
+</body>
+</html>

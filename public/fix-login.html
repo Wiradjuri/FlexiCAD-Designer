@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Login Loop - FlexiCAD</title>
+    <link rel="stylesheet" href="css/dark-theme.css">
+    <style>
+        .fix-container { max-width: 600px; margin: 50px auto; padding: 30px; text-align: center; }
+        .status-message { padding: 15px; margin: 15px 0; border-radius: 8px; }
+        .status-loading { background: #ffc107; color: #212529; }
+        .status-success { background: #28a745; color: white; }
+        .status-error { background: #dc3545; color: white; }
+        .btn { padding: 12px 24px; margin: 10px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn:hover { opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="fix-container">
+            <h1>🔧 Fix Login Loop</h1>
+            <p>This tool will fix your login loop by creating the required profile in the database.</p>
+            
+            <div id="status" class="status-message status-loading">
+                Initializing...
+            </div>
+            
+            <div id="actions" style="display: none;">
+                <button id="fixBtn" class="btn btn-primary">Fix My Account</button>
+                <button id="loginBtn" class="btn btn-success" style="display: none;">Go to Login</button>
+            </div>
+            
+            <div id="details" style="margin-top: 30px; text-align: left; background: #2d2d2d; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 12px;"></div>
+        </div>
+    </div>
+
+    <!-- Load dependencies -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config/config.js"></script>
+    
+    <script>
+        let supabaseClient;
+        let currentUser = null;
+
+        async function init() {
+            try {
+                updateStatus('Connecting to Supabase...', 'loading');
+                
+                // Initialize Supabase
+                supabaseClient = window.supabase.createClient(
+                    window.flexicadConfig.SUPABASE_URL,
+                    window.flexicadConfig.SUPABASE_ANON_KEY
+                );
+                
+                // Get current session
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                currentUser = session?.user || null;
+                
+                if (currentUser) {
+                    updateStatus(`Found user: ${currentUser.email}`, 'success');
+                    document.getElementById('actions').style.display = 'block';
+                    addDetail(`User ID: ${currentUser.id}`);
+                    addDetail(`Email: ${currentUser.email}`);
+                } else {
+                    updateStatus('❌ No user logged in. Please login first, then return to this page.', 'error');
+                    addDetail('Go to the main page, try to login (it will loop), then come back here to fix it.');
+                }
+            } catch (error) {
+                updateStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function fixAccount() {
+            if (!currentUser) {
+                updateStatus('❌ No user found to fix', 'error');
+                return;
+            }
+
+            try {
+                updateStatus('Creating profile...', 'loading');
+                document.getElementById('fixBtn').disabled = true;
+
+                const response = await fetch('/.netlify/functions/create-profile-on-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: currentUser.id,
+                        email: currentUser.email
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    if (result.profileExists) {
+                        updateStatus('✅ Profile already exists - checking payment status...', 'success');
+                    } else {
+                        updateStatus('✅ Profile created successfully!', 'success');
+                    }
+                    
+                    addDetail('Profile Details:');
+                    addDetail(JSON.stringify(result, null, 2));
+                    
+                    // Show login button
+                    document.getElementById('loginBtn').style.display = 'inline-block';
+                    
+                    setTimeout(() => {
+                        updateStatus('✅ Account fixed! You can now login normally.', 'success');
+                    }, 1000);
+                } else {
+                    updateStatus(`❌ Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                updateStatus(`❌ Error fixing account: ${error.message}`, 'error');
+                document.getElementById('fixBtn').disabled = false;
+            }
+        }
+
+        function updateStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status-message status-${type}`;
+        }
+
+        function addDetail(text) {
+            const detailsEl = document.getElementById('details');
+            detailsEl.textContent += text + '\n';
+        }
+
+        function goToLogin() {
+            window.location.href = '/';
+        }
+
+        // Event listeners
+        document.getElementById('fixBtn').addEventListener('click', fixAccount);
+        document.getElementById('loginBtn').addEventListener('click', goToLogin);
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

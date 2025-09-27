@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Payment Fix - FlexiCAD</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="css/dark-theme.css">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>🔧 Manual Payment Fix</h1>
+            <p>Use your Supabase credentials to directly update your payment status.</p>
+            
+            <div class="form-group">
+                <label for="email">Your Email:</label>
+                <input type="email" id="email" class="form-input" placeholder="Enter your email address">
+            </div>
+            
+            <button id="fixBtn" class="button button-primary">
+                Fix Payment Status
+            </button>
+            
+            <div id="status" class="hidden"></div>
+            
+            <hr style="margin: 30px 0;">
+            
+            <h2>🗄️ Manual Database Fix</h2>
+            <p>If the above doesn't work, copy this SQL query and run it in your Supabase SQL Editor:</p>
+            
+            <div class="sql-container">
+                <pre id="sqlQuery">-- Replace 'your-email@example.com' with your actual email
+UPDATE profiles 
+SET 
+    is_paid = true,
+    is_active = true,
+    subscription_plan = 'monthly',
+    updated_at = NOW()
+WHERE email = 'your-email@example.com';
+
+-- If no rows were affected, create a new profile:
+-- First, get your user ID from auth.users:
+SELECT id, email FROM auth.users WHERE email = 'your-email@example.com';
+
+-- Then insert a new profile (replace USER_ID_HERE with the ID from above):
+INSERT INTO profiles (
+    id, email, is_paid, is_active, subscription_plan, 
+    created_at, updated_at
+) VALUES (
+    'USER_ID_HERE', 'your-email@example.com', true, true, 'monthly',
+    NOW(), NOW()
+) ON CONFLICT (id) DO UPDATE SET
+    is_paid = true,
+    is_active = true,
+    updated_at = NOW();</pre>
+                <button id="copyBtn" class="button button-secondary">Copy SQL</button>
+            </div>
+            
+            <div class="actions">
+                <a href="https://supabase.com/dashboard" target="_blank" class="button">
+                    Open Supabase Dashboard
+                </a>
+                <button onclick="window.location.href='/'" class="button">
+                    Back to Login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config/config.js"></script>
+    
+    <script>
+        let supabaseClient;
+        
+        // Initialize Supabase with user credentials (not service role)
+        try {
+            supabaseClient = window.supabase.createClient(
+                window.flexicadConfig.SUPABASE_URL,
+                window.flexicadConfig.SUPABASE_ANON_KEY
+            );
+        } catch (error) {
+            console.error('Failed to initialize Supabase:', error);
+        }
+        
+        document.getElementById('fixBtn').addEventListener('click', async () => {
+            const email = document.getElementById('email').value.trim();
+            const statusDiv = document.getElementById('status');
+            const fixBtn = document.getElementById('fixBtn');
+            
+            if (!email) {
+                showStatus('Please enter your email address', 'error');
+                return;
+            }
+            
+            fixBtn.disabled = true;
+            fixBtn.textContent = 'Fixing...';
+            
+            try {
+                if (!supabaseClient) {
+                    throw new Error('Supabase not initialized');
+                }
+                
+                // Try to update profile directly using RLS
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .update({
+                        is_paid: true,
+                        is_active: true,
+                        subscription_plan: 'monthly',
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('email', email)
+                    .select();
+                
+                if (error) {
+                    throw error;
+                }
+                
+                if (data && data.length > 0) {
+                    showStatus('✅ Payment status fixed successfully! You can now login.', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 3000);
+                } else {
+                    showStatus('⚠️ No profile found. Use the manual SQL method below.', 'warning');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('❌ Direct fix failed: ' + error.message + '. Use the manual SQL method below.', 'error');
+            } finally {
+                fixBtn.disabled = false;
+                fixBtn.textContent = 'Fix Payment Status';
+            }
+        });
+        
+        // Auto-fill email input
+        document.getElementById('email').addEventListener('input', (e) => {
+            const email = e.target.value;
+            const sqlQuery = document.getElementById('sqlQuery').textContent;
+            document.getElementById('sqlQuery').textContent = sqlQuery.replace(/your-email@example\.com/g, email);
+        });
+        
+        // Copy SQL button
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const sqlText = document.getElementById('sqlQuery').textContent;
+            navigator.clipboard.writeText(sqlText).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        });
+        
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.classList.remove('hidden');
+            statusDiv.textContent = message;
+            
+            // Reset classes
+            statusDiv.className = 'status-message';
+            
+            if (type === 'success') {
+                statusDiv.classList.add('success');
+            } else if (type === 'error') {
+                statusDiv.classList.add('error');
+            } else if (type === 'warning') {
+                statusDiv.classList.add('warning');
+            }
+        }
+    </script>
+    
+    <style>
+        .sql-container {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .sql-container pre {
+            color: #e0e0e0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0 0 15px 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        
+        .status-message {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .status-message.success {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid #28a745;
+            color: #28a745;
+        }
+        
+        .status-message.error {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid #dc3545;
+            color: #dc3545;
+        }
+        
+        .status-message.warning {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid #ffc107;
+            color: #ffc107;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        hr {
+            border: none;
+            height: 1px;
+            background: var(--border);
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Config Test - FlexiCAD</title>
+</head>
+<body>
+    <h1>FlexiCAD Configuration Test</h1>
+    <div id="results"></div>
+
+    <!-- Load config -->
+    <script src="config/config.js"></script>
+    
+    <script>
+        function testConfig() {
+            const results = document.getElementById('results');
+            let html = '<h2>Configuration Test Results:</h2>';
+            
+            // Test all config variations
+            const configTests = [
+                { name: 'window.CONFIG', obj: window.CONFIG },
+                { name: 'window.flexicadConfig', obj: window.flexicadConfig },
+                { name: 'window.FlexiCADConfig', obj: window.FlexiCADConfig },
+                { name: 'window.FLEXICAD_CONFIG', obj: window.FLEXICAD_CONFIG }
+            ];
+            
+            configTests.forEach(test => {
+                const exists = test.obj !== undefined;
+                const hasSupabaseUrl = exists && test.obj.SUPABASE_URL;
+                const hasSupabaseKey = exists && test.obj.SUPABASE_ANON_KEY;
+                const hasStripeKey = exists && test.obj.STRIPE_PUBLISHABLE_KEY;
+                
+                html += `
+                    <div style="margin: 10px; padding: 10px; border: 1px solid #ccc;">
+                        <h3>${test.name}</h3>
+                        <p>✅ Exists: ${exists ? 'YES' : 'NO'}</p>
+                        ${exists ? `
+                            <p>✅ SUPABASE_URL: ${hasSupabaseUrl ? 'YES' : 'NO'}</p>
+                            <p>✅ SUPABASE_ANON_KEY: ${hasSupabaseKey ? 'YES' : 'NO'}</p>
+                            <p>✅ STRIPE_PUBLISHABLE_KEY: ${hasStripeKey ? 'YES' : 'NO'}</p>
+                            <p><small>URL: ${hasSupabaseUrl ? test.obj.SUPABASE_URL.substring(0, 30) + '...' : 'N/A'}</small></p>
+                        ` : ''}
+                    </div>
+                `;
+            });
+            
+            html += '<h3>All Window Keys containing "config":</h3>';
+            const configKeys = Object.keys(window).filter(key => 
+                key.toLowerCase().includes('config')
+            );
+            html += `<p>${configKeys.join(', ')}</p>`;
+            
+            results.innerHTML = html;
+        }
+        
+        // Run test when page loads
+        window.addEventListener('DOMContentLoaded', testConfig);
+    </script>
+</body>
+</html>

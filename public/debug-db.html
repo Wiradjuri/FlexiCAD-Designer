@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Debug - FlexiCAD</title>
+    <link rel="stylesheet" href="css/dark-theme.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 FlexiCAD Database Debug Tool</h1>
+        <div id="results">
+            <p>Loading...</p>
+        </div>
+        
+        <div class="button-group" style="margin-top: 20px;">
+            <button id="checkUserBtn" class="btn btn-primary">Check Current User</button>
+            <button id="createProfileBtn" class="btn btn-success">Create Test Profile</button>
+            <button id="checkAllProfilesBtn" class="btn btn-info">List All Profiles</button>
+        </div>
+    </div>
+
+    <!-- Load dependencies -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config/config.js"></script>
+    
+    <script>
+        let supabaseClient;
+        let currentUser = null;
+
+        // Initialize Supabase
+        async function initSupabase() {
+            if (window.flexicadConfig?.SUPABASE_URL) {
+                supabaseClient = window.supabase.createClient(
+                    window.flexicadConfig.SUPABASE_URL,
+                    window.flexicadConfig.SUPABASE_ANON_KEY
+                );
+                
+                // Get current session
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                currentUser = session?.user || null;
+                
+                updateResults(`Supabase initialized. Current user: ${currentUser ? currentUser.email : 'None'}`);
+            } else {
+                updateResults('❌ Config not loaded properly');
+            }
+        }
+
+        function updateResults(message) {
+            document.getElementById('results').innerHTML = `<pre>${message}</pre>`;
+        }
+
+        // Check current user payment status
+        async function checkUser() {
+            if (!currentUser) {
+                updateResults('❌ No user logged in. Please login first.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/.netlify/functions/check-payment-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentUser.id })
+                });
+
+                const result = await response.json();
+                updateResults(`Payment Status Check:
+${JSON.stringify(result, null, 2)}
+
+User ID: ${currentUser.id}
+Email: ${currentUser.email}`);
+            } catch (error) {
+                updateResults(`❌ Error: ${error.message}`);
+            }
+        }
+
+        // Create a test profile for current user
+        async function createTestProfile() {
+            if (!currentUser) {
+                updateResults('❌ No user logged in. Please login first.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/.netlify/functions/handle-payment-success', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: currentUser.id,
+                        email: currentUser.email,
+                        plan: 'monthly',
+                        stripeCustomerId: 'test_customer_dev'
+                    })
+                });
+
+                const result = await response.json();
+                updateResults(`Test Profile Creation:
+${JSON.stringify(result, null, 2)}`);
+            } catch (error) {
+                updateResults(`❌ Error: ${error.message}`);
+            }
+        }
+
+        // List all profiles (for debugging)
+        async function checkAllProfiles() {
+            if (!supabaseClient) {
+                updateResults('❌ Supabase not initialized');
+                return;
+            }
+
+            try {
+                // This will only work if RLS allows it or user is authenticated
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('id, email, is_paid, is_active, subscription_plan, created_at')
+                    .limit(10);
+
+                if (error) {
+                    updateResults(`❌ Database error: ${error.message}`);
+                } else {
+                    updateResults(`All Profiles:
+${JSON.stringify(data, null, 2)}`);
+                }
+            } catch (error) {
+                updateResults(`❌ Error: ${error.message}`);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('checkUserBtn').addEventListener('click', checkUser);
+        document.getElementById('createProfileBtn').addEventListener('click', createTestProfile);
+        document.getElementById('checkAllProfilesBtn').addEventListener('click', checkAllProfiles);
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', initSupabase);
+    </script>
+
+    <style>
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .button-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        .btn:hover { opacity: 0.8; }
+        pre { background: #2d2d2d; color: #f8f9fa; padding: 15px; border-radius: 5px; white-space: pre-wrap; word-break: break-word; }
+    </style>
+</body>
+</html>

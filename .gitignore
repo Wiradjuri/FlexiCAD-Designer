@@ -9,6 +9,9 @@ yarn-error.log*
 
 # Environment variables
 .env
+config.js
+config.env.js
+.env.*.local
 .env.local
 .env.development.local
 .env.test.local
