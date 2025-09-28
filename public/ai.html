@@ -120,6 +120,94 @@
                             <button class="btn btn-secondary" onclick="generateAnother()">🔄 Generate Another</button>
                         </div>
                     </div>
+                    
+                    <!-- AI Feedback Section -->
+                    <div class="card mt-3" id="feedbackSection">
+                        <div class="card-title">📊 Rate This Generation</div>
+                        <div class="card-description mb-3">
+                            Help improve the AI by rating this generation and providing feedback
+                        </div>
+                        
+                        <div class="feedback-container">
+                            <div class="rating-section">
+                                <label class="form-label">How would you rate this generation?</label>
+                                <div class="rating-stars" id="ratingStars">
+                                    <span class="star" data-rating="1">⭐</span>
+                                    <span class="star" data-rating="2">⭐</span>
+                                    <span class="star" data-rating="3">⭐</span>
+                                    <span class="star" data-rating="4">⭐</span>
+                                    <span class="star" data-rating="5">⭐</span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group mt-3">
+                                <label for="feedbackText" class="form-label">Feedback (Optional)</label>
+                                <textarea id="feedbackText" class="form-textarea" rows="3" placeholder="What could be improved? What did you like?"></textarea>
+                            </div>
+                            
+                            <div class="form-group mt-3">
+                                <label for="finalCode" class="form-label">Modified Code (Optional)</label>
+                                <textarea id="finalCode" class="form-textarea code-textarea" rows="8" placeholder="If you modified the generated code, paste your improved version here to help the AI learn"></textarea>
+                            </div>
+                            
+                            <div class="card-actions mt-3">
+                                <button class="btn btn-primary" onclick="submitFeedback()" id="submitFeedbackBtn">Submit Feedback</button>
+                                <button class="btn btn-secondary" onclick="collapseFeedback()">Skip</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Teaching Section -->
+                    <div class="card mt-3" id="teachingSection" style="display: none;">
+                        <div class="card-title">🎓 Teach the AI</div>
+                        <div class="card-description mb-3">
+                            Add this as a learning example to improve future generations
+                        </div>
+                        
+                        <form id="teachingForm">
+                            <div class="form-group">
+                                <label for="patternName" class="form-label">Pattern Name</label>
+                                <input type="text" id="patternName" class="form-input" placeholder="e.g., 'Phone Case with Camera Cutouts'" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="patternDescription" class="form-label">Description</label>
+                                <textarea id="patternDescription" class="form-textarea" rows="2" placeholder="Brief description of what this pattern creates"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="patternKeywords" class="form-label">Keywords (comma-separated)</label>
+                                <input type="text" id="patternKeywords" class="form-input" placeholder="phone, case, protective, cutout, camera">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="patternCategory" class="form-label">Category</label>
+                                <select id="patternCategory" class="form-select">
+                                    <option value="functional">Functional</option>
+                                    <option value="mechanical">Mechanical</option>
+                                    <option value="decorative">Decorative</option>
+                                    <option value="toy">Toy/Game</option>
+                                    <option value="electronic">Electronic</option>
+                                    <option value="architectural">Architectural</option>
+                                    <option value="general">General</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="complexityLevel" class="form-label">Complexity Level</label>
+                                <select id="complexityLevel" class="form-select">
+                                    <option value="beginner">Beginner</option>
+                                    <option value="intermediate">Intermediate</option>
+                                    <option value="advanced">Advanced</option>
+                                </select>
+                            </div>
+                            
+                            <div class="card-actions mt-3">
+                                <button type="submit" class="btn btn-primary">🎓 Teach AI</button>
+                                <button type="button" class="btn btn-secondary" onclick="hideTeaching()">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
 
                 <!-- Error Display -->
@@ -243,11 +331,15 @@
                 const result = await response.json();
                 currentGeneration = {
                     prompt,
-                    name: name || 'AI Generated Design',
-                    code: result.code
+                    name: name || result.name || 'AI Generated Design',
+                    code: result.code,
+                    metadata: result.metadata || {} // Include metadata for learning system
                 };
                 
                 displayResult(currentGeneration);
+                
+                // Show feedback section for learning
+                showFeedbackSection();
                 
                 // Auto-save the design to Supabase (don't let this fail the generation)
                 try {
@@ -267,7 +359,26 @@
 
         function displayResult(generation) {
             document.getElementById('resultTitle').textContent = generation.name;
-            document.getElementById('resultDescription').textContent = `Generated from: "${generation.prompt}"`;
+            
+            let description = `Generated from: "${generation.prompt}"`;
+            
+            // Add metadata information if available
+            if (generation.metadata) {
+                const meta = generation.metadata;
+                const metaInfo = [];
+                
+                if (meta.category) metaInfo.push(`Category: ${meta.category}`);
+                if (meta.complexity) metaInfo.push(`Complexity: ${meta.complexity}`);
+                if (meta.similarPatterns) metaInfo.push(`Similar patterns: ${meta.similarPatterns}`);
+                if (meta.userExamples) metaInfo.push(`User examples: ${meta.userExamples}`);
+                if (meta.generationTime) metaInfo.push(`Generated in: ${(meta.generationTime/1000).toFixed(1)}s`);
+                
+                if (metaInfo.length > 0) {
+                    description += `\n\n${metaInfo.join(' • ')}`;
+                }
+            }
+            
+            document.getElementById('resultDescription').textContent = description;
             document.getElementById('resultFileName').textContent = `${generation.name.toLowerCase().replace(/\s+/g, '-')}.scad`;
             document.getElementById('generatedCode').textContent = generation.code;
             
@@ -463,6 +574,242 @@
             document.getElementById('placeholderSection').classList.add('hidden');
         }
 
+        // AI Learning and Feedback Functions
+        let currentRating = 0;
+
+        // Initialize rating stars
+        document.addEventListener('DOMContentLoaded', function() {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const rating = parseInt(this.dataset.rating);
+                    setRating(rating);
+                });
+
+                star.addEventListener('mouseover', function() {
+                    const rating = parseInt(this.dataset.rating);
+                    highlightStars(rating);
+                });
+            });
+
+            // Reset star highlighting when not hovering
+            document.getElementById('ratingStars').addEventListener('mouseleave', function() {
+                highlightStars(currentRating);
+            });
+
+            // Teaching form submission
+            document.getElementById('teachingForm').addEventListener('submit', handleTeachingSubmit);
+        });
+
+        function setRating(rating) {
+            currentRating = rating;
+            highlightStars(rating);
+        }
+
+        function highlightStars(rating) {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('selected');
+                } else {
+                    star.classList.remove('selected');
+                }
+            });
+        }
+
+        async function submitFeedback() {
+            if (currentRating === 0) {
+                alert('Please select a rating first');
+                return;
+            }
+
+            if (!currentGeneration || !currentGeneration.metadata || !currentGeneration.metadata.sessionId) {
+                alert('No generation session found');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitFeedbackBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            try {
+                const user = JSON.parse(sessionStorage.getItem('flexicad_user'));
+                const token = sessionStorage.getItem('flexicad_session_token');
+
+                if (!user || !token) {
+                    throw new Error('Authentication required');
+                }
+
+                const feedbackData = {
+                    sessionId: currentGeneration.metadata.sessionId,
+                    feedback: currentRating,
+                    finalCode: document.getElementById('finalCode').value.trim() || null,
+                    correctionType: document.getElementById('finalCode').value.trim() ? 'improvement' : null,
+                    correctionDescription: document.getElementById('feedbackText').value.trim() || null
+                };
+
+                const response = await fetch('/.netlify/functions/ai-feedback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(feedbackData)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to submit feedback');
+                }
+
+                console.log('✅ Feedback submitted successfully');
+                
+                // Show success message and hide feedback form
+                submitBtn.textContent = '✅ Thanks!';
+                submitBtn.style.background = 'var(--success)';
+                
+                // If rating is high, offer to teach the AI
+                if (currentRating >= 4) {
+                    setTimeout(() => {
+                        document.getElementById('teachingSection').style.display = 'block';
+                        prepareTeachingForm();
+                    }, 1000);
+                } else {
+                    setTimeout(() => {
+                        collapseFeedback();
+                    }, 2000);
+                }
+
+            } catch (error) {
+                console.error('Error submitting feedback:', error);
+                alert('Failed to submit feedback: ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Feedback';
+            }
+        }
+
+        function collapseFeedback() {
+            document.getElementById('feedbackSection').style.display = 'none';
+            // Reset feedback form
+            currentRating = 0;
+            highlightStars(0);
+            document.getElementById('feedbackText').value = '';
+            document.getElementById('finalCode').value = '';
+            document.getElementById('submitFeedbackBtn').disabled = false;
+            document.getElementById('submitFeedbackBtn').textContent = 'Submit Feedback';
+            document.getElementById('submitFeedbackBtn').style.background = '';
+        }
+
+        function prepareTeachingForm() {
+            if (!currentGeneration) return;
+
+            // Pre-fill form with generation data
+            const promptText = currentGeneration.prompt || '';
+            const generatedName = currentGeneration.name || 'AI Generated Design';
+            
+            document.getElementById('patternName').value = generatedName;
+            document.getElementById('patternDescription').value = `Learned from: ${promptText.substring(0, 100)}${promptText.length > 100 ? '...' : ''}`;
+            
+            // Extract keywords from prompt
+            const keywords = promptText.toLowerCase()
+                .match(/\b\w{4,}\b/g) || [];
+            const uniqueKeywords = [...new Set(keywords)]
+                .filter(word => !['this', 'that', 'with', 'from', 'create', 'make', 'design'].includes(word))
+                .slice(0, 8);
+            
+            document.getElementById('patternKeywords').value = uniqueKeywords.join(', ');
+            
+            // Set category based on metadata
+            if (currentGeneration.metadata && currentGeneration.metadata.category) {
+                document.getElementById('patternCategory').value = currentGeneration.metadata.category;
+            }
+            
+            // Set complexity based on metadata
+            if (currentGeneration.metadata && currentGeneration.metadata.complexity) {
+                document.getElementById('complexityLevel').value = currentGeneration.metadata.complexity;
+            }
+        }
+
+        async function handleTeachingSubmit(e) {
+            e.preventDefault();
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '🎓 Teaching...';
+
+            try {
+                const user = JSON.parse(sessionStorage.getItem('flexicad_user'));
+                const token = sessionStorage.getItem('flexicad_session_token');
+
+                if (!user || !token) {
+                    throw new Error('Authentication required');
+                }
+
+                // Get final code (user's version or original generated code)
+                const finalCode = document.getElementById('finalCode').value.trim() || currentGeneration.code;
+
+                const teachingData = {
+                    patternName: document.getElementById('patternName').value.trim(),
+                    description: document.getElementById('patternDescription').value.trim(),
+                    keywords: document.getElementById('patternKeywords').value.trim(),
+                    examplePrompt: currentGeneration.prompt,
+                    successfulCode: finalCode,
+                    category: document.getElementById('patternCategory').value,
+                    complexityLevel: document.getElementById('complexityLevel').value,
+                    updateFileSystem: true
+                };
+
+                const response = await fetch('/.netlify/functions/teach-ai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(teachingData)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to teach AI');
+                }
+
+                console.log('✅ AI teaching successful:', result);
+                
+                // Show success
+                submitBtn.textContent = '✅ AI Learned!';
+                submitBtn.style.background = 'var(--success)';
+                
+                setTimeout(() => {
+                    hideTeaching();
+                }, 2000);
+
+            } catch (error) {
+                console.error('Error teaching AI:', error);
+                alert('Failed to teach AI: ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🎓 Teach AI';
+            }
+        }
+
+        function hideTeaching() {
+            document.getElementById('teachingSection').style.display = 'none';
+            document.getElementById('teachingForm').reset();
+        }
+
+        // Show feedback section after generation
+        function showFeedbackSection() {
+            document.getElementById('feedbackSection').style.display = 'block';
+            // Scroll to feedback section
+            setTimeout(() => {
+                document.getElementById('feedbackSection').scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }, 500);
+        }
+
         // Use the FlexiAuth logout function
         async function handleLogout() {
             await FlexiAuth.logout();
@@ -594,6 +941,78 @@
                 font-size: 0.75rem;
                 padding: 0.75rem;
             }
+        }
+
+        /* Feedback and Teaching UI Styles */
+        .feedback-container {
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+        }
+
+        .rating-section {
+            text-align: center;
+        }
+
+        .rating-stars {
+            display: flex;
+            justify-content: center;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+        }
+
+        .star {
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.3;
+            transition: opacity 0.2s;
+        }
+
+        .star:hover,
+        .star.selected {
+            opacity: 1;
+        }
+
+        .star.selected {
+            filter: drop-shadow(0 0 3px gold);
+        }
+
+        .code-textarea {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .form-textarea,
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .teaching-hidden {
+            display: none !important;
         }
     </style>
 </body>

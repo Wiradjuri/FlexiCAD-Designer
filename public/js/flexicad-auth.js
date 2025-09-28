@@ -633,8 +633,24 @@ class FlexiCADAuth {
     // Check if user is admin
     isAdmin() {
         if (!this.user || !this.paymentStatus?.hasPaid) return false;
-        // Add admin logic here if needed
-        return false;
+        // Only bmuzza1992@gmail.com is authorized as admin
+        return this.user.email === 'bmuzza1992@gmail.com';
+    }
+
+    // Check admin access for sensitive operations
+    async checkAdminAccess() {
+        console.log('🔐 Checking admin access for user:', this.user?.email);
+        
+        if (!this.user || !this.paymentStatus?.hasPaid) {
+            console.log('❌ User not authenticated or payment not verified');
+            return false;
+        }
+
+        // Only bmuzza1992@gmail.com is authorized as admin
+        const isAdmin = this.user.email === 'bmuzza1992@gmail.com';
+        console.log('Admin check result:', isAdmin);
+        
+        return isAdmin;
     }
 
     // Check URL parameters

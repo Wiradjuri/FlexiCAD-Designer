@@ -1,70 +1,55 @@
--- AI Learning System Database Schema
--- This will store AI interactions and build a knowledge base
+-- Run this in your Supabase SQL editor to set up the AI learning system
 
--- Table to store AI training conversations and outcomes
+-- Create the ai_learning_sessions table
 CREATE TABLE IF NOT EXISTS ai_learning_sessions (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-    session_id UUID DEFAULT gen_random_uuid(),
+    session_id TEXT NOT NULL,
     user_prompt TEXT NOT NULL,
     system_prompt TEXT NOT NULL,
     generated_code TEXT NOT NULL,
-    user_feedback INTEGER CHECK (user_feedback BETWEEN 1 AND 5), -- 1-5 rating
+    user_feedback INTEGER CHECK (user_feedback BETWEEN 1 AND 5),
     feedback_text TEXT,
     was_modified BOOLEAN DEFAULT FALSE,
-    final_code TEXT, -- If user modified the generated code
-    design_category VARCHAR(100),
-    complexity_level VARCHAR(20) CHECK (complexity_level IN ('beginner', 'intermediate', 'advanced')),
+    final_code TEXT,
+    design_category TEXT,
+    complexity_level TEXT CHECK (complexity_level IN ('beginner', 'intermediate', 'advanced')),
     generation_time_ms INTEGER,
     tokens_used INTEGER,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Table to store successful patterns and templates
+-- Create the ai_knowledge_base table
 CREATE TABLE IF NOT EXISTS ai_knowledge_base (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    pattern_name VARCHAR(255) NOT NULL,
+    pattern_name TEXT UNIQUE NOT NULL,
     description TEXT,
-    keywords TEXT[], -- Array of keywords for matching
+    keywords TEXT[],
     example_prompt TEXT NOT NULL,
     successful_code TEXT NOT NULL,
     usage_count INTEGER DEFAULT 1,
     average_rating DECIMAL(3,2) DEFAULT 0.0,
-    category VARCHAR(100),
-    complexity_level VARCHAR(20) CHECK (complexity_level IN ('beginner', 'intermediate', 'advanced')),
+    category TEXT,
+    complexity_level TEXT CHECK (complexity_level IN ('beginner', 'intermediate', 'advanced')),
     created_from_session UUID REFERENCES ai_learning_sessions(id),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE(pattern_name)
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Table to store user corrections and improvements
+-- Create the ai_corrections table
 CREATE TABLE IF NOT EXISTS ai_corrections (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     session_id UUID REFERENCES ai_learning_sessions(id) ON DELETE CASCADE,
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     original_code TEXT NOT NULL,
     corrected_code TEXT NOT NULL,
-    correction_type VARCHAR(50), -- 'syntax', 'logic', 'optimization', 'style'
+    correction_type TEXT,
     description TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Table to store common mistakes and how to avoid them
-CREATE TABLE IF NOT EXISTS ai_mistake_patterns (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    mistake_pattern TEXT NOT NULL,
-    mistake_description TEXT,
-    correct_approach TEXT NOT NULL,
-    example_fix TEXT,
-    occurrence_count INTEGER DEFAULT 1,
-    severity VARCHAR(20) CHECK (severity IN ('low', 'medium', 'high', 'critical')),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Indexes for performance
+-- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_ai_learning_user_id ON ai_learning_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_ai_learning_category ON ai_learning_sessions(design_category);
 CREATE INDEX IF NOT EXISTS idx_ai_learning_created ON ai_learning_sessions(created_at);
@@ -72,11 +57,12 @@ CREATE INDEX IF NOT EXISTS idx_ai_knowledge_keywords ON ai_knowledge_base USING 
 CREATE INDEX IF NOT EXISTS idx_ai_knowledge_category ON ai_knowledge_base(category);
 CREATE INDEX IF NOT EXISTS idx_ai_knowledge_rating ON ai_knowledge_base(average_rating DESC);
 
--- RLS Policies
+-- Enable RLS
 ALTER TABLE ai_learning_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_knowledge_base ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_corrections ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ai_mistake_patterns ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
 
 -- Users can only see their own learning sessions
 CREATE POLICY "Users can view own learning sessions" ON ai_learning_sessions
@@ -88,7 +74,7 @@ CREATE POLICY "Users can insert own learning sessions" ON ai_learning_sessions
 CREATE POLICY "Users can update own learning sessions" ON ai_learning_sessions
     FOR UPDATE USING (auth.uid() = user_id);
 
--- Knowledge base is readable by all paid users, writable by system
+-- Knowledge base is readable by all paid users
 CREATE POLICY "Paid users can view knowledge base" ON ai_knowledge_base
     FOR SELECT USING (
         EXISTS (
@@ -99,14 +85,9 @@ CREATE POLICY "Paid users can view knowledge base" ON ai_knowledge_base
         )
     );
 
--- Only system/admin can modify knowledge base
-CREATE POLICY "System can modify knowledge base" ON ai_knowledge_base
-    FOR ALL USING (
-        auth.jwt() ->> 'role' = 'service_role'
-        OR auth.uid() IN (
-            SELECT id FROM profiles WHERE email = 'bmuzza1992@gmail.com'
-        )
-    );
+-- Service role can modify knowledge base
+CREATE POLICY "Service can modify knowledge base" ON ai_knowledge_base
+    FOR ALL USING (auth.jwt() ->> 'role' = 'service_role');
 
 -- Users can see their own corrections
 CREATE POLICY "Users can view own corrections" ON ai_corrections
@@ -115,11 +96,7 @@ CREATE POLICY "Users can view own corrections" ON ai_corrections
 CREATE POLICY "Users can insert own corrections" ON ai_corrections
     FOR INSERT WITH CHECK (auth.uid() = user_id);
 
--- Mistake patterns are readable by all
-CREATE POLICY "All can view mistake patterns" ON ai_mistake_patterns
-    FOR SELECT TO authenticated;
-
--- Trigger to update knowledge base from highly rated sessions
+-- Function to update knowledge base from high-rated sessions
 CREATE OR REPLACE FUNCTION update_knowledge_base_from_session()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -136,7 +113,7 @@ BEGIN
             created_from_session,
             average_rating
         ) VALUES (
-            'Pattern_' || NEW.id::text,
+            'Pattern_' || NEW.session_id,
             'Successful pattern learned from user session',
             string_to_array(
                 lower(regexp_replace(NEW.user_prompt, '[^\w\s]', '', 'g')), 
@@ -159,45 +136,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Create trigger for knowledge base updates
 CREATE TRIGGER ai_learning_feedback_trigger
     AFTER UPDATE OF user_feedback ON ai_learning_sessions
     FOR EACH ROW
     EXECUTE FUNCTION update_knowledge_base_from_session();
 
--- Function to find similar patterns for new prompts
-CREATE OR REPLACE FUNCTION find_similar_patterns(prompt_text TEXT, limit_count INTEGER DEFAULT 5)
-RETURNS TABLE (
-    pattern_name VARCHAR(255),
-    description TEXT,
-    example_prompt TEXT,
-    successful_code TEXT,
-    similarity_score FLOAT,
-    average_rating DECIMAL(3,2),
-    usage_count INTEGER
-) AS $$
-BEGIN
-    RETURN QUERY
-    SELECT 
-        kb.pattern_name,
-        kb.description,
-        kb.example_prompt,
-        kb.successful_code,
-        -- Simple keyword-based similarity scoring
-        (
-            array_length(
-                array(
-                    SELECT unnest(kb.keywords) 
-                    INTERSECT 
-                    SELECT unnest(string_to_array(lower(prompt_text), ' '))
-                ), 1
-            )::float / 
-            GREATEST(array_length(kb.keywords, 1), 1)
-        ) as similarity_score,
-        kb.average_rating,
-        kb.usage_count
-    FROM ai_knowledge_base kb
-    WHERE kb.keywords && string_to_array(lower(prompt_text), ' ')
-    ORDER BY similarity_score DESC, kb.average_rating DESC, kb.usage_count DESC
-    LIMIT limit_count;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+-- Successful migration message
+SELECT 'AI Learning System tables created successfully!' as status;

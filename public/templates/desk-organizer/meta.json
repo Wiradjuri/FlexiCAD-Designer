@@ -1,0 +1,35 @@
+{
+  "name": "Parametric Desk Organizer",
+  "description": "A customizable desk organizer with large compartments, small compartments, and pen holes. Perfect for office organization.",
+  "category": "functional",
+  "difficulty": "intermediate",
+  "tags": ["office", "organizer", "parametric", "desk", "storage"],
+  "author": "FlexiCAD Templates",
+  "created": "2025-09-28",
+  "printTime": "4-6 hours",
+  "material": "PLA",
+  "supports": false,
+  "parameters": {
+    "organizer_width": {
+      "type": "number",
+      "default": 200,
+      "min": 100,
+      "max": 300,
+      "description": "Total width of the organizer"
+    },
+    "organizer_depth": {
+      "type": "number", 
+      "default": 100,
+      "min": 50,
+      "max": 150,
+      "description": "Total depth of the organizer"
+    },
+    "pen_holes": {
+      "type": "number",
+      "default": 6,
+      "min": 2,
+      "max": 12,
+      "description": "Number of pen holes"
+    }
+  }
+}

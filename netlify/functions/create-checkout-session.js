@@ -17,13 +17,13 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        const { email, plan = 'monthly', userId } = JSON.parse(event.body);
+        const { email, plan = 'monthly', userId, promoCode } = JSON.parse(event.body);
 
         if (!email) {
             throw new Error('Email is required');
         }
 
-        console.log('Creating checkout session for:', email, 'Plan:', plan);
+        console.log('Creating checkout session for:', email, 'Plan:', plan, 'Promo:', promoCode);
 
         // Price configuration
         const prices = {
@@ -36,8 +36,40 @@ exports.handler = async (event, context) => {
             throw new Error('Invalid plan selected');
         }
 
+        let discountAmount = 0;
+        let promoValid = false;
+
+        // Validate promo code if provided
+        if (promoCode) {
+            const { createClient } = require('@supabase/supabase-js');
+            const supabase = createClient(
+                process.env.SUPABASE_URL,
+                process.env.SUPABASE_SERVICE_ROLE_KEY
+            );
+
+            const { data: promo, error: promoError } = await supabase
+                .from('promo_codes')
+                .select('*')
+                .eq('code', promoCode.toUpperCase())
+                .eq('active', true)
+                .single();
+
+            if (promoError || !promo) {
+                throw new Error('Invalid or expired promo code');
+            }
+
+            // Check if promo code is expired
+            if (promo.expires_at && new Date(promo.expires_at) < new Date()) {
+                throw new Error('Promo code has expired');
+            }
+
+            discountAmount = promo.discount_percent;
+            promoValid = true;
+            console.log(`✅ Valid promo code applied: ${discountAmount}% discount`);
+        }
+
         // Create checkout session
-        const session = await stripe.checkout.sessions.create({
+        const sessionConfig = {
             payment_method_types: ['card'],
             line_items: [
                 {
@@ -52,9 +84,27 @@ exports.handler = async (event, context) => {
             metadata: {
                 user_email: email,
                 user_id: userId || '',
-                plan: plan
+                plan: plan,
+                promo_code: promoCode || '',
+                discount_applied: discountAmount
             }
-        });
+        };
+
+        // Add discount coupon if promo code is valid
+        if (promoValid && discountAmount > 0) {
+            // Create or use existing Stripe coupon
+            const coupon = await stripe.coupons.create({
+                percent_off: discountAmount,
+                duration: 'once', // Apply discount to first payment only
+                name: `${promoCode} - ${discountAmount}% off`
+            });
+            
+            sessionConfig.discounts = [{
+                coupon: coupon.id
+            }];
+        }
+
+        const session = await stripe.checkout.sessions.create(sessionConfig);
 
         console.log('✅ Checkout session created:', session.id);
 

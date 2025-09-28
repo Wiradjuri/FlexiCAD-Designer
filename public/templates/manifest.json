@@ -1,6 +1,12 @@
 {
   "templates": [
     {
+      "id": "desk-organizer",
+      "name": "Parametric Desk Organizer",
+      "description": "A customizable desk organizer with large compartments, small compartments, and pen holes. Perfect for office organization.",
+      "category": "Functional"
+    },
+    {
       "id": "arduino-case",
       "name": "Arduino Uno Case",
       "description": "Protective case for Arduino Uno with ventilation holes and easy access ports",
