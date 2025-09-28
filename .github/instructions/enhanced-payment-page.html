@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscribe to FlexiCAD Designer</title>
+    <link rel="stylesheet" href="css/dark-theme.css">
+    <style>
+        .payment-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+        }
+        
+        .payment-form {
+            background: var(--secondary-bg);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .plan-selection {
+            margin-bottom: 30px;
+        }
+        
+        .plan-cards {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .plan-card {
+            flex: 1;
+            background: var(--primary-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .plan-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+        
+        .plan-card.selected {
+            border-color: var(--accent-blue);
+            background: rgba(52, 152, 219, 0.1);
+        }
+        
+        .plan-badge {
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            background: var(--accent-blue);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .plan-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        
+        .plan-price {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            margin-bottom: 5px;
+        }
+        
+        .plan-period {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .plan-savings {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+        
+        .plan-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .plan-features li {
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .plan-features li:before {
+            content: "✓";
+            color: var(--accent-blue);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        .promo-section {
+            background: var(--primary-bg);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .promo-input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .promo-input {
+            flex: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 12px;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+        
+        .promo-btn {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .promo-btn:hover {
+            background: #2980b9;
+        }
+        
+        .promo-btn:disabled {
+            background: var(--border-color);
+            cursor: not-allowed;
+        }
+        
+        .promo-status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .promo-success {
+            background: rgba(46, 204, 113, 0.1);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+        
+        .promo-error {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        .order-summary {
+            background: var(--secondary-bg);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .summary-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .summary-label {
+            color: var(--text-secondary);
+        }
+        
+        .summary-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        .summary-total {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+        
+        .summary-discount {
+            color: #2ecc71;
+        }
+        
+        .features-list {
+            background: var(--primary-bg);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .features-list h4 {
+            color: var(--text-primary);
+            margin-bottom: 15px;
+        }
+        
+        .features-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .features-list li {
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .features-list li:before {
+            content: "🚀";
+            position: absolute;
+            left: 0;
+        }
+        
+        .checkout-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent-blue), #2980b9);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .checkout-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        .checkout-btn:disabled {
+            background: var(--border-color);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        @media (max-width: 768px) {
+            .payment-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .plan-cards {
+                flex-direction: column;
+            }
+            
+            .order-summary {
+                order: -1;
+                position: relative;
+                top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-brand">
+                <h2>💳 Subscribe to FlexiCAD</h2>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">← Back to Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="payment-container">
+        <div class="payment-form">
+            <h1>Start Your FlexiCAD Journey</h1>
+            <p>Choose your plan and start creating amazing 3D designs with AI assistance.</p>
+
+            <!-- Plan Selection -->
+            <div class="plan-selection">
+                <h3>Choose Your Plan</h3>
+                <div class="plan-cards">
+                    <div class="plan-card" data-plan="monthly" onclick="selectPlan('monthly')">
+                        <div class="plan-name">Monthly</div>
+                        <div class="plan-price">$19.99</div>
+                        <div class="plan-period">per month</div>
+                        <ul class="plan-features">
+                            <li>Unlimited AI generations</li>
+                            <li>All templates included</li>
+                            <li>Cloud storage</li>
+                            <li>Priority support</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="plan-card selected" data-plan="yearly" onclick="selectPlan('yearly')">
+                        <div class="plan-badge">SAVE 25%</div>
+                        <div class="plan-name">Yearly</div>
+                        <div class="plan-price">$179.99</div>
+                        <div class="plan-period">per year</div>
+                        <div class="plan-savings">Save $59.89/year</div>
+                        <ul class="plan-features">
+                            <li>Everything in Monthly</li>
+                            <li>Advanced export options</li>
+                            <li>Design collaboration</li>
+                            <li>Early access to features</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Promo Code Section -->
+            <div class="promo-section">
+                <h4>🎟️ Have a Promo Code?</h4>
+                <div class="promo-input-group">
+                    <input type="text" id="promo-code" class="promo-input" 
+                           placeholder="Enter promo code" maxlength="20">
+                    <button id="apply-promo-btn" class="promo-btn" onclick="applyPromoCode()">Apply</button>
+                </div>
+                <div id="promo-status"></div>
+            </div>
+
+            <!-- User Information -->
+            <div class="form-group">
+                <label for="email">Email Address *</label>
+                <input type="email" id="email" required placeholder="your@email.com">
+            </div>
+
+            <div class="form-group">
+                <label for="fullName">Full Name *</label>
+                <input type="text" id="fullName" required placeholder="Your Full Name">
+            </div>
+
+            <button id="checkout-btn" class="checkout-btn" onclick="proceedToCheckout()">
+                🚀 Start Subscription - <span id="checkout-price">$179.99/year</span>
+            </button>
+
+            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 15px; text-align: center;">
+                Secure payment powered by Stripe. Cancel anytime.
+            </p>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="order-summary">
+            <h3>Order Summary</h3>
+            
+            <div class="summary-item">
+                <span class="summary-label">Plan:</span>
+                <span class="summary-value" id="summary-plan">Yearly Plan</span>
+            </div>
+            
+            <div class="summary-item">
+                <span class="summary-label">Subtotal:</span>
+                <span class="summary-value" id="summary-subtotal">$179.99</span>
+            </div>
+            
+            <div class="summary-item" id="summary-discount" style="display: none;">
+                <span class="summary-label">Discount:</span>
+                <span class="summary-value summary-discount" id="summary-discount-value">-$0.00</span>
+            </div>
+            
+            <div class="summary-item">
+                <span class="summary-label summary-total">Total:</span>
+                <span class="summary-value summary-total" id="summary-total">$179.99</span>
+            </div>
+
+            <div class="features-list">
+                <h4>✨ What's Included</h4>
+                <ul>
+                    <li>AI-powered design generation</li>
+                    <li>Professional templates library</li>
+                    <li>Cloud storage & sync</li>
+                    <li>STL export for 3D printing</li>
+                    <li>Priority customer support</li>
+                    <li>Regular feature updates</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Stripe and Supabase -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="js/secure-config-loader.js"></script>
+
+    <script>
+        let selectedPlan = 'yearly';
+        let appliedPromo = null;
+        let supabase;
+
+        const planPrices = {
+            monthly: { price: 19.99, display: '$19.99/month' },
+            yearly: { price: 179.99, display: '$179.99/year', savings: 59.89 }
+        };
+
+        // Initialize when config is loaded
+        document.addEventListener('configLoaded', () => {
+            supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+            updateSummary();
+        });
+
+        function selectPlan(plan) {
+            selectedPlan = plan;
+            
+            // Update UI
+            document.querySelectorAll('.plan-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-plan="${plan}"]`).classList.add('selected');
+            
+            // Clear applied promo when changing plans
+            if (appliedPromo) {
+                clearPromoCode();
+            }
+            
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const plan = planPrices[selectedPlan];
+            const planName = selectedPlan === 'monthly' ? 'Monthly Plan' : 'Yearly Plan';
+            
+            document.getElementById('summary-plan').textContent = planName;
+            document.getElementById('summary-subtotal').textContent = `$${plan.price.toFixed(2)}`;
+            
+            let finalPrice = plan.price;
+            
+            // Apply discount if promo code is valid
+            if (appliedPromo) {
+                const discountAmount = (plan.price * appliedPromo.discount) / 100;
+                finalPrice = plan.price - discountAmount;
+                
+                document.getElementById('summary-discount').style.display = 'flex';
+                document.getElementById('summary-discount-value').textContent = `-$${discountAmount.toFixed(2)}`;
+            } else {
+                document.getElementById('summary-discount').style.display = 'none';
+            }
+            
+            document.getElementById('summary-total').textContent = `$${finalPrice.toFixed(2)}`;
+            document.getElementById('checkout-price').textContent = plan.display;
+        }
+
+        async function applyPromoCode() {
+            const code = document.getElementById('promo-code').value.trim().toUpperCase();
+            const applyBtn = document.getElementById('apply-promo-btn');
+            const statusDiv = document.getElementById('promo-status');
+            
+            if (!code) {
+                showPromoStatus('Please enter a promo code', 'error');
+                return;
+            }
+            
+            applyBtn.disabled = true;
+            applyBtn.textContent = 'Checking...';
+            statusDiv.innerHTML = '';
+            
+            try {
+                const response = await fetch('/.netlify/functions/validate-promo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                });
+                
+                const result = await response.json();
+                
+                if (result.valid) {
+                    appliedPromo = {
+                        code: result.code,
+                        discount: result.discount,
+                        description: result.description
+                    };
+                    
+                    showPromoStatus(
+                        `✅ ${result.discount}% discount applied! ${result.description}`, 
+                        'success'
+                    );
+                    updateSummary();
+                } else {
+                    showPromoStatus(`❌ ${result.error}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Promo validation error:', error);
+                showPromoStatus('❌ Failed to validate promo code', 'error');
+            } finally {
+                applyBtn.disabled = false;
+                applyBtn.textContent = 'Apply';
+            }
+        }
+
+        function showPromoStatus(message, type) {
+            const statusDiv = document.getElementById('promo-status');
+            statusDiv.innerHTML = `<div class="promo-${type}">${message}</div>`;
+        }
+
+        function clearPromoCode() {
+            appliedPromo = null;
+            document.getElementById('promo-code').value = '';
+            document.getElementById('promo-status').innerHTML = '';
+            updateSummary();
+        }
+
+        async function proceedToCheckout() {
+            const email = document.getElementById('email').value.trim();
+            const fullName = document.getElementById('fullName').value.trim();
+            const checkoutBtn = document.getElementById('checkout-btn');
+            
+            if (!email || !fullName) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            if (!email.includes('@')) {
+                alert('Please enter a valid email address');
+                return;
+            }
+            
+            checkoutBtn.disabled = true;
+            checkoutBtn.textContent = '⏳ Creating checkout session...';
+            
+            try {
+                const response = await fetch('/.netlify/functions/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        fullName: fullName,
+                        plan: selectedPlan,
+                        promoCode: appliedPromo?.code || null
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Checkout failed');
+                }
+                
+                const { url } = await response.json();
+                window.location.href = url;
+                
+            } catch (error) {
+                console.error('Checkout error:', error);
+                alert(`Checkout failed: ${error.message}`);
+                checkoutBtn.disabled = false;
+                checkoutBtn.textContent = `🚀 Start Subscription - ${planPrices[selectedPlan].display}`;
+            }
+        }
+
+        // Auto-uppercase promo code input
+        document.getElementById('promo-code').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+
+        // Clear promo when typing
+        document.getElementById('promo-code').addEventListener('input', function(e) {
+            if (appliedPromo && e.target.value !== appliedPromo.code) {
+                clearPromoCode();
+            }
+        });
+
+        // Handle URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('cancelled') === 'true') {
+            alert('Payment was cancelled. You can try again anytime.');
+        }
+    </script>
+</body>
+</html>

@@ -21,7 +21,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Load AI training data
+// Load AI training data - CALLED EVERY TIME
 function loadTrainingData() {
   try {
     const trainingDataPath = path.join(__dirname, '../..', 'ai-reference', 'ai_training_data.json');
@@ -32,8 +32,14 @@ function loadTrainingData() {
     let enhancedManifest = {};
     let examples = {};
     
+    // Always reload from disk to ensure latest data
     if (fs.existsSync(trainingDataPath)) {
-      trainingData = JSON.parse(fs.readFileSync(trainingDataPath, 'utf8'));
+      const fileContent = fs.readFileSync(trainingDataPath, 'utf8');
+      trainingData = JSON.parse(fileContent);
+      const stats = fs.statSync(trainingDataPath);
+      console.log(`📚 Loading training data from disk (modified: ${stats.mtime.toISOString()})`);
+    } else {
+      console.warn(`⚠️ Training data file not found at: ${trainingDataPath}`);
     }
     
     if (fs.existsSync(enhancedManifestPath)) {
@@ -44,15 +50,22 @@ function loadTrainingData() {
       examples = JSON.parse(fs.readFileSync(examplesPath, 'utf8'));
     }
     
-    console.log('Loaded training data:', {
-      trainingData: Object.keys(trainingData).length,
+    const totalExamples = trainingData.examples ? trainingData.examples.length : 0;
+    console.log('✅ Training data loaded successfully:', {
+      totalExamples: totalExamples,
       enhancedManifest: Object.keys(enhancedManifest).length,
-      examples: Object.keys(examples).length
+      examples: Object.keys(examples).length,
+      hasCodeContent: totalExamples > 0 && trainingData.examples[0]?.content ? '✅ YES' : '❌ NO'
     });
+    
+    if (totalExamples === 0) {
+      console.warn('⚠️ WARNING: No training examples loaded! AI will rely only on user learning.');
+    }
     
     return { trainingData, enhancedManifest, examples };
   } catch (error) {
-    console.error('Error loading training data:', error);
+    console.error('❌ ERROR loading training data:', error);
+    console.warn('🔄 Falling back to user learning only');
     return { trainingData: {}, enhancedManifest: {}, examples: {} };
   }
 }
@@ -64,13 +77,15 @@ function findSimilarPatterns(prompt, trainingData) {
   
   const matches = [];
   
-  // Search through training data
-  Object.entries(trainingData).forEach(([key, data]) => {
-    if (data.description || data.prompt || data.keywords) {
+  // Search through training data examples array
+  const examples = trainingData.examples || [];
+  examples.forEach((example, index) => {
+    if (example.filename && example.content && example.analysis) {
       const searchText = [
-        data.description || '',
-        data.prompt || '',
-        ...(data.keywords || [])
+        example.analysis.description || '',
+        example.filename || '',
+        ...(example.analysis.concepts || []),
+        example.content.substring(0, 500) // Include some content for matching
       ].join(' ').toLowerCase();
       
       const matchCount = keywords.filter(keyword => 
@@ -79,8 +94,8 @@ function findSimilarPatterns(prompt, trainingData) {
       
       if (matchCount > 0) {
         matches.push({
-          key,
-          data,
+          key: example.filename,
+          data: example,
           relevanceScore: matchCount / keywords.length,
           matchCount
         });
@@ -192,7 +207,12 @@ async function getUserLearningHistory(userId, limit = 10) {
 
 // Build enhanced system prompt with learning context
 function buildEnhancedSystemPrompt(prompt, similarPatterns, userHistory, trainingData, similarUserPrompts = []) {
-  let systemPrompt = `You are an expert OpenSCAD developer with access to a comprehensive knowledge base. Generate clean, well-commented, parametric OpenSCAD code based on the user's description.
+  let systemPrompt = `You are an expert OpenSCAD developer with access to DUAL LEARNING SOURCES: a comprehensive reference library AND personalized user learning history. Generate clean, well-commented, parametric OpenSCAD code based on the user's description.
+
+🎓 LEARNING ARCHITECTURE:
+- 📚 REFERENCE LEARNING: ${trainingData.examples ? trainingData.examples.length : 0} professional OpenSCAD examples
+- 👤 USER LEARNING: ${userHistory.length} personalized sessions with corrections and feedback
+- 🔄 ADAPTIVE: Combines best practices with user preferences
 
 CORE GUIDELINES:
 1. Always include parameters at the top for easy customization
@@ -204,31 +224,34 @@ CORE GUIDELINES:
 7. Add a header comment with the design name and description
 8. Use proper OpenSCAD best practices and conventions`;
 
-  // Add similar patterns if found
+  // Add similar patterns if found - REFERENCE LEARNING
   if (similarPatterns.length > 0) {
-    systemPrompt += `\n\nRELEVANT PATTERNS FROM KNOWLEDGE BASE:\n`;
+    systemPrompt += `\n\n📚 REFERENCE LIBRARY PATTERNS (${similarPatterns.length} matches found):\n`;
+    systemPrompt += `These are professional OpenSCAD examples from the knowledge base:\n`;
     similarPatterns.forEach((pattern, index) => {
-      systemPrompt += `\nPattern ${index + 1} (Relevance: ${Math.round(pattern.relevanceScore * 100)}%):\n`;
+      systemPrompt += `\nReference ${index + 1} (Relevance: ${Math.round(pattern.relevanceScore * 100)}%):\n`;
       if (pattern.data.description) {
         systemPrompt += `Description: ${pattern.data.description}\n`;
       }
-      if (pattern.data.code) {
-        systemPrompt += `Example Code:\n${pattern.data.code.substring(0, 500)}${pattern.data.code.length > 500 ? '...' : ''}\n`;
+      if (pattern.data.content) {
+        systemPrompt += `Example Code:\n${pattern.data.content.substring(0, 600)}${pattern.data.content.length > 600 ? '...' : ''}\n`;
       }
-      if (pattern.data.techniques) {
-        systemPrompt += `Techniques: ${pattern.data.techniques.join(', ')}\n`;
+      if (pattern.data.analysis && pattern.data.analysis.concepts) {
+        systemPrompt += `Key Concepts: ${pattern.data.analysis.concepts.join(', ')}\n`;
       }
     });
+  } else {
+    systemPrompt += `\n\n📚 REFERENCE LIBRARY: No direct pattern matches found, but ${trainingData.examples ? trainingData.examples.length : 0} examples available for general best practices.`;
   }
 
-  // Add user's learning history with STRONG emphasis on corrections
+  // Add user's learning history with STRONG emphasis on corrections - USER LEARNING
   if (userHistory.length > 0) {
-    systemPrompt += `\n\n🎯 CRITICAL: USER'S LEARNING HISTORY AND CORRECTIONS:\n`;
-    systemPrompt += `The user has provided ${userHistory.length} previous interactions. YOU MUST LEARN FROM THEIR CORRECTIONS!\n`;
+    systemPrompt += `\n\n👤 USER PERSONALIZATION (${userHistory.length} sessions analyzed):\n`;
+    systemPrompt += `The user has provided ${userHistory.length} previous interactions. COMBINE reference patterns with user preferences!\n`;
     
     // First show similar prompts with corrections if available
     if (similarUserPrompts.length > 0) {
-      systemPrompt += `\n🔍 SIMILAR REQUESTS (HIGHEST PRIORITY FOR LEARNING):\n`;
+      systemPrompt += `\n🎯 SIMILAR USER REQUESTS (HIGHEST PRIORITY - ${similarUserPrompts.length} found):\n`;
       
       similarUserPrompts.slice(0, 2).forEach((session, index) => {
         systemPrompt += `\n=== SIMILAR REQUEST ${index + 1} ===\n`;
@@ -273,9 +296,16 @@ CORE GUIDELINES:
     }
     
     systemPrompt += `\n🚨 MANDATE: Apply the user's corrections and preferences from above. Don't repeat mistakes they've already fixed!`;
+  } else {
+    systemPrompt += `\n\n👤 USER LEARNING: No user history yet - relying on reference library patterns for best practices.`;
   }
 
-  systemPrompt += `\n\nIMPORTANT: Learn from the patterns and user history above. Generate ONLY the OpenSCAD code, no additional explanations. Make it production-ready and well-documented.`;
+  systemPrompt += `\n\n🔄 SYNTHESIS INSTRUCTION: 
+COMBINE both learning sources:
+1. 📚 Use reference library patterns for technical best practices and proven techniques
+2. 👤 Apply user corrections and preferences for personalized style
+3. 🎯 Prioritize user corrections over reference patterns when they conflict
+4. 🏗️ Generate production-ready, well-documented OpenSCAD code ONLY (no explanations)`;
 
   return systemPrompt;
 }
@@ -414,21 +444,26 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Load training data and analyze prompt
+    // Load training data and analyze prompt - ALWAYS LOADED EVERY TIME
     const { trainingData, enhancedManifest, examples } = loadTrainingData();
     const { category, complexity } = analyzePrompt(prompt);
     
-    // Find similar patterns in training data
+    // Find similar patterns in training data - REFERENCE LEARNING
     const similarPatterns = findSimilarPatterns(prompt, trainingData);
     
-    // Get user's learning history
+    // Get user's learning history - USER LEARNING
     const userHistory = await getUserLearningHistory(userId);
     
     // Find similar user prompts for better learning
     const similarUserPrompts = findSimilarUserPrompts(prompt, userHistory);
     
-    console.log(`Found ${userHistory.length} user history entries, ${similarUserPrompts.length} similar prompts`);
-    console.log(`Found ${similarPatterns.length} similar patterns in training data`);
+    // Enhanced logging to verify both learning sources are active
+    console.log(`🎓 LEARNING SOURCES ACTIVE:`);
+    console.log(`  📚 Reference Training Data: ${trainingData.examples ? trainingData.examples.length : 0} examples loaded`);
+    console.log(`  👤 User Learning History: ${userHistory.length} user sessions`);
+    console.log(`  🔍 Similar Reference Patterns: ${similarPatterns.length} found`);
+    console.log(`  🎯 Similar User Prompts: ${similarUserPrompts.length} found`);
+    console.log(`  📊 Combined Learning: Reference + User corrections + Feedback`);
     
     // Build enhanced system prompt
     const systemPrompt = buildEnhancedSystemPrompt(prompt, similarPatterns, userHistory, trainingData, similarUserPrompts);

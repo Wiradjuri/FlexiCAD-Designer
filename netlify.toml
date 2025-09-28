@@ -108,3 +108,11 @@
 # STRIPE_MONTHLY_PRICE_ID - Your Stripe monthly subscription price ID
 # STRIPE_YEARLY_PRICE_ID - Your Stripe yearly subscription price ID
 # NETLIFY_SITE_URL - Automatically set by Netlify (your site URL)
+
+# Stripe webhook headers
+[[headers]]
+  for = "/.netlify/functions/stripe-webhook"
+  [headers.values]
+    Access-Control-Allow-Origin = "https://api.stripe.com"
+    Access-Control-Allow-Methods = "POST"
+    Access-Control-Allow-Headers = "stripe-signature, content-type"
