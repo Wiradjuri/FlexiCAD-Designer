@@ -18,13 +18,13 @@
                 <input type="email" id="email" class="form-input" placeholder="Enter your email address">
             </div>
             
-            <button id="fixBtn" class="button button-primary">
+            <button id="fixBtn" class="button button-primary" type="button">
                 Fix Payment Status
             </button>
             
             <div id="status" class="hidden"></div>
             
-            <hr style="margin: 30px 0;">
+            <hr class="manual-fix-hr">
             
             <h2>🗄️ Manual Database Fix</h2>
             <p>If the above doesn't work, copy this SQL query and run it in your Supabase SQL Editor:</p>
@@ -54,14 +54,14 @@ INSERT INTO profiles (
     is_paid = true,
     is_active = true,
     updated_at = NOW();</pre>
-                <button id="copyBtn" class="button button-secondary">Copy SQL</button>
+                <button id="copyBtn" class="button button-secondary" type="button">Copy SQL</button>
             </div>
             
             <div class="actions">
-                <a href="https://supabase.com/dashboard" target="_blank" class="button">
+                <a href="https://supabase.com/dashboard" target="_blank" rel="noopener" class="button">
                     Open Supabase Dashboard
                 </a>
-                <button onclick="window.location.href='/'" class="button">
+                <button onclick="window.location.href='/'" class="button" type="button">
                     Back to Login
                 </button>
             </div>
@@ -234,6 +234,9 @@ INSERT INTO profiles (
             border: none;
             height: 1px;
             background: var(--border);
+        }
+        .manual-fix-hr {
+            margin: 30px 0;
         }
     </style>
 </body>
