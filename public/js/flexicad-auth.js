@@ -549,10 +549,24 @@ class FlexiCADAuth {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to create payment session');
+                const errorData = await response.json().catch(() => ({}));
+                console.error('Checkout session error:', response.status, errorData);
+
+                // Surface friendly error message
+                const errorMessage = errorData?.error?.message || 'Failed to create payment session';
+                throw new Error(errorMessage);
             }
 
-            const { sessionId, url } = await response.json();
+            const data = await response.json();
+            console.log('✅ Checkout session response:', { hasUrl: !!data.url, hasId: !!data.id });
+
+            // Extract URL and session ID from response
+            const sessionId = data.id;
+            const url = data.url;
+
+            if (!url) {
+                throw new Error('No checkout URL received from payment service');
+            }
             
             console.log('✅ Payment session created');
             

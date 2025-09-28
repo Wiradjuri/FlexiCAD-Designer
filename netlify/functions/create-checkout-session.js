@@ -1,29 +1,96 @@
 // netlify/functions/create-checkout-session.js
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+// CORS headers for flexicad.com.au
+const corsHeaders = {
+    'Access-Control-Allow-Origin': 'https://flexicad.com.au',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+};
 
 exports.handler = async (event, context) => {
-    console.log('Creating checkout session...');
-    
-    if (event.httpMethod !== 'POST') {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] [create-checkout-session] Request received:`, {
+        method: event.httpMethod,
+        origin: event.headers.origin
+    });
+
+    // Handle CORS preflight
+    if (event.httpMethod === 'OPTIONS') {
+        console.log(`[${timestamp}] [create-checkout-session] Handling CORS preflight`);
         return {
-            statusCode: 405,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Allow-Methods': 'POST'
-            },
-            body: JSON.stringify({ error: 'Method not allowed' })
+            statusCode: 204,
+            headers: corsHeaders,
+            body: ''
         };
     }
 
-    try {
-        const { email, plan = 'monthly', userId, promoCode } = JSON.parse(event.body);
+    if (event.httpMethod !== 'POST') {
+        console.log(`[${timestamp}] [create-checkout-session] Method not allowed:`, event.httpMethod);
+        return {
+            statusCode: 405,
+            headers: corsHeaders,
+            body: JSON.stringify({
+                error: {
+                    code: 'METHOD_NOT_ALLOWED',
+                    message: 'Only POST requests are allowed'
+                }
+            })
+        };
+    }
 
-        if (!email) {
-            throw new Error('Email is required');
+    // Validate environment variables
+    if (!process.env.STRIPE_SECRET_KEY) {
+        console.error(`[${timestamp}] [create-checkout-session] STRIPE_SECRET_KEY not configured`);
+        return {
+            statusCode: 500,
+            headers: corsHeaders,
+            body: JSON.stringify({
+                error: {
+                    code: 'MISSING_ENV',
+                    message: 'STRIPE_SECRET_KEY is not set'
+                }
+            })
+        };
+    }
+
+    // Initialize Stripe with secret key
+    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+    try {
+        let requestBody;
+        try {
+            requestBody = JSON.parse(event.body || '{}');
+        } catch (parseError) {
+            console.error(`[${timestamp}] [create-checkout-session] Invalid JSON:`, parseError);
+            return {
+                statusCode: 400,
+                headers: corsHeaders,
+                body: JSON.stringify({
+                    error: {
+                        code: 'INVALID_JSON',
+                        message: 'Request body must be valid JSON'
+                    }
+                })
+            };
         }
 
-        console.log('Creating checkout session for:', email, 'Plan:', plan, 'Promo:', promoCode);
+        const { email, plan = 'monthly', userId, promoCode, priceId } = requestBody;
+
+        if (!email || typeof email !== 'string' || !email.trim()) {
+            console.error(`[${timestamp}] [create-checkout-session] Missing or invalid email`);
+            return {
+                statusCode: 400,
+                headers: corsHeaders,
+                body: JSON.stringify({
+                    error: {
+                        code: 'MISSING_EMAIL',
+                        message: 'Valid email address is required'
+                    }
+                })
+            };
+        }
+
+        console.log(`[${timestamp}] [create-checkout-session] Creating session for:`, email.replace(/(.{3}).*@/, '$1***@'), 'Plan:', plan, 'Has promo:', !!promoCode);
 
         // Simple one-time payment amounts (in cents)
         const amounts = {
@@ -118,30 +185,53 @@ exports.handler = async (event, context) => {
 
         console.log('✅ Checkout session created:', session.id);
 
+        console.log(`[${timestamp}] [create-checkout-session] ✅ Checkout session created:`, session.id);
+
         return {
             statusCode: 200,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Allow-Methods': 'POST'
-            },
+            headers: corsHeaders,
             body: JSON.stringify({
-                sessionId: session.id,
-                url: session.url
+                url: session.url,
+                id: session.id
             })
         };
 
     } catch (error) {
-        console.error('❌ Error creating checkout session:', error);
+        console.error(`[${timestamp}] [create-checkout-session] ❌ Error:`, {
+            message: error.message,
+            stack: error.stack?.split('\n')[0], // Only first line of stack
+            type: error.constructor.name
+        });
+
+        // Determine appropriate status code and error response
+        let statusCode = 500;
+        let errorCode = 'INTERNAL_ERROR';
+        let errorMessage = 'Failed to create checkout session';
+
+        if (error.message?.includes('Email is required') ||
+            error.message?.includes('Invalid plan')) {
+            statusCode = 400;
+            errorCode = 'VALIDATION_ERROR';
+            errorMessage = error.message;
+        } else if (error.message?.includes('Invalid or expired promo code') ||
+                   error.message?.includes('Promo code has expired')) {
+            statusCode = 400;
+            errorCode = 'INVALID_PROMO';
+            errorMessage = error.message;
+        } else if (error.type === 'StripeInvalidRequestError') {
+            statusCode = 400;
+            errorCode = 'STRIPE_ERROR';
+            errorMessage = `Payment processing error: ${error.message}`;
+        }
+
         return {
-            statusCode: 500,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Allow-Methods': 'POST'
-            },
+            statusCode,
+            headers: corsHeaders,
             body: JSON.stringify({
-                error: error.message || 'Failed to create checkout session'
+                error: {
+                    code: errorCode,
+                    message: errorMessage
+                }
             })
         };
     }

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug User Auth - FlexiCAD Designer</title>
+    <link rel="stylesheet" href="css/dark-theme.css">
+    <style>
+        .debug-section {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .debug-section h3 {
+            color: #00d4ff;
+            margin-top: 0;
+        }
+        .input-group {
+            margin: 15px 0;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ccc;
+            font-weight: bold;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+        }
+        .debug-button {
+            background: #00d4ff;
+            color: #000;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 5px 10px 0;
+        }
+        .debug-button:hover {
+            background: #00b8e6;
+        }
+        .result {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { border-color: #28a745; color: #28a745; }
+        .error { border-color: #dc3545; color: #dc3545; }
+        .warning { border-color: #ffc107; color: #ffc107; }
+        .loading {
+            color: #00d4ff;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav>
+                <div class="nav-brand">
+                    <a href="index.html">
+                        <span class="logo">FlexiCAD</span>
+                        <span class="designer">Designer</span>
+                    </a>
+                </div>
+                <ul>
+                    <li><a href="index.html">Login</a></li>
+                    <li><a href="register.html">Register</a></li>
+                    <li><a href="about.html">About</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main>
+            <section class="hero">
+                <h1>🔍 Debug User Authentication</h1>
+                <p>Debug tool to troubleshoot login issues</p>
+            </section>
+
+            <div class="debug-section">
+                <h3>1. Check if User Exists</h3>
+                <div class="input-group">
+                    <label for="check-email">Email to Check:</label>
+                    <input type="email" id="check-email" placeholder="bmuzza1992@gmail.com" value="bmuzza1992@gmail.com">
+                </div>
+                <button class="debug-button" onclick="checkUserExists()">Check User</button>
+                <div id="user-check-result"></div>
+            </div>
+
+            <div class="debug-section">
+                <h3>2. Test Supabase Connection</h3>
+                <button class="debug-button" onclick="testSupabaseConnection()">Test Connection</button>
+                <div id="connection-result"></div>
+            </div>
+
+            <div class="debug-section">
+                <h3>3. Test Login Credentials</h3>
+                <div class="input-group">
+                    <label for="test-email">Email:</label>
+                    <input type="email" id="test-email" placeholder="bmuzza1992@gmail.com" value="bmuzza1992@gmail.com">
+                </div>
+                <div class="input-group">
+                    <label for="test-password">Password:</label>
+                    <input type="password" id="test-password" placeholder="Enter password">
+                </div>
+                <button class="debug-button" onclick="testLogin()">Test Login</button>
+                <div id="login-result"></div>
+            </div>
+
+            <div class="debug-section">
+                <h3>4. Admin Password Reset</h3>
+                <p><strong>For admin user only:</strong> bmuzza1992@gmail.com</p>
+                <div class="input-group">
+                    <label for="admin-email">Admin Email:</label>
+                    <input type="email" id="admin-email" value="bmuzza1992@gmail.com" readonly style="background: #333;">
+                </div>
+                <div class="input-group">
+                    <label for="admin-new-password">New Password:</label>
+                    <input type="password" id="admin-new-password" placeholder="Enter new password (min 6 chars)">
+                </div>
+                <button class="debug-button" onclick="resetAdminPassword()">Reset Admin Password</button>
+                <div id="admin-reset-result"></div>
+            </div>
+
+            <div class="debug-section">
+                <h3>5. Create Test User</h3>
+                <div class="input-group">
+                    <label for="create-email">Email:</label>
+                    <input type="email" id="create-email" placeholder="test@example.com">
+                </div>
+                <div class="input-group">
+                    <label for="create-password">Password:</label>
+                    <input type="password" id="create-password" placeholder="Enter password (min 6 chars)">
+                </div>
+                <button class="debug-button" onclick="createTestUser()">Create User</button>
+                <div id="create-result"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/secure-config-loader.js"></script>
+    <script>
+        let supabaseClient;
+
+        // Initialize after config loads
+        window.addEventListener('configLoaded', async () => {
+            try {
+                if (window.supabase && window.CONFIG) {
+                    supabaseClient = window.supabase.createClient(
+                        window.CONFIG.SUPABASE_URL,
+                        window.CONFIG.SUPABASE_ANON_KEY
+                    );
+                    console.log('✅ Debug Supabase client initialized');
+                }
+            } catch (error) {
+                console.error('❌ Failed to initialize Supabase client:', error);
+            }
+        });
+
+        async function ensureSupabase() {
+            if (!supabaseClient) {
+                // Wait for config to load
+                await new Promise(resolve => {
+                    if (window.CONFIG) {
+                        resolve();
+                    } else {
+                        window.addEventListener('configLoaded', resolve, { once: true });
+                    }
+                });
+
+                if (window.supabase && window.CONFIG) {
+                    supabaseClient = window.supabase.createClient(
+                        window.CONFIG.SUPABASE_URL,
+                        window.CONFIG.SUPABASE_ANON_KEY
+                    );
+                } else {
+                    throw new Error('Supabase client or config not available');
+                }
+            }
+            return supabaseClient;
+        }
+
+        async function checkUserExists() {
+            const resultDiv = document.getElementById('user-check-result');
+            const email = document.getElementById('check-email').value.trim();
+            
+            if (!email) {
+                resultDiv.innerHTML = '<div class="result error">Please enter an email address</div>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="loading">Checking if user exists...</div>';
+
+            try {
+                const client = await ensureSupabase();
+                
+                // Try to get user info by checking auth (this won't work for other users)
+                // Instead, let's try to sign in with a dummy password to see the error
+                const { data, error } = await client.auth.signInWithPassword({
+                    email: email,
+                    password: 'dummy-password-test'
+                });
+
+                if (error) {
+                    if (error.message === 'Invalid login credentials') {
+                        resultDiv.innerHTML = `<div class="result warning">User exists but password is wrong (which is expected for this test)</div>`;
+                    } else if (error.message.includes('Email not confirmed')) {
+                        resultDiv.innerHTML = `<div class="result warning">User exists but email not confirmed</div>`;
+                    } else {
+                        resultDiv.innerHTML = `<div class="result error">Error: ${error.message}</div>`;
+                    }
+                } else {
+                    resultDiv.innerHTML = `<div class="result success">User exists and dummy login worked! ${JSON.stringify(data, null, 2)}</div>`;
+                    // Immediately sign out
+                    await client.auth.signOut();
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">Error checking user: ${error.message}</div>`;
+            }
+        }
+
+        async function testSupabaseConnection() {
+            const resultDiv = document.getElementById('connection-result');
+            resultDiv.innerHTML = '<div class="loading">Testing Supabase connection...</div>';
+
+            try {
+                const client = await ensureSupabase();
+                
+                // Test basic connection
+                const { data, error } = await client.auth.getSession();
+                
+                if (error && !error.message.includes('no active session')) {
+                    throw error;
+                }
+                
+                resultDiv.innerHTML = `<div class="result success">✅ Supabase connection working!
+Config: ${JSON.stringify({
+    url: window.CONFIG.SUPABASE_URL,
+    hasAnonKey: !!window.CONFIG.SUPABASE_ANON_KEY
+}, null, 2)}</div>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Supabase connection failed: ${error.message}</div>`;
+            }
+        }
+
+        async function testLogin() {
+            const resultDiv = document.getElementById('login-result');
+            const email = document.getElementById('test-email').value.trim();
+            const password = document.getElementById('test-password').value;
+            
+            if (!email || !password) {
+                resultDiv.innerHTML = '<div class="result error">Please enter both email and password</div>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="loading">Testing login...</div>';
+
+            try {
+                const client = await ensureSupabase();
+                
+                const { data, error } = await client.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    resultDiv.innerHTML = `<div class="result error">❌ Login failed: ${error.message}
+                    
+Details:
+- Email: ${email}
+- Error Code: ${error.status || 'N/A'}
+- Error Type: ${error.name || 'N/A'}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="result success">✅ Login successful!
+User: ${JSON.stringify({
+    id: data.user.id,
+    email: data.user.email,
+    emailConfirmed: data.user.email_confirmed_at,
+    created: data.user.created_at
+}, null, 2)}</div>`;
+                    
+                    // Sign out after test
+                    setTimeout(async () => {
+                        await client.auth.signOut();
+                        console.log('Test user signed out');
+                    }, 2000);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Login test error: ${error.message}</div>`;
+            }
+        }
+
+        async function resetAdminPassword() {
+            const resultDiv = document.getElementById('admin-reset-result');
+            const email = document.getElementById('admin-email').value.trim();
+            const newPassword = document.getElementById('admin-new-password').value;
+            
+            if (!newPassword) {
+                resultDiv.innerHTML = '<div class="result error">Please enter a new password</div>';
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                resultDiv.innerHTML = '<div class="result error">Password must be at least 6 characters</div>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="loading">Resetting admin password...</div>';
+
+            try {
+                const response = await fetch('/.netlify/functions/admin-reset-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        newPassword: newPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Password reset failed');
+                }
+
+                resultDiv.innerHTML = `<div class="result success">✅ Admin password reset successfully!
+
+You can now login with:
+- Email: ${email}
+- Password: ${newPassword}
+
+User Info: ${JSON.stringify(data.userInfo, null, 2)}</div>`;
+
+                // Clear the password field for security
+                document.getElementById('admin-new-password').value = '';
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Admin password reset failed: ${error.message}</div>`;
+            }
+        }
+
+        async function createTestUser() {
+            const resultDiv = document.getElementById('create-result');
+            const email = document.getElementById('create-email').value.trim();
+            const password = document.getElementById('create-password').value;
+            
+            if (!email || !password) {
+                resultDiv.innerHTML = '<div class="result error">Please enter both email and password</div>';
+                return;
+            }
+
+            if (password.length < 6) {
+                resultDiv.innerHTML = '<div class="result error">Password must be at least 6 characters</div>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="loading">Creating test user...</div>';
+
+            try {
+                const client = await ensureSupabase();
+                
+                const { data, error } = await client.auth.signUp({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    resultDiv.innerHTML = `<div class="result error">❌ User creation failed: ${error.message}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="result success">✅ User created successfully!
+User: ${JSON.stringify({
+    id: data.user?.id,
+    email: data.user?.email,
+    needsConfirmation: !data.user?.email_confirmed_at
+}, null, 2)}
+
+${data.user?.email_confirmed_at ? 'User is ready to login!' : 'Check email for confirmation link!'}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ User creation error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
