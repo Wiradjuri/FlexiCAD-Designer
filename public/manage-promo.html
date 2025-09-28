@@ -273,9 +273,12 @@
 
         // Initialize admin Supabase client with service role
         function initializeAdminSupabase() {
-            // For demo purposes, we'll use the regular client
-            // In production, you'd need a secure way to handle service role key
-            supabaseAdmin = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+            // Use the shared Supabase client from flexicadAuth
+            supabaseAdmin = window.flexicadAuth.getSupabaseClient();
+            if (!supabaseAdmin) {
+                console.error('Failed to get shared Supabase client');
+                return null;
+            }
             return supabaseAdmin;
         }
 
@@ -287,8 +290,13 @@
                 // Initialize auth system
                 await window.flexicadAuth.init();
 
+                console.log('✅ Auth initialized');
+                console.log('User:', window.flexicadAuth.user);
+                console.log('Payment Status:', window.flexicadAuth.paymentStatus);
+
                 // Check if user is logged in
                 if (!window.flexicadAuth.user) {
+                    console.log('❌ User not logged in');
                     showMessage('error', 'Admin access required. Please log in first.');
                     setTimeout(() => {
                         window.location.href = '/login.html';
@@ -296,16 +304,23 @@
                     return false;
                 }
 
+                console.log('✅ User is logged in:', window.flexicadAuth.user.email);
+
                 // Check if user is paid (basic requirement)
-                if (!window.flexicadAuth.paymentStatus?.is_paid) {
+                if (!window.flexicadAuth.paymentStatus?.hasPaid) {
+                    console.log('❌ User payment not verified:', window.flexicadAuth.paymentStatus);
                     showMessage('error', 'Admin access denied. Account must have valid payment.');
                     return false;
                 }
 
+                console.log('✅ User has valid payment');
+
                 // Check admin status from database
                 const isAdminUser = await window.flexicadAuth.checkAdminAccess();
+                console.log('✅ Admin check result:', isAdminUser);
 
                 if (!isAdminUser) {
+                    console.log('❌ User is not admin');
                     showMessage('error', 'Admin access denied. This feature is restricted to administrators only.');
                     setTimeout(() => {
                         window.location.href = '/ai.html';

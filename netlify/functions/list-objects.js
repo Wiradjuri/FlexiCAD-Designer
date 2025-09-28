@@ -28,30 +28,46 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    // Read the objects manifest file
-    const manifestPath = path.join(process.cwd(), 'FlexiCAD-Designer', 'objects', 'index.json');
+    // Check if specific template requested
+    const queryParams = new URLSearchParams(event.queryStringParameters || {});
+    const templateId = queryParams.get('id');
+    const requestedFile = queryParams.get('file');
+
+    // If requesting specific file content
+    if (templateId && requestedFile) {
+      const filePath = path.join(process.cwd(), 'public', 'templates', templateId, requestedFile);
+      
+      if (!fs.existsSync(filePath)) {
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'Template file not found' }),
+        };
+      }
+      
+      const content = fs.readFileSync(filePath, 'utf8');
+      return {
+        statusCode: 200,
+        headers: {
+          ...headers,
+          'Content-Type': 'text/plain',
+        },
+        body: content,
+      };
+    }
+
+    // Read the templates manifest file
+    const manifestPath = path.join(process.cwd(), 'public', 'templates', 'manifest.json');
     
     if (!fs.existsSync(manifestPath)) {
-      throw new Error('Objects manifest not found');
+      throw new Error('Templates manifest not found at: ' + manifestPath);
     }
 
     const manifestContent = fs.readFileSync(manifestPath, 'utf8');
     const manifest = JSON.parse(manifestContent);
 
-    // Transform the manifest data to match expected format
-    const templates = Object.keys(manifest.objects || {}).map(key => {
-      const obj = manifest.objects[key];
-      return {
-        id: key,
-        name: obj.name || key,
-        description: obj.description || '',
-        category: obj.category || 'general',
-        difficulty: obj.difficulty || 'beginner',
-        path: `objects/${key}`,
-        scad_file: obj.scad_file || 'main.scad',
-        readme_file: obj.readme_file || 'README.md'
-      };
-    });
+    // Return the templates array directly from manifest
+    const templates = manifest.templates || [];
 
     return {
       statusCode: 200,

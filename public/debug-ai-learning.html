@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug AI Learning System - FlexiCAD Designer</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .debug-section {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .debug-section h3 {
+            color: #00d4ff;
+            margin-top: 0;
+        }
+        .history-item {
+            background: #222;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #00d4ff;
+        }
+        .correction {
+            background: #2d1b00;
+            border-left-color: #ff9500;
+        }
+        .prompt-input {
+            width: 100%;
+            padding: 10px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: white;
+            margin: 10px 0;
+            min-height: 100px;
+            font-family: monospace;
+            resize: vertical;
+        }
+        .test-button {
+            background: #00d4ff;
+            color: #000;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 5px 10px 0;
+        }
+        .test-button:hover {
+            background: #00b8e6;
+        }
+        .generated-code {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .loading {
+            color: #00d4ff;
+            font-style: italic;
+        }
+        .error {
+            color: #ff4444;
+            background: #2a1a1a;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav>
+                <div class="nav-brand">
+                    <a href="index.html">
+                        <span class="logo">FlexiCAD</span>
+                        <span class="designer">Designer</span>
+                    </a>
+                </div>
+                <ul>
+                    <li><a href="ai.html">AI Generator</a></li>
+                    <li><a href="my-designs.html">My Designs</a></li>
+                    <li><a href="templates.html">Templates</a></li>
+                    <li><a href="about.html">About</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main>
+            <section class="hero">
+                <h1>🔧 Debug AI Learning System</h1>
+                <p>Test the enhanced AI learning system and see how it incorporates user corrections</p>
+            </section>
+
+            <div class="debug-section">
+                <h3>Current User Learning History</h3>
+                <button class="test-button" onclick="loadUserHistory()">Load My History</button>
+                <div id="user-history">Click "Load My History" to see your learning data</div>
+            </div>
+
+            <div class="debug-section">
+                <h3>Test AI Learning</h3>
+                <p>Enter a prompt to test how the AI incorporates your previous corrections:</p>
+                <textarea 
+                    id="test-prompt" 
+                    class="prompt-input" 
+                    placeholder="Enter your test prompt here (e.g., 'Create a simple box' or 'Design a phone case')"
+                ></textarea>
+                <br>
+                <button class="test-button" onclick="testAIGeneration()">Generate with Learning</button>
+                <button class="test-button" onclick="showSystemPrompt()">Show System Prompt</button>
+                
+                <div id="generation-result"></div>
+                <div id="system-prompt-debug"></div>
+            </div>
+
+            <div class="debug-section">
+                <h3>Learning Analytics</h3>
+                <button class="test-button" onclick="analyzeUserPatterns()">Analyze My Patterns</button>
+                <div id="analytics-result"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        // Initialize auth and check user
+        async function initializeAuth() {
+            try {
+                // Wait a bit for the auth system to load
+                let attempts = 0;
+                while (typeof window.flexicadAuth === 'undefined' && attempts < 10) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+                
+                if (typeof window.flexicadAuth !== 'undefined') {
+                    currentUser = await window.flexicadAuth.getUser();
+                    if (!currentUser) {
+                        alert('Please log in to debug the AI learning system');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    console.log('User authenticated for debugging:', currentUser.email);
+                    
+                    // Update UI to show user is authenticated
+                    document.querySelector('.hero p').innerHTML = `
+                        Test the enhanced AI learning system and see how it incorporates user corrections<br>
+                        <small style="color: #00d4ff;">Authenticated as: ${currentUser.email}</small>
+                    `;
+                } else {
+                    console.error('FlexiCAD auth system not loaded after waiting');
+                    alert('Authentication system not available. Please refresh the page.');
+                }
+            } catch (error) {
+                console.error('Auth initialization error:', error);
+                alert('Error loading authentication: ' + error.message);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initializeAuth, 500); // Give auth system time to load
+        });
+
+        async function loadUserHistory() {
+            if (!currentUser) {
+                alert('Please log in first');
+                return;
+            }
+
+            const historyDiv = document.getElementById('user-history');
+            historyDiv.innerHTML = '<div class="loading">Loading user history...</div>';
+
+            try {
+                const response = await fetch('/.netlify/functions/get-user-history', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: currentUser.id
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.history) {
+                    let historyHtml = `<p>Found ${data.history.length} design sessions:</p>`;
+                    
+                    data.history.forEach((session, index) => {
+                        const hasCorrection = session.final_code && session.final_code !== session.generated_code;
+                        historyHtml += `
+                            <div class="history-item ${hasCorrection ? 'correction' : ''}">
+                                <h4>Session ${index + 1} ${hasCorrection ? '(Has Correction!)' : ''}</h4>
+                                <p><strong>Prompt:</strong> ${session.user_prompt}</p>
+                                <p><strong>Rating:</strong> ${session.user_feedback || 'No rating'}/5</p>
+                                <p><strong>Generated:</strong> ${session.generated_code ? session.generated_code.substring(0, 200) + '...' : 'No code'}</p>
+                                ${hasCorrection ? `<p><strong>🔧 User's Correction:</strong> ${session.final_code.substring(0, 200)}...</p>` : ''}
+                                <p><strong>Date:</strong> ${new Date(session.created_at).toLocaleString()}</p>
+                            </div>
+                        `;
+                    });
+                    
+                    historyDiv.innerHTML = historyHtml;
+                } else {
+                    historyDiv.innerHTML = '<p>No history found or error loading data</p>';
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+                historyDiv.innerHTML = '<div class="error">Error loading history: ' + error.message + '</div>';
+            }
+        }
+
+        async function testAIGeneration() {
+            if (!currentUser) {
+                alert('Please log in first');
+                return;
+            }
+
+            const prompt = document.getElementById('test-prompt').value.trim();
+            if (!prompt) {
+                alert('Please enter a test prompt');
+                return;
+            }
+
+            const resultDiv = document.getElementById('generation-result');
+            resultDiv.innerHTML = '<div class="loading">Generating code with learning system...</div>';
+
+            try {
+                const response = await fetch('/.netlify/functions/generate-template', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        category: 'general',
+                        complexity: 'simple',
+                        userId: currentUser.id
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.code) {
+                    resultDiv.innerHTML = `
+                        <h4>Generated Code:</h4>
+                        <div class="generated-code">${data.code}</div>
+                        <p><strong>Patterns found:</strong> ${data.debugInfo?.patternsCount || 0}</p>
+                        <p><strong>User history entries:</strong> ${data.debugInfo?.historyCount || 0}</p>
+                        <p><strong>Similar prompts:</strong> ${data.debugInfo?.similarPromptsCount || 0}</p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">Error: ${data.error || 'Unknown error'}</div>`;
+                }
+            } catch (error) {
+                console.error('Error testing generation:', error);
+                resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function showSystemPrompt() {
+            if (!currentUser) {
+                alert('Please log in first');
+                return;
+            }
+
+            const prompt = document.getElementById('test-prompt').value.trim();
+            if (!prompt) {
+                alert('Please enter a test prompt first');
+                return;
+            }
+
+            const debugDiv = document.getElementById('system-prompt-debug');
+            debugDiv.innerHTML = '<div class="loading">Building system prompt...</div>';
+
+            try {
+                const response = await fetch('/.netlify/functions/debug-system-prompt', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        userId: currentUser.id
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.systemPrompt) {
+                    debugDiv.innerHTML = `
+                        <h4>System Prompt (Learning Context):</h4>
+                        <div class="generated-code">${data.systemPrompt}</div>
+                    `;
+                } else {
+                    debugDiv.innerHTML = `<div class="error">Error: ${data.error || 'Unknown error'}</div>`;
+                }
+            } catch (error) {
+                console.error('Error showing system prompt:', error);
+                debugDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function analyzeUserPatterns() {
+            if (!currentUser) {
+                alert('Please log in first');
+                return;
+            }
+
+            const analyticsDiv = document.getElementById('analytics-result');
+            analyticsDiv.innerHTML = '<div class="loading">Analyzing patterns...</div>';
+
+            try {
+                const response = await fetch('/.netlify/functions/analyze-user-patterns', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: currentUser.id
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    let analyticsHtml = `
+                        <h4>Your AI Learning Analytics:</h4>
+                        <p><strong>Total designs:</strong> ${data.analytics.totalDesigns}</p>
+                        <p><strong>Designs with corrections:</strong> ${data.analytics.correctionsCount}</p>
+                        <p><strong>Average rating:</strong> ${data.analytics.averageRating.toFixed(1)}/5</p>
+                        <p><strong>Most common keywords:</strong> ${data.analytics.commonKeywords.join(', ')}</p>
+                        <p><strong>Correction rate:</strong> ${((data.analytics.correctionsCount / data.analytics.totalDesigns) * 100).toFixed(1)}%</p>
+                    `;
+                    
+                    if (data.analytics.learningTrends.length > 0) {
+                        analyticsHtml += `
+                            <h4>Learning Trends:</h4>
+                            ${data.analytics.learningTrends.map(trend => `<p>• ${trend}</p>`).join('')}
+                        `;
+                    }
+                    
+                    analyticsDiv.innerHTML = analyticsHtml;
+                } else {
+                    analyticsDiv.innerHTML = `<div class="error">Error: ${data.error || 'Unknown error'}</div>`;
+                }
+            } catch (error) {
+                console.error('Error analyzing patterns:', error);
+                analyticsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+
+    <!-- Load auth system -->
+    <script src="js/flexicad-auth.js"></script>
+</body>
+</html>

@@ -33,11 +33,11 @@
         <!-- Actions Bar -->
         <div class="card">
             <div class="card-actions">
-                <button class="btn btn-primary" onclick="refreshDesigns()">
-                    🔄 Refresh
-                </button>
-                <a href="ai.html" class="btn btn-secondary">
-                    ➕ Create New Design
+                <a href="ai.html" class="btn btn-primary">
+                    🤖 Generate Design
+                </a>
+                <a href="templates.html" class="btn btn-secondary">
+                    📚 Browse Templates
                 </a>
             </div>
         </div>
@@ -149,12 +149,20 @@
         }
 
         async function initDesigns() {
-            // Initialize Supabase client for database operations
-            const { createClient } = supabase;
-            supabaseClient = createClient(
-                CONFIG.SUPABASE_URL,
-                CONFIG.SUPABASE_ANON_KEY
-            );
+            // Use the global shared Supabase client
+            supabaseClient = window.getSharedSupabaseClient();
+            
+            if (!supabaseClient) {
+                console.error('Failed to get shared Supabase client. Trying to initialize...');
+                await window.flexicadAuth.init();
+                supabaseClient = window.getSharedSupabaseClient();
+                
+                if (!supabaseClient) {
+                    console.error('Still failed to get Supabase client');
+                    showError('Authentication system not properly initialized');
+                    return;
+                }
+            }
 
             await loadDesigns();
         }
@@ -365,10 +373,6 @@
             }
         }
 
-        async function refreshDesigns() {
-            await loadDesigns();
-        }
-
         function showLoading() {
             document.getElementById('loading').classList.remove('hidden');
             document.getElementById('designsGrid').classList.add('hidden');
@@ -440,24 +444,20 @@
             });
         });
 
-        async function handleLogout() {
-            try {
-                const { error } = await supabaseClient.auth.signOut();
-                if (error) throw error;
-                
-                window.location.href = 'login.html';
-            } catch (error) {
-                console.error('Error logging out:', error);
-                alert('Error logging out. Please try again.');
-            }
+        // Listen for auth state changes using flexicadAuth
+        if (typeof window.flexicadAuth !== 'undefined') {
+            // Set up auth state monitoring
+            const checkAuthPeriodically = () => {
+                setInterval(async () => {
+                    const user = await window.flexicadAuth.getUser();
+                    if (!user) {
+                        window.location.href = 'login.html';
+                    }
+                }, 5000); // Check every 5 seconds
+            };
+            
+            checkAuthPeriodically();
         }
-
-        // Listen for auth state changes
-        supabaseClient.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_OUT') {
-                window.location.href = 'login.html';
-            }
-        });
     </script>
 </body>
 </html>

@@ -57,7 +57,7 @@ function loadTrainingData() {
   }
 }
 
-// Find similar patterns in training data
+// Find similar patterns in training data and user history
 function findSimilarPatterns(prompt, trainingData) {
   const promptLower = prompt.toLowerCase();
   const keywords = promptLower.split(/\s+/).filter(word => word.length > 3);
@@ -94,6 +94,31 @@ function findSimilarPatterns(prompt, trainingData) {
   return matches.slice(0, 5); // Top 5 matches
 }
 
+// Find similar user prompts for better learning
+function findSimilarUserPrompts(currentPrompt, userHistory) {
+  const currentLower = currentPrompt.toLowerCase();
+  const currentKeywords = currentLower.split(/\s+/).filter(word => word.length > 3);
+  
+  return userHistory.filter(session => {
+    const sessionLower = session.user_prompt.toLowerCase();
+    const sessionKeywords = sessionLower.split(/\s+/).filter(word => word.length > 3);
+    
+    // Check for keyword overlap
+    const overlap = currentKeywords.filter(keyword => 
+      sessionKeywords.some(sessionKeyword => 
+        sessionKeyword.includes(keyword) || keyword.includes(sessionKeyword)
+      )
+    ).length;
+    
+    return overlap >= Math.min(2, currentKeywords.length * 0.3); // At least 30% overlap or 2 keywords
+  }).sort((a, b) => {
+    // Prioritize sessions with corrections
+    const aHasCorrections = a.final_code && a.final_code !== a.generated_code ? 1 : 0;
+    const bHasCorrections = b.final_code && b.final_code !== b.generated_code ? 1 : 0;
+    return bHasCorrections - aHasCorrections;
+  });
+}
+
 // Store learning session in database
 async function storeLearningSession(userId, sessionData) {
   try {
@@ -128,21 +153,37 @@ async function storeLearningSession(userId, sessionData) {
 // Get previous successful generations for this user
 async function getUserLearningHistory(userId, limit = 10) {
   try {
+    // Get all user sessions with feedback
     const { data, error } = await supabaseService
       .from('ai_learning_sessions')
-      .select('user_prompt, generated_code, final_code, user_feedback, design_category')
+      .select('user_prompt, generated_code, final_code, user_feedback, design_category, updated_at')
       .eq('user_id', userId)
       .not('user_feedback', 'is', null)
-      .gte('user_feedback', 4) // Only highly rated generations
-      .order('created_at', { ascending: false })
-      .limit(limit);
+      .order('updated_at', { ascending: false })
+      .limit(limit * 2); // Get more records to filter from
 
     if (error) {
       console.error('Error fetching user history:', error);
       return [];
     }
 
-    return data || [];
+    // Prioritize sessions with corrections (final_code different from generated_code) and high ratings
+    const sessions = (data || []).sort((a, b) => {
+      const aHasCorrections = a.final_code && a.final_code !== a.generated_code ? 1 : 0;
+      const bHasCorrections = b.final_code && b.final_code !== b.generated_code ? 1 : 0;
+      
+      // First priority: has corrections
+      if (aHasCorrections !== bHasCorrections) {
+        return bHasCorrections - aHasCorrections;
+      }
+      
+      // Second priority: rating
+      return (b.user_feedback || 0) - (a.user_feedback || 0);
+    });
+
+    console.log(`Found ${sessions.length} learning sessions for user ${userId}, ${sessions.filter(s => s.final_code && s.final_code !== s.generated_code).length} with corrections`);
+    
+    return sessions.slice(0, limit);
   } catch (error) {
     console.error('Failed to get user history:', error);
     return [];
@@ -150,7 +191,7 @@ async function getUserLearningHistory(userId, limit = 10) {
 }
 
 // Build enhanced system prompt with learning context
-function buildEnhancedSystemPrompt(prompt, similarPatterns, userHistory, trainingData) {
+function buildEnhancedSystemPrompt(prompt, similarPatterns, userHistory, trainingData, similarUserPrompts = []) {
   let systemPrompt = `You are an expert OpenSCAD developer with access to a comprehensive knowledge base. Generate clean, well-commented, parametric OpenSCAD code based on the user's description.
 
 CORE GUIDELINES:
@@ -180,15 +221,58 @@ CORE GUIDELINES:
     });
   }
 
-  // Add user's successful history if available
+  // Add user's learning history with STRONG emphasis on corrections
   if (userHistory.length > 0) {
-    systemPrompt += `\n\nUSER'S PREVIOUS SUCCESSFUL DESIGNS:\n`;
-    userHistory.slice(0, 3).forEach((session, index) => {
-      systemPrompt += `\nPrevious Success ${index + 1}:\n`;
-      systemPrompt += `Prompt: ${session.user_prompt.substring(0, 200)}${session.user_prompt.length > 200 ? '...' : ''}\n`;
-      systemPrompt += `Code: ${(session.final_code || session.generated_code).substring(0, 300)}${(session.final_code || session.generated_code).length > 300 ? '...' : ''}\n`;
-      systemPrompt += `Rating: ${session.user_feedback}/5\n`;
-    });
+    systemPrompt += `\n\n🎯 CRITICAL: USER'S LEARNING HISTORY AND CORRECTIONS:\n`;
+    systemPrompt += `The user has provided ${userHistory.length} previous interactions. YOU MUST LEARN FROM THEIR CORRECTIONS!\n`;
+    
+    // First show similar prompts with corrections if available
+    if (similarUserPrompts.length > 0) {
+      systemPrompt += `\n🔍 SIMILAR REQUESTS (HIGHEST PRIORITY FOR LEARNING):\n`;
+      
+      similarUserPrompts.slice(0, 2).forEach((session, index) => {
+        systemPrompt += `\n=== SIMILAR REQUEST ${index + 1} ===\n`;
+        systemPrompt += `User Asked: "${session.user_prompt}"\n`;
+        
+        if (session.final_code && session.final_code !== session.generated_code) {
+          systemPrompt += `🔧 USER CORRECTED THE CODE TO:\n${session.final_code.substring(0, 600)}${session.final_code.length > 600 ? '...' : ''}\n`;
+          systemPrompt += `⚠️ CRITICAL: Use this corrected approach for similar requests!\n`;
+        } else {
+          systemPrompt += `Generated Code: ${session.generated_code.substring(0, 400)}${session.generated_code.length > 400 ? '...' : ''}\n`;
+        }
+        
+        if (session.user_feedback !== null) {
+          systemPrompt += `Rating: ${session.user_feedback}/5 ${session.user_feedback <= 3 ? '(POOR - avoid this approach!)' : '(GOOD - replicate this style!)'}\n`;
+        }
+      });
+    }
+    
+    // Then show other learning examples
+    const remainingHistory = userHistory.filter(h => 
+      !similarUserPrompts.some(s => s.id === h.id)
+    ).slice(0, 3);
+    
+    if (remainingHistory.length > 0) {
+      systemPrompt += `\n📚 ADDITIONAL USER PREFERENCES:\n`;
+      
+      remainingHistory.forEach((session, index) => {
+        systemPrompt += `\n--- Example ${index + 1} ---\n`;
+        systemPrompt += `Request: ${session.user_prompt}\n`;
+        
+        if (session.final_code && session.final_code !== session.generated_code) {
+          systemPrompt += `🔧 USER'S CORRECTED VERSION:\n${session.final_code.substring(0, 500)}${session.final_code.length > 500 ? '...' : ''}\n`;
+          systemPrompt += `💡 LEARNING: User prefers this approach!\n`;
+        } else {
+          systemPrompt += `Generated: ${session.generated_code.substring(0, 300)}${session.generated_code.length > 300 ? '...' : ''}\n`;
+        }
+        
+        if (session.user_feedback !== null) {
+          systemPrompt += `Rating: ${session.user_feedback}/5\n`;
+        }
+      });
+    }
+    
+    systemPrompt += `\n🚨 MANDATE: Apply the user's corrections and preferences from above. Don't repeat mistakes they've already fixed!`;
   }
 
   systemPrompt += `\n\nIMPORTANT: Learn from the patterns and user history above. Generate ONLY the OpenSCAD code, no additional explanations. Make it production-ready and well-documented.`;
@@ -340,8 +424,14 @@ exports.handler = async (event, context) => {
     // Get user's learning history
     const userHistory = await getUserLearningHistory(userId);
     
+    // Find similar user prompts for better learning
+    const similarUserPrompts = findSimilarUserPrompts(prompt, userHistory);
+    
+    console.log(`Found ${userHistory.length} user history entries, ${similarUserPrompts.length} similar prompts`);
+    console.log(`Found ${similarPatterns.length} similar patterns in training data`);
+    
     // Build enhanced system prompt
-    const systemPrompt = buildEnhancedSystemPrompt(prompt, similarPatterns, userHistory, trainingData);
+    const systemPrompt = buildEnhancedSystemPrompt(prompt, similarPatterns, userHistory, trainingData, similarUserPrompts);
     
     console.log(`Generating ${complexity} ${category} design with ${similarPatterns.length} similar patterns and ${userHistory.length} user examples`);
 
@@ -392,6 +482,7 @@ exports.handler = async (event, context) => {
         code: cleanCode,
         prompt: prompt,
         name: name || 'AI Generated Design',
+        success: true,
         metadata: {
           category,
           complexity,
@@ -400,6 +491,13 @@ exports.handler = async (event, context) => {
           generationTime,
           tokensUsed,
           sessionId
+        },
+        debugInfo: {
+          patternsCount: similarPatterns.length,
+          historyCount: userHistory.length,
+          similarPromptsCount: similarUserPrompts.length,
+          hasCorrections: userHistory.some(h => h.final_code && h.final_code !== h.generated_code),
+          sessionId: sessionId
         }
       }),
     };

@@ -16,6 +16,13 @@ class FlexiCADAuth {
         try {
             console.log('🔄 Initializing FlexiCAD Payment-First Authentication...');
 
+            // CRITICAL: Wait for CONFIG to load before doing anything
+            if (window.CONFIG && window.CONFIG.waitForLoad) {
+                console.log('🔧 Waiting for secure configuration...');
+                await window.CONFIG.waitForLoad();
+                console.log('✅ Secure configuration loaded');
+            }
+
             // Initialize Supabase client
             await this.initializeSupabase();
 
@@ -59,28 +66,42 @@ class FlexiCADAuth {
     // Initialize Supabase client with secure config loading
     async initializeSupabase() {
         try {
-            console.log('🔧 Waiting for secure configuration...');
+            console.log('🔧 Initializing Supabase client...');
             
-            // Wait for CONFIG to load from secure endpoint
-            if (window.CONFIG && typeof window.CONFIG.waitForLoad === 'function') {
-                await window.CONFIG.waitForLoad();
-            } else {
-                throw new Error('Secure config loader not available');
+            // CRITICAL: Wait for CONFIG to be loaded before creating client
+            if (!window.CONFIG) {
+                console.log('⏳ Waiting for CONFIG to load...');
+                await new Promise(resolve => {
+                    const checkConfig = () => {
+                        if (window.CONFIG && window.CONFIG.SUPABASE_URL) {
+                            resolve();
+                        } else {
+                            setTimeout(checkConfig, 100);
+                        }
+                    };
+                    checkConfig();
+                });
             }
             
-            console.log('✅ Secure configuration loaded');
-            
-            // Verify required config values are present
-            if (!window.CONFIG.SUPABASE_URL || !window.CONFIG.SUPABASE_ANON_KEY) {
-                throw new Error('Missing required Supabase configuration');
+            // Double-check that CONFIG is properly loaded
+            if (!window.CONFIG || !window.CONFIG.SUPABASE_URL || !window.CONFIG.SUPABASE_ANON_KEY) {
+                throw new Error('Configuration not properly loaded. Missing Supabase credentials.');
             }
             
-            // Verify Supabase library is available
-            if (typeof window.supabase === 'undefined') {
+            console.log('✅ CONFIG loaded, creating Supabase client...');
+            
+            // Check if global shared client already exists
+            if (window._flexicadSupabaseClient) {
+                console.log('♻️ Using existing shared Supabase client');
+                this.supabaseClient = window._flexicadSupabaseClient;
+                return this.supabaseClient;
+            }
+            
+            if (!window.supabase) {
                 throw new Error('Supabase client library not available');
             }
 
-            // Create Supabase client with secure config
+            // Create Supabase client with secure config and store globally
             this.supabaseClient = window.supabase.createClient(
                 window.CONFIG.SUPABASE_URL, 
                 window.CONFIG.SUPABASE_ANON_KEY, 
@@ -92,6 +113,9 @@ class FlexiCADAuth {
                     }
                 }
             );
+            
+            // Store as global shared instance
+            window._flexicadSupabaseClient = this.supabaseClient;
 
             console.log('✅ Supabase client initialized successfully');
             return this.supabaseClient;
@@ -506,7 +530,7 @@ class FlexiCADAuth {
     }
 
     // Register - payment-first system
-    async registerWithPayment(email, password, plan = 'monthly') {
+    async registerWithPayment(email, password, plan = 'monthly', promoCode = '') {
         try {
             console.log('🔄 Starting payment-first registration for:', email);
 
@@ -519,7 +543,8 @@ class FlexiCADAuth {
                 body: JSON.stringify({
                     email: email.trim(),
                     plan: plan,
-                    userId: null // No user yet - will be created after payment
+                    userId: null, // No user yet - will be created after payment
+                    promoCode: promoCode || undefined
                 })
             });
 
@@ -550,8 +575,8 @@ class FlexiCADAuth {
     }
 
     // Alias for backward compatibility with HTML forms
-    async register(email, password, plan = 'monthly') {
-        return this.registerWithPayment(email, password, plan);
+    async register(email, password, plan = 'monthly', promoCode = '') {
+        return this.registerWithPayment(email, password, plan, promoCode);
     }
 
     // Handle successful payment and create user
@@ -707,12 +732,35 @@ class FlexiCADAuth {
             return null;
         }
     }
+
+    // Getter to access the shared Supabase client
+    getSupabaseClient() {
+        if (!this.supabaseClient) {
+            console.error('Supabase client not initialized. Call flexicadAuth.init() first.');
+            return null;
+        }
+        return this.supabaseClient;
+    }
 }
 
 // Global instance
 window.flexicadAuth = new FlexiCADAuth();
 
-// Also create the FlexiAuth alias for backward compatibility
-window.FlexiAuth = window.flexicadAuth;
+// Also create the FlexiAuth alias for backward compatibility with enhanced methods
+window.FlexiAuth = {
+    // Delegate most methods to flexicadAuth
+    ...window.flexicadAuth,
+    
+    // Override specific methods for backward compatibility
+    getUser: () => window.flexicadAuth.user,
+    isLoggedIn: () => !!window.flexicadAuth.user,
+    getCurrentUser: () => window.flexicadAuth.user,
+    getSessionToken: () => window.flexicadAuth.getSessionToken(), // Keep as async
+    getSupabaseClient: () => window.flexicadAuth.getSupabaseClient(),
+    logout: () => window.flexicadAuth.logout()
+};
 
-// Note: Manual initialization required - call window.flexicadAuth.init() from your page
+// Global helper function to get the shared Supabase client
+window.getSharedSupabaseClient = function() {
+    return window._flexicadSupabaseClient || window.flexicadAuth.getSupabaseClient();
+}

@@ -54,6 +54,95 @@
             font-size: 0.9rem;
         }
 
+        .promo-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .promo-form {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .promo-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 1rem;
+            text-transform: uppercase;
+        }
+
+        .promo-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+        }
+
+        .promo-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        .promo-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .promo-btn:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .promo-result {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .promo-success {
+            background: #dcfce7;
+            border: 1px solid #16a34a;
+            color: #15803d;
+        }
+
+        .promo-error {
+            background: #fef2f2;
+            border: 1px solid #dc2626;
+            color: #dc2626;
+        }
+
+        .discount-info {
+            background: #dcfce7;
+            border: 1px solid #16a34a;
+            color: #15803d;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .promo-section {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         @media (max-width: 768px) {
             .payment-actions {
                 flex-direction: column;
@@ -68,12 +157,12 @@
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-content">
-            <div class="nav-brand">FlexiCAD Designer</div>
-            <ul class="nav-menu">
-                <li><a href="index.html" class="nav-link">Home</a></li>
-                <li><a href="about.html" class="nav-link">About</a></li>
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">FlexiCAD Designer</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
             </ul>
         </div>
     </nav>
@@ -97,8 +186,28 @@
             </div>
         </div>
 
+        <div class="promo-section">
+            <h3>Have a Promo Code?</h3>
+            <p>Enter your discount code below to save on your subscription</p>
+            
+            <div class="promo-form">
+                <input type="text" 
+                       id="promo-code-input" 
+                       class="promo-input" 
+                       placeholder="Enter promo code (e.g., WELCOME20)"
+                       autocomplete="off">
+                <button id="apply-promo-btn" class="promo-btn">Apply</button>
+            </div>
+
+            <div id="promo-result" class="promo-result" style="display: none;"></div>
+            <div id="discount-info" class="discount-info" style="display: none;">
+                <strong>🎉 Discount Applied!</strong>
+                <div>You'll save <span id="discount-amount"></span> with code "<span id="applied-code"></span>"</div>
+            </div>
+        </div>
+
         <div class="payment-actions">
-            <a href="register.html" class="btn btn-primary">Complete Payment</a>
+            <button id="complete-payment-btn" class="btn btn-primary">Complete Payment</button>
             <button onclick="logout()" class="btn btn-secondary">Logout</button>
             <a href="login.html" class="btn btn-link">Already paid? Login here</a>
         </div>
@@ -116,13 +225,163 @@
         // Payment Required Page Logic
 
         // Initialize Supabase client
-        const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+        let supabaseClient;
+        
+        // Global promo code state
+        let appliedPromoCode = null;
+
+        async function validatePromoCode(code) {
+            try {
+                console.log('🎟️ Validating promo code:', code);
+
+                const response = await fetch('/api/validate-promo-code', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ code })
+                });
+
+                const result = await response.json();
+                console.log('📋 Promo validation result:', result);
+                
+                return result;
+            } catch (error) {
+                console.error('❌ Error validating promo code:', error);
+                return { valid: false, error: 'Failed to validate promo code' };
+            }
+        }
+
+        function showPromoResult(result, isSuccess = false) {
+            const resultDiv = document.getElementById('promo-result');
+            const discountDiv = document.getElementById('discount-info');
+            
+            if (resultDiv) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = `promo-result ${isSuccess ? 'promo-success' : 'promo-error'}`;
+                resultDiv.textContent = result;
+            }
+            
+            // Hide discount info if there's an error
+            if (!isSuccess && discountDiv) {
+                discountDiv.style.display = 'none';
+            }
+        }
+
+        function showDiscountInfo(promoCode) {
+            const discountDiv = document.getElementById('discount-info');
+            const discountAmount = document.getElementById('discount-amount');
+            const appliedCodeSpan = document.getElementById('applied-code');
+            
+            if (discountDiv && discountAmount && appliedCodeSpan) {
+                discountAmount.textContent = `${promoCode.discount_percent}%`;
+                appliedCodeSpan.textContent = promoCode.code;
+                discountDiv.style.display = 'block';
+            }
+            
+            // Hide the result message
+            const resultDiv = document.getElementById('promo-result');
+            if (resultDiv) {
+                resultDiv.style.display = 'none';
+            }
+        }
+
+        async function applyPromoCode() {
+            const input = document.getElementById('promo-code-input');
+            const button = document.getElementById('apply-promo-btn');
+            
+            if (!input || !button) return;
+            
+            const code = input.value.trim().toUpperCase();
+            
+            if (!code) {
+                showPromoResult('Please enter a promo code');
+                return;
+            }
+            
+            // Disable button and show loading
+            button.disabled = true;
+            button.textContent = 'Checking...';
+            
+            try {
+                const result = await validatePromoCode(code);
+                
+                if (result.valid) {
+                    appliedPromoCode = result;
+                    input.value = result.code;
+                    input.disabled = true;
+                    button.textContent = 'Applied ✓';
+                    button.style.background = '#10b981';
+                    
+                    showDiscountInfo(result);
+                    console.log('✅ Promo code applied successfully');
+                } else {
+                    showPromoResult(result.error || 'Invalid promo code');
+                    button.disabled = false;
+                    button.textContent = 'Apply';
+                }
+            } catch (error) {
+                console.error('❌ Error applying promo code:', error);
+                showPromoResult('Failed to apply promo code. Please try again.');
+                button.disabled = false;
+                button.textContent = 'Apply';
+            }
+        }
+
+        function setupPromoCodeEvents() {
+            const input = document.getElementById('promo-code-input');
+            const button = document.getElementById('apply-promo-btn');
+            const paymentBtn = document.getElementById('complete-payment-btn');
+            
+            if (button) {
+                button.addEventListener('click', applyPromoCode);
+            }
+            
+            if (paymentBtn) {
+                paymentBtn.addEventListener('click', handleCompletePayment);
+            }
+            
+            if (input) {
+                // Allow applying promo with Enter key
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        applyPromoCode();
+                    }
+                });
+                
+                // Clear results when user starts typing again
+                input.addEventListener('input', () => {
+                    if (appliedPromoCode) return; // Don't clear if already applied
+                    
+                    const resultDiv = document.getElementById('promo-result');
+                    if (resultDiv) {
+                        resultDiv.style.display = 'none';
+                    }
+                });
+            }
+        }
+
+        function handleCompletePayment() {
+            // Redirect to register page with promo code if applied
+            let url = 'register.html';
+            
+            if (appliedPromoCode) {
+                url += `?promo_code=${encodeURIComponent(appliedPromoCode.code)}`;
+                console.log('🎟️ Redirecting to payment with promo code:', appliedPromoCode.code);
+            }
+            
+            window.location.href = url;
+        }
 
         async function logout() {
             console.log('🔄 Logging out user...');
 
-            // Sign out from Supabase
-            await supabase.auth.signOut();
+            // Use the shared Supabase client
+            supabaseClient = window.flexicadAuth.getSupabaseClient();
+            if (supabaseClient) {
+                await supabaseClient.auth.signOut();
+            }
 
             // Clear session storage
             sessionStorage.clear();
@@ -198,6 +457,9 @@
 
             // Check URL parameters first
             checkURLParams();
+
+            // Setup promo code functionality
+            setupPromoCodeEvents();
 
             // Check user status
             await checkUserStatus();

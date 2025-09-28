@@ -72,8 +72,11 @@
         async function initializeAuth() {
             await CONFIG.waitForLoad();
             
-            // Initialize Supabase client
-            const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+            // Initialize the auth system
+            await window.flexicadAuth.init();
+            
+            // Get the shared Supabase client
+            const supabaseClient = window.flexicadAuth.getSupabaseClient();
 
             document.getElementById('loginForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -215,7 +218,7 @@
             }
             
             try {
-                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
                     redirectTo: window.location.origin + '/reset-password.html'
                 });
                 
@@ -233,7 +236,7 @@
 
         // Check if user is already logged in
         async function checkExistingSession() {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
                 window.location.href = 'home.html';
             }

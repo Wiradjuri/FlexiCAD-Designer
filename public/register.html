@@ -199,6 +199,24 @@
             
             // Check URL parameters for status messages
             const urlStatus = window.flexicadAuth.checkURLParams();
+            
+            // Check for promo code in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const promoCode = urlParams.get('promo_code');
+            if (promoCode) {
+                console.log('🎟️ Promo code detected:', promoCode);
+                
+                // Show promo code notification
+                const promoMessage = document.createElement('div');
+                promoMessage.className = 'auth-message success';
+                promoMessage.innerHTML = `🎉 Promo code "<strong>${promoCode}</strong>" will be applied to your subscription!`;
+                
+                const formContainer = document.querySelector('.form-container');
+                if (formContainer) {
+                    formContainer.insertBefore(promoMessage, formContainer.firstChild);
+                }
+            }
+            
             if (urlStatus) {
                 if (urlStatus.type === 'checkout_success') {
                     showMessage(urlStatus.message, 'success');
@@ -372,17 +390,29 @@
                     }
                 }
                 
+                // Get promo code from URL params if redirected from payment page
+                const urlParams = new URLSearchParams(window.location.search);
+                const promoCode = urlParams.get('promo_code');
+                
                 // STEP 2: Create Stripe checkout session (NO Supabase account created yet)
+                const requestBody = {
+                    email: email,
+                    password: password,
+                    plan: currentPlan
+                };
+                
+                // Add promo code if available
+                if (promoCode) {
+                    requestBody.promoCode = promoCode;
+                    console.log('🎟️ Including promo code in checkout:', promoCode);
+                }
+                
                 const response = await fetch('/.netlify/functions/create-checkout-session', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        email: email,
-                        password: password,
-                        plan: currentPlan
-                    })
+                    body: JSON.stringify(requestBody)
                 });
 
                 if (!response.ok) {

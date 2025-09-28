@@ -123,14 +123,14 @@
                 }
                 
                 const data = await response.json();
-                if (data.objects && Array.isArray(data.objects)) {
-                    templates = data.objects.map(obj => ({
+                if (data.templates && Array.isArray(data.templates)) {
+                    templates = data.templates.map(obj => ({
                         id: obj.id,
-                        name: obj.metadata?.name || obj.id,
-                        description: obj.metadata?.description || 'No description available',
-                        category: obj.metadata?.category || 'General',
-                        difficulty: obj.metadata?.difficulty || 'Intermediate',
-                        created: obj.metadata?.created || new Date().toISOString().split('T')[0]
+                        name: obj.name || obj.id,
+                        description: obj.description || 'No description available',
+                        category: obj.category || 'General',
+                        difficulty: obj.difficulty || 'Intermediate',
+                        created: obj.created || new Date().toISOString().split('T')[0]
                     }));
                 } else {
                     throw new Error('Invalid response format from list-objects');
@@ -304,18 +304,63 @@
 
         function copyCode() {
             const codeContent = document.getElementById('codeContent').textContent;
-            navigator.clipboard.writeText(codeContent).then(() => {
-                // Visual feedback
-                const btn = event.target;
+            
+            if (!codeContent || codeContent.trim() === '') {
+                alert('No code content to copy');
+                return;
+            }
+            
+            // Try modern clipboard API first
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(codeContent).then(() => {
+                    showCopyFeedback();
+                }).catch(err => {
+                    console.error('Modern clipboard API failed:', err);
+                    fallbackCopy(codeContent);
+                });
+            } else {
+                fallbackCopy(codeContent);
+            }
+        }
+        
+        function fallbackCopy(text) {
+            // Fallback method for older browsers or HTTP contexts
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showCopyFeedback();
+                } else {
+                    throw new Error('execCommand failed');
+                }
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                alert('Failed to copy code to clipboard. Please manually select and copy the code.');
+            } finally {
+                document.body.removeChild(textArea);
+            }
+        }
+        
+        function showCopyFeedback() {
+            // Visual feedback
+            const btn = document.querySelector('#codeModal .code-header button');
+            if (btn) {
                 const originalText = btn.textContent;
                 btn.textContent = 'Copied!';
+                btn.style.backgroundColor = '#10b981';
                 setTimeout(() => {
                     btn.textContent = originalText;
+                    btn.style.backgroundColor = '';
                 }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy code:', err);
-                alert('Failed to copy code to clipboard');
-            });
+            }
         }
 
         function showModal(modalId) {

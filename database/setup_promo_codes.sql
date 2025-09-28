@@ -18,11 +18,7 @@ ALTER TABLE promo_codes ENABLE ROW LEVEL SECURITY;
 -- Admin can view/manage all promo codes
 CREATE POLICY "Admin can manage promo codes" ON promo_codes
     FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM profiles 
-            WHERE profiles.id = auth.uid() 
-            AND profiles.email = 'bmuzza1992@gmail.com'
-        )
+        auth.email() = 'bmuzza1992@gmail.com'
     );
 
 -- Create some example promo codes

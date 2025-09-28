@@ -129,7 +129,7 @@ exports.handler = async (event, context) => {
 
     // Save design to database using service role (bypasses RLS)
     const { data, error } = await supabase
-      .from('designs')
+      .from('ai_designs')
       .insert([
         {
           user_id: userId,

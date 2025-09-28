@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FlexiCAD Designer - About</title>
     <link rel="stylesheet" href="css/dark-theme.css">
+    <style>
+        .contact-email {
+            color: #60a5fa !important;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        
+        .contact-email:hover {
+            color: #3b82f6 !important;
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <nav class="nav">
@@ -17,7 +30,7 @@
                 <li><a href="my-designs.html">My Designs</a></li>
                 <li><a href="about.html" class="active">About</a></li>
             </ul>
-            <div class="nav-user nav-user-hidden" id="navUser">
+            <div class="nav-user" id="navUser">
                 <span class="user-info" id="userInfo"></span>
                 <button class="logout-btn" onclick="handleLogout()">Logout</button>
             </div>
@@ -74,7 +87,7 @@
             <div class="card-description">
                 Need help or have questions? Our support team is here to help you create amazing 3D designs.
                 <br><br>
-                <strong>Email:</strong> <a href="mailto:admin@flexicad.com.au">admin@flexicad.com.au</a>
+                <strong>Email:</strong> <a href="mailto:admin@flexicad.com.au" class="contact-email">admin@flexicad.com.au</a>
                 <br>
                 <strong>Response Time:</strong> Within 24 hours
             </div>
@@ -101,39 +114,38 @@
     <script src="js/secure-config-loader.js"></script>
     <script src="js/flexicad-auth.js"></script>
     <script>
-        // Simple auth check - redirect to AI generator if logged in, login page if not
-        const user = sessionStorage.getItem('flexicad_user');
-        
-        if (user) {
+        document.addEventListener('DOMContentLoaded', async () => {
+            await window.flexicadAuth.init();
+            
             const navUser = document.querySelector('.nav-user');
-            if (navUser) {
-                navUser.classList.remove('nav-user-hidden');
-                navUser.style.display = 'flex';
-            }
-            
             const userInfo = document.getElementById('userInfo');
-            if (userInfo) {
-                const userData = JSON.parse(user);
-                userInfo.textContent = userData.email;
-            }
-            
-            // Update button to go to AI generator if logged in
             const getStartedBtn = document.getElementById('getStartedBtn');
-            if (getStartedBtn) {
-                getStartedBtn.href = 'ai.html';
-                getStartedBtn.textContent = 'Try AI Generator';
+            
+            if (window.flexicadAuth.user && navUser && userInfo) {
+                navUser.style.display = 'flex';
+                userInfo.textContent = window.flexicadAuth.user.email;
+                
+                // Update button to go to AI generator if logged in
+                if (getStartedBtn) {
+                    getStartedBtn.href = 'ai.html';
+                    getStartedBtn.innerHTML = '🤖 Try AI Generator';
+                }
+            } else {
+                // Hide nav user section if not logged in
+                if (navUser) {
+                    navUser.style.display = 'none';
+                }
+                
+                // Update button to go to login if not logged in
+                if (getStartedBtn) {
+                    getStartedBtn.href = 'register.html';
+                    getStartedBtn.innerHTML = '🚀 Get Started';
+                }
             }
-        }
+        });
 
         async function handleLogout() {
-            try {
-                // Clear session storage
-                sessionStorage.removeItem('flexicad_user');
-                window.location.href = 'index.html';
-            } catch (error) {
-                console.error('Error logging out:', error);
-                alert('Error logging out. Please try again.');
-            }
+            await window.flexicadAuth.logout();
         }
     </script>
 </body>

@@ -25,14 +25,14 @@ exports.handler = async (event, context) => {
 
         console.log('Creating checkout session for:', email, 'Plan:', plan, 'Promo:', promoCode);
 
-        // Price configuration
-        const prices = {
-            monthly: process.env.STRIPE_MONTHLY_PRICE_ID || 'price_monthly_default',
-            yearly: process.env.STRIPE_YEARLY_PRICE_ID || 'price_yearly_default'
+        // Simple one-time payment amounts (in cents)
+        const amounts = {
+            monthly: 1000, // $10.00 AUD
+            yearly: 5000   // $50.00 AUD
         };
 
-        const priceId = prices[plan];
-        if (!priceId) {
+        const amount = amounts[plan];
+        if (!amount) {
             throw new Error('Invalid plan selected');
         }
 
@@ -73,13 +73,23 @@ exports.handler = async (event, context) => {
             payment_method_types: ['card'],
             line_items: [
                 {
-                    price: priceId,
+                    price_data: {
+                        currency: 'aud',
+                        product_data: {
+                            name: `FlexiCAD Designer - ${plan.charAt(0).toUpperCase() + plan.slice(1)}`,
+                            description: `${plan === 'monthly' ? 'Monthly' : 'Yearly'} subscription to FlexiCAD Designer`,
+                        },
+                        recurring: {
+                            interval: plan === 'monthly' ? 'month' : 'year',
+                        },
+                        unit_amount: amount,
+                    },
                     quantity: 1,
                 },
             ],
             mode: 'subscription',
             customer_email: email,
-            success_url: `${process.env.URL || 'http://localhost:8888'}/payment-success.html?session_id={CHECKOUT_SESSION_ID}&user_id=${userId || ''}`,
+            success_url: `${process.env.URL || 'http://localhost:8888'}/payment-success.html?session_id={CHECKOUT_SESSION_ID}&checkout=success&user_id=${userId || ''}`,
             cancel_url: `${process.env.URL || 'http://localhost:8888'}/register.html?payment=cancelled`,
             metadata: {
                 user_email: email,

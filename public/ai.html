@@ -6,6 +6,26 @@
     <title>FlexiCAD Designer - AI Generator</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="css/dark-theme.css">
+    <style>
+        .admin-nav {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4) !important;
+            color: white !important;
+            padding: 0.5rem 1rem !important;
+            border-radius: 20px !important;
+            text-decoration: none !important;
+            font-weight: bold !important;
+            transition: all 0.3s ease !important;
+            border: 2px solid transparent !important;
+        }
+        .admin-nav:hover {
+            transform: scale(1.05) !important;
+            border-color: white !important;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3) !important;
+        }
+        #admin-link {
+            margin-left: auto !important;
+        }
+    </style>
 </head>
 <body>
     <nav class="nav">
@@ -249,12 +269,24 @@
                     userInfo.textContent = window.flexicadAuth.user.email || 'User';
                 }
 
+                // Debug admin check
+                console.log('🔍 Checking admin status...');
+                console.log('User email:', window.flexicadAuth.user?.email);
+                console.log('Payment status:', window.flexicadAuth.paymentStatus);
+                console.log('Is admin result:', window.flexicadAuth.isAdmin());
+
                 // Show admin link if user is admin
                 if (window.flexicadAuth.isAdmin()) {
+                    console.log('✅ User is admin - showing admin link');
                     const adminLink = document.getElementById('admin-link');
                     if (adminLink) {
-                        adminLink.style.display = 'block';
+                        adminLink.style.display = 'list-item'; // Use list-item for <li> elements
+                        console.log('✅ Admin link displayed');
+                    } else {
+                        console.log('❌ Admin link element not found');
                     }
+                } else {
+                    console.log('❌ User is not admin - admin link hidden');
                 }
                 
                 // Initialize AI generation functionality
@@ -298,13 +330,13 @@
             
             try {
                 // Check if user is authenticated using session storage
-                const userData = FlexiAuth.getUser();
+                const userData = window.flexicadAuth.user;
                 if (!userData) {
                     window.location.href = 'login.html';
                     return;
                 }
 
-                const sessionToken = await FlexiAuth.getSessionToken();
+                const sessionToken = await window.flexicadAuth.getSessionToken();
                 
                 console.log('Session token type:', typeof sessionToken);
                 console.log('Session token value:', sessionToken);
@@ -394,13 +426,13 @@
             }
             
             try {
-                const userData = FlexiAuth.getUser();
+                const userData = window.flexicadAuth.user;
                 if (!userData) {
                     console.log('AutoSave skipped: User not authenticated');
                     return;
                 }
                 
-                const sessionToken = await FlexiAuth.getSessionToken();
+                const sessionToken = await window.flexicadAuth.getSessionToken();
                 
                 if (!sessionToken) {
                     console.log('AutoSave skipped: No session token');
@@ -441,8 +473,8 @@
             if (!currentGeneration) return;
             
             try {
-                const userData = FlexiAuth.getUser();
-                const sessionToken = await FlexiAuth.getSessionToken();
+                const userData = window.flexicadAuth.user;
+                const sessionToken = await window.flexicadAuth.getSessionToken();
                 
                 if (!userData || !sessionToken) {
                     alert('Authentication required');
@@ -633,11 +665,16 @@
             submitBtn.textContent = 'Submitting...';
 
             try {
-                const user = JSON.parse(sessionStorage.getItem('flexicad_user'));
-                const token = sessionStorage.getItem('flexicad_session_token');
+                // Use the auth system to get the current session token
+                const token = await window.flexicadAuth.getSessionToken();
+                
+                if (!token) {
+                    throw new Error('Authentication required - no valid session');
+                }
 
-                if (!user || !token) {
-                    throw new Error('Authentication required');
+                const user = window.flexicadAuth.user;
+                if (!user) {
+                    throw new Error('Authentication required - no user data');
                 }
 
                 const feedbackData = {
@@ -739,11 +776,16 @@
             submitBtn.textContent = '🎓 Teaching...';
 
             try {
-                const user = JSON.parse(sessionStorage.getItem('flexicad_user'));
-                const token = sessionStorage.getItem('flexicad_session_token');
+                // Use the auth system to get the current session token
+                const token = await window.flexicadAuth.getSessionToken();
+                
+                if (!token) {
+                    throw new Error('Authentication required - no valid session');
+                }
 
-                if (!user || !token) {
-                    throw new Error('Authentication required');
+                const user = window.flexicadAuth.user;
+                if (!user) {
+                    throw new Error('Authentication required - no user data');
                 }
 
                 // Get final code (user's version or original generated code)
@@ -810,9 +852,9 @@
             }, 500);
         }
 
-        // Use the FlexiAuth logout function
+        // Use the flexicadAuth logout function
         async function handleLogout() {
-            await FlexiAuth.logout();
+            await window.flexicadAuth.logout();
         }
 
     </script>
