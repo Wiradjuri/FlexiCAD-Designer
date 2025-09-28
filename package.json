@@ -4,11 +4,11 @@
   "description": "AI-powered 3D design tool with payment-first authentication",
   "main": "index.js",
   "scripts": {
-    "dev": "npm run build:secure && netlify dev",
-    "build": "npm run build:secure && echo 'Build completed'",
-    "build:secure": "node scripts/build-secure-config.js",
-    "build:restore": "node scripts/restore-config-backup.js",
-    "start": "npm run build:secure && netlify dev",
+    "dev": "netlify dev",
+    "build": "echo 'Using secure server-side configuration - no build step needed'",
+    "build:secure": "echo 'Configuration is now served securely from /.netlify/functions/get-public-config'",
+    "build:restore": "echo 'Template mode - using secure server-side config'",
+    "start": "netlify dev",
     "test": "echo 'No tests specified'"
   },
   "dependencies": {

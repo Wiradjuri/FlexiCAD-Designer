@@ -2,6 +2,10 @@
 
 An AI-powered web platform for creating OpenSCAD 3D designs with natural language prompts, featuring template management and user authentication.
 
+## 🔒 Security Notice
+
+**This application uses secure server-side configuration.** API keys are never exposed in public files and are served securely from `/.netlify/functions/get-public-config`. The `/config/` directory is protected and inaccessible via web requests.
+
 ## 🚀 Features
 
 - **AI-Powered Generation**: Create OpenSCAD designs using natural language descriptions

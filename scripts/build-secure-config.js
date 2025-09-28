@@ -95,7 +95,9 @@ function injectEnvironmentVariables() {
     const replacements = {
         '{{SUPABASE_URL}}': process.env.SUPABASE_URL,
         '{{SUPABASE_ANON_KEY}}': process.env.SUPABASE_ANON_KEY,
-        '{{STRIPE_PUBLISHABLE_KEY}}': process.env.STRIPE_PUBLISHABLE_KEY
+        '{{STRIPE_PUBLISHABLE_KEY}}': process.env.STRIPE_PUBLISHABLE_KEY,
+        '{{DEBUG_AUTH}}': process.env.DEBUG_AUTH || 'false',
+        '{{NODE_ENV}}': process.env.NODE_ENV || 'production'
     };
     
     for (const [placeholder, value] of Object.entries(replacements)) {
