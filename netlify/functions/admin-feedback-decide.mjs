@@ -88,10 +88,9 @@ export const handler = async (event, context) => {
                 input_prompt: feedback.design_prompt,
                 generated_code: feedback.generated_code,
                 quality_score: feedback.quality_score || 5,
-                quality_label: feedback.quality_label || 'admin-approved',
-                tags: tags || ['admin-approved'],
-                category: feedback.template_name || 'general',
-                complexity_level: 'intermediate', // default
+                quality_label: feedback.quality_score >= 4 ? 'good' : 'bad',
+                tags: Array.isArray(tags) ? tags : ['admin-approved'],
+                template: feedback.template || 'general',
                 created_by: requesterEmail,
                 active: true
             };

@@ -28,27 +28,44 @@ export const handler = async (event, context) => {
     try {
         // Parse request body
         const body = JSON.parse(event.body || '{}');
-        const { filename, contentType, size } = body;
+        const { filename, contentType, size, assetType } = body;
 
-        console.log(`[admin][create-signed-upload] requester=${requesterEmail} filename=${filename} size=${size}`);
+        console.log(`[admin][create-signed-upload] requester=${requesterEmail} filename=${filename} size=${size || 'unknown'}`);
 
-        // Validate input
-        if (!filename || !contentType || !size) {
+        // Validate required input
+        if (!filename || !contentType) {
             return json(400, { 
                 ok: false,
                 code: 'missing_fields',
-                error: 'Missing required fields: filename, contentType, size' 
+                error: 'Missing required fields: filename, contentType' 
             });
         }
 
-        // Validate file size (limit to 10MB for training assets)
-        const maxSize = 10 * 1024 * 1024; // 10MB
-        if (parseInt(size, 10) > maxSize) {
-            return json(400, { 
-                ok: false,
-                code: 'file_too_large',
-                error: `File size exceeds maximum of ${Math.round(maxSize / (1024 * 1024))}MB` 
-            });
+        // Derive assetType from filename if not provided
+        let derivedAssetType = assetType;
+        if (!derivedAssetType) {
+            const ext = filename.split('.').pop().toLowerCase();
+            if (['svg', 'scad', 'jsonl'].includes(ext)) {
+                derivedAssetType = ext;
+            } else {
+                return json(400, { 
+                    ok: false,
+                    code: 'unsupported_extension',
+                    error: 'Unsupported file extension. Must be: svg, scad, or jsonl' 
+                });
+            }
+        }
+
+        // Validate file size if provided (limit to 10MB for training assets)
+        if (size) {
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (parseInt(size, 10) > maxSize) {
+                return json(400, { 
+                    ok: false,
+                    code: 'file_too_large',
+                    error: `File size exceeds maximum of ${Math.round(maxSize / (1024 * 1024))}MB` 
+                });
+            }
         }
 
         // Validate content type
@@ -67,9 +84,14 @@ export const handler = async (event, context) => {
             });
         }
 
-        // Generate object path with timestamp
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const objectPath = `training-assets/${timestamp}-${filename}`;
+        // Generate date-prefixed object path
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const uuid = Math.random().toString(36).substring(2, 15);
+        const safeFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const objectPath = `${year}/${month}/${day}/${uuid}_${safeFilename}`;
         const bucketName = process.env.SUPABASE_STORAGE_BUCKET_TRAINING || 'training-assets';
 
         console.log('📁 [admin-create-signed-upload] Creating signed URL for:', { 
@@ -99,11 +121,10 @@ export const handler = async (event, context) => {
 
         return json(200, {
             ok: true,
-            uploadUrl: uploadData.signedUrl,
-            objectPath: objectPath,
+            bucket: bucketName,
+            object_path: objectPath,
             token: uploadData.token,
-            expiresIn: 3600,
-            bucketName: bucketName
+            assetType: derivedAssetType
         });
 
     } catch (error) {

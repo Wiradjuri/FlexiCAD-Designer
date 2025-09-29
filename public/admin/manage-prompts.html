@@ -753,6 +753,7 @@
         body: JSON.stringify({
           filename: file.name,
           contentType: file.type || 'application/octet-stream',
+          size: file.size,
           assetType: ext.slice(1), // svg|scad|jsonl
           tags: []
         })
