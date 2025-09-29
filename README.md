@@ -148,7 +148,18 @@ window.FlexiCADConfig = {
 };
 ```
 
-### 5. Development Server
+### 5. Database Migrations
+
+Run the database migrations to set up AI learning and promo code systems:
+
+```bash
+# See MIGRATIONS.md for detailed steps
+# Apply all migrations by running the SQL files in your Supabase SQL editor:
+# 1. database/setup_ai_learning.sql
+# 2. database/setup_promo_codes.sql
+```
+
+### 6. Development Server
 
 ```bash
 # Install Netlify CLI globally
@@ -160,17 +171,40 @@ netlify dev
 
 The app will be available at `http://localhost:8888`
 
+### 7. Testing
+
+```bash
+# Run integration tests against local dev server
+npm run test:dev
+
+# Run tests against production
+npm run test:prod
+
+# Just run npm test (defaults to local)
+npm test
+```
+
 ## 🚀 Deployment
 
 ### Netlify Deployment
 
 1. Connect your repository to Netlify
 2. Set environment variables in Netlify dashboard:
-   - `SUPABASE_URL`
-   - `SUPABASE_ANON_KEY`
-   - `OPENAI_API_KEY`
+
+**Required Environment Variables:**
+   - `SUPABASE_URL` - Your Supabase project URL
+   - `SUPABASE_ANON_KEY` - Supabase anonymous key
+   - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (for server functions)
+   - `OPENAI_API_KEY` - OpenAI API key for AI generation
+   - `STRIPE_SECRET_KEY` - Stripe secret key for payments
+   - `STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
+
+**Optional Environment Variables:**
+   - `TEST_USER_EMAIL` - Email for integration testing
+   - `ADMIN_EMAIL` - Admin email for promo code management (defaults to bmuzza1992@gmail.com)
+
 3. Deploy settings:
-   - Build command: (leave empty for static site)
+   - Build command: `npm run build`
    - Publish directory: `public`
    - Functions directory: `netlify/functions`
 
@@ -181,15 +215,43 @@ The app will be available at `http://localhost:8888`
 netlify deploy --prod
 ```
 
+## 🧪 Testing
+
+FlexiCAD Designer includes comprehensive integration tests that verify:
+
+- Configuration loading and security
+- Payment-first authentication enforcement
+- Promo code system functionality
+- AI learning system integration
+- All Netlify functions availability
+
+**Running Tests:**
+
+```bash
+# Local development testing
+npm run test:dev
+
+# Production testing
+npm run test:prod
+```
+
+**Test Coverage:**
+- ✅ Secure configuration loading
+- ✅ Authentication and payment gates
+- ✅ Promo code validation and management
+- ✅ AI feedback system
+- ✅ Function availability and error handling
+
 ## 📚 Usage Guide
 
 ### For Users
 
-1. **Registration**: Create an account at the homepage
+1. **Registration**: Create an account and complete payment at the homepage
 2. **AI Generation**:
-   - Go to "AI Generator"
+   - Go to "AI Generator" (requires payment)
    - Describe your design in detail
    - Review and customize generated OpenSCAD code
+   - Rate the generation and provide feedback
    - Save to your design library
 3. **Templates**:
    - Browse the template library
@@ -198,6 +260,18 @@ netlify deploy --prod
 4. **Design Management**:
    - Access "My Designs" to view saved designs
    - Copy, download, or delete designs
+
+### For Administrators
+
+1. **Promo Code Management**:
+   - Access `/manage-promo.html` (admin-only)
+   - Create, update, and disable promo codes
+   - Monitor promo code usage
+
+2. **AI Learning Data**:
+   - User feedback is automatically collected
+   - AI improvements are applied based on user ratings
+   - Training data builds over time
    - Organize your design portfolio
 
 ### Example AI Prompts

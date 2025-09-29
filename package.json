@@ -9,7 +9,9 @@
     "build:secure": "echo 'Configuration is now served securely from /.netlify/functions/get-public-config'",
     "build:restore": "echo 'Template mode - using secure server-side config'",
     "start": "netlify dev",
-    "test": "echo 'No tests specified'"
+    "test": "node tests/integration-test.js",
+    "test:dev": "TEST_BASE_URL=http://localhost:8888 node tests/integration-test.js",
+    "test:prod": "TEST_BASE_URL=https://flexicad.com.au node tests/integration-test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",
@@ -19,7 +21,8 @@
   },
   "devDependencies": {
     "dotenv": "^16.6.1",
-    "netlify-cli": "^17.15.4"
+    "netlify-cli": "^17.15.4",
+    "node-fetch": "^2.7.0"
   },
   "keywords": [
     "3d-design",
