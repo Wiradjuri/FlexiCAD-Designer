@@ -1,6 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 
-// Admin endpoint to list user feedback for review
+// Admin endpoint to list curated training examples
 exports.handler = async (event, context) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
@@ -49,67 +49,48 @@ exports.handler = async (event, context) => {
 
         // Parse query parameters
         const params = event.queryStringParameters || {};
-        const status = params.status || 'pending';
-        const search = params.search || '';
+        const tag = params.tag; // filter by tag
+        const template = params.template; // filter by template/category
         const page = parseInt(params.page || '1', 10);
         const limit = parseInt(params.limit || '50', 10);
         const offset = (page - 1) * limit;
 
         // Build query
         let query = supabase
-            .from('ai_feedback')
-            .select(`
-                id,
-                created_at,
-                quality_score,
-                quality_label,
-                feedback_text,
-                design_prompt,
-                template_name,
-                user_id,
-                review_status,
-                reviewed_by,
-                reviewed_at,
-                profiles!inner(email)
-            `)
-            .eq('review_status', status)
+            .from('ai_training_examples')
+            .select('*', { count: 'exact' })
+            .eq('active', true)
             .order('created_at', { ascending: false })
             .range(offset, offset + limit - 1);
 
-        // Add search filter if provided
-        if (search.trim()) {
-            query = query.or(`feedback_text.ilike.%${search}%,design_prompt.ilike.%${search}%,template_name.ilike.%${search}%`);
+        // Apply filters
+        if (tag) {
+            query = query.contains('tags', [tag]);
         }
 
-        const { data: feedback, error: feedbackError } = await query;
+        if (template) {
+            query = query.eq('category', template);
+        }
 
-        if (feedbackError) {
-            console.error('Feedback query error:', feedbackError);
+        const { data: examples, error: examplesError, count } = await query;
+
+        if (examplesError) {
+            console.error('🔥 [admin_training_examples_list] Query error:', examplesError);
             return {
                 statusCode: 500,
                 headers,
-                body: JSON.stringify({ error: 'Failed to load feedback' }),
+                body: JSON.stringify({ error: 'Failed to list training examples' }),
             };
         }
 
-        // Get total count for pagination
-        let countQuery = supabase
-            .from('ai_feedback')
-            .select('id', { count: 'exact', head: true })
-            .eq('review_status', status);
-            
-        if (search.trim()) {
-            countQuery = countQuery.or(`feedback_text.ilike.%${search}%,design_prompt.ilike.%${search}%,template_name.ilike.%${search}%`);
-        }
-
-        const { count, error: countError } = await countQuery;
+        console.log(`📚 [admin_training_examples_list] Listed ${examples?.length || 0} training examples`);
 
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({
                 ok: true,
-                feedback: feedback || [],
+                examples: examples || [],
                 pagination: {
                     page,
                     limit,
@@ -117,14 +98,14 @@ exports.handler = async (event, context) => {
                     totalPages: Math.ceil((count || 0) / limit)
                 },
                 filters: {
-                    status,
-                    search
+                    tag: tag || null,
+                    template: template || null
                 }
             }),
         };
 
     } catch (error) {
-        console.error('Admin feedback list error:', error);
+        console.error('🔥 [admin_training_examples_list] Error:', error);
         return {
             statusCode: 500,
             headers,

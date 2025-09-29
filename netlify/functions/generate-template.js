@@ -205,8 +205,60 @@ async function getUserLearningHistory(userId, limit = 10) {
   }
 }
 
+// Load curated training examples and assets for enhanced learning
+async function loadCuratedLearningData(category, tags = [], limit = 5) {
+  const curatedExamples = [];
+  const trainingAssets = { svg: 0, scad: 0, jsonl: 0 };
+  
+  try {
+    // Load curated examples from ai_training_examples table
+    const { data: examples, error: examplesError } = await supabaseService
+      .from('ai_training_examples')
+      .select('input_prompt, generated_code, quality_score, quality_label, tags, category')
+      .eq('active', true)
+      .gte('quality_score', 4) // Only high-quality examples (4-5 stars)
+      .order('quality_score', { ascending: false })
+      .limit(limit);
+
+    if (!examplesError && examples) {
+      // Filter by category and tags if provided
+      const filteredExamples = examples.filter(example => {
+        const categoryMatch = !category || example.category === category;
+        const tagMatch = tags.length === 0 || tags.some(tag => 
+          example.tags && example.tags.includes(tag)
+        );
+        return categoryMatch || tagMatch;
+      });
+
+      curatedExamples.push(...filteredExamples.slice(0, limit));
+    }
+
+    // Load training assets metadata (not full content - just references)
+    const { data: assets, error: assetsError } = await supabaseService
+      .from('training_assets')
+      .select('asset_type, filename, tags')
+      .eq('active', true);
+
+    if (!assetsError && assets) {
+      assets.forEach(asset => {
+        if (trainingAssets[asset.asset_type] !== undefined) {
+          trainingAssets[asset.asset_type]++;
+        }
+      });
+    }
+
+    console.log(`📚 [loadCuratedLearningData] Loaded ${curatedExamples.length} curated examples (category: ${category || 'any'})`);
+    console.log(`📋 [loadCuratedLearningData] Referenced assets: svg:${trainingAssets.svg}, scad:${trainingAssets.scad}, jsonl:${trainingAssets.jsonl}`);
+
+  } catch (error) {
+    console.warn('⚠️ [loadCuratedLearningData] Failed to load curated data:', error.message);
+  }
+
+  return { curatedExamples, trainingAssets };
+}
+
 // Build enhanced system prompt with learning context
-function buildEnhancedSystemPrompt(prompt, similarPatterns, userHistory, trainingData, similarUserPrompts = []) {
+function buildEnhancedSystemPrompt(prompt, similarPatterns, userHistory, trainingData, similarUserPrompts = [], curatedData = null) {
   let systemPrompt = `You are an expert OpenSCAD developer with access to DUAL LEARNING SOURCES: a comprehensive reference library AND personalized user learning history. Generate clean, well-commented, parametric OpenSCAD code based on the user's description.
 
 🎓 LEARNING ARCHITECTURE:
@@ -298,6 +350,30 @@ CORE GUIDELINES:
     systemPrompt += `\n🚨 MANDATE: Apply the user's corrections and preferences from above. Don't repeat mistakes they've already fixed!`;
   } else {
     systemPrompt += `\n\n👤 USER LEARNING: No user history yet - relying on reference library patterns for best practices.`;
+  }
+
+  // Add curated training examples if available - ADMIN CURATED LEARNING
+  if (curatedData && curatedData.curatedExamples.length > 0) {
+    systemPrompt += `\n\n✨ ADMIN CURATED EXAMPLES (${curatedData.curatedExamples.length} high-quality examples):\n`;
+    systemPrompt += `These are manually reviewed and approved examples with 4-5 star ratings:\n`;
+    
+    curatedData.curatedExamples.slice(0, 3).forEach((example, index) => {
+      systemPrompt += `\n=== CURATED EXAMPLE ${index + 1} (${example.quality_score}★ ${example.quality_label}) ===\n`;
+      systemPrompt += `Prompt: "${example.input_prompt}"\n`;
+      systemPrompt += `Quality Code:\n${example.generated_code.substring(0, 600)}${example.generated_code.length > 600 ? '...' : ''}\n`;
+      if (example.tags && example.tags.length > 0) {
+        systemPrompt += `Tags: ${example.tags.join(', ')}\n`;
+      }
+    });
+    
+    systemPrompt += `\n🏆 USE THESE: Apply the patterns and quality standards from these curated examples!`;
+  }
+
+  // Add training assets reference if available
+  if (curatedData && (curatedData.trainingAssets.svg > 0 || curatedData.trainingAssets.scad > 0 || curatedData.trainingAssets.jsonl > 0)) {
+    systemPrompt += `\n\n📋 TRAINING ASSETS AVAILABLE:\n`;
+    systemPrompt += `Referenced training files: SVG:${curatedData.trainingAssets.svg}, SCAD:${curatedData.trainingAssets.scad}, JSONL:${curatedData.trainingAssets.jsonl}\n`;
+    systemPrompt += `💡 Follow conventions from available reference assets when applicable.`;
   }
 
   systemPrompt += `\n\n🔄 SYNTHESIS INSTRUCTION: 
@@ -457,18 +533,23 @@ exports.handler = async (event, context) => {
     // Find similar user prompts for better learning
     const similarUserPrompts = findSimilarUserPrompts(prompt, userHistory);
     
-    // Enhanced logging to verify both learning sources are active
+    // Load curated training examples and assets - ADMIN CURATED LEARNING
+    const curatedData = await loadCuratedLearningData(category, [], 5);
+    
+    // Enhanced logging to verify all learning sources are active
     console.log(`🎓 LEARNING SOURCES ACTIVE:`);
     console.log(`  📚 Reference Training Data: ${trainingData.examples ? trainingData.examples.length : 0} examples loaded`);
     console.log(`  👤 User Learning History: ${userHistory.length} user sessions`);
     console.log(`  🔍 Similar Reference Patterns: ${similarPatterns.length} found`);
     console.log(`  🎯 Similar User Prompts: ${similarUserPrompts.length} found`);
-    console.log(`  📊 Combined Learning: Reference + User corrections + Feedback`);
+    console.log(`  ✨ Curated Examples: ${curatedData.curatedExamples.length} admin-approved examples`);
+    console.log(`  📋 Training Assets: ${curatedData.trainingAssets.svg + curatedData.trainingAssets.scad + curatedData.trainingAssets.jsonl} reference files`);
+    console.log(`  📊 Combined Learning: Reference + User corrections + Admin curation + Feedback`);
     
     // Build enhanced system prompt
-    const systemPrompt = buildEnhancedSystemPrompt(prompt, similarPatterns, userHistory, trainingData, similarUserPrompts);
+    const systemPrompt = buildEnhancedSystemPrompt(prompt, similarPatterns, userHistory, trainingData, similarUserPrompts, curatedData);
     
-    console.log(`Generating ${complexity} ${category} design with ${similarPatterns.length} similar patterns and ${userHistory.length} user examples`);
+    console.log(`Generating ${complexity} ${category} design with ${similarPatterns.length} similar patterns, ${userHistory.length} user examples, and ${curatedData.curatedExamples.length} curated examples`);
 
     // Generate with OpenAI
     const completion = await openai.chat.completions.create({

@@ -5,14 +5,14 @@ exports.handler = async (event, context) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Methods': 'DELETE, OPTIONS',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
     };
 
     if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 200, headers, body: '' };
     }
 
-    if (event.httpMethod !== 'DELETE') {
+    if (event.httpMethod !== 'POST') {
         return {
             statusCode: 405,
             headers,
@@ -47,11 +47,11 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // Get asset ID from query parameters
-        const params = event.queryStringParameters || {};
-        const assetId = params.id;
+        // Parse request body
+        const body = JSON.parse(event.body || '{}');
+        const { id } = body;
         
-        if (!assetId) {
+        if (!id) {
             return {
                 statusCode: 400,
                 headers,
@@ -59,21 +59,45 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // Delete from Supabase Storage
-        const bucketName = process.env.SUPABASE_STORAGE_BUCKET_TRAINING || 'training-assets';
-        const filePath = `uploads/${assetId}`;
-        
-        const { data, error: deleteError } = await supabase.storage
-            .from(bucketName)
-            .remove([filePath]);
+        // Get asset record from database
+        const { data: asset, error: fetchError } = await supabase
+            .from('training_assets')
+            .select('*')
+            .eq('id', id)
+            .single();
 
-        if (deleteError) {
-            console.error('Delete file error:', deleteError);
+        if (fetchError || !asset) {
+            return {
+                statusCode: 404,
+                headers,
+                body: JSON.stringify({ error: 'Training asset not found' }),
+            };
+        }
+
+        // Delete from database (soft delete by setting active = false)
+        const { error: dbDeleteError } = await supabase
+            .from('training_assets')
+            .update({ active: false, updated_at: new Date().toISOString() })
+            .eq('id', id);
+
+        if (dbDeleteError) {
+            console.error('🔥 [admin_delete_training_asset] Database delete error:', dbDeleteError);
             return {
                 statusCode: 500,
                 headers,
-                body: JSON.stringify({ error: 'Failed to delete training asset' }),
+                body: JSON.stringify({ error: 'Failed to delete training asset from database' }),
             };
+        }
+
+        // Also delete from Supabase Storage
+        const bucketName = process.env.SUPABASE_STORAGE_BUCKET_TRAINING || 'training-assets';
+        const { error: storageDeleteError } = await supabase.storage
+            .from(bucketName)
+            .remove([asset.object_path]);
+
+        // Don't fail if storage deletion fails - the DB record is already marked inactive
+        if (storageDeleteError) {
+            console.warn('⚠️ [admin_delete_training_asset] Storage delete failed:', storageDeleteError.message);
         }
 
         // Log to admin audit
@@ -84,15 +108,20 @@ exports.handler = async (event, context) => {
                     admin_email: user.email,
                     action: 'training_asset_delete',
                     resource_type: 'training_asset',
-                    resource_id: assetId,
+                    resource_id: id,
                     details: {
-                        bucketPath: filePath,
-                        deletedAt: new Date().toISOString()
+                        filename: asset.filename,
+                        object_path: asset.object_path,
+                        asset_type: asset.asset_type,
+                        deletedAt: new Date().toISOString(),
+                        storage_deleted: !storageDeleteError
                     }
                 }]);
         } catch (auditError) {
-            console.warn('Failed to log admin audit:', auditError.message);
+            console.warn('⚠️ [admin_delete_training_asset] Failed to log admin audit:', auditError.message);
         }
+
+        console.log(`🗑️ [admin_delete_training_asset] Deleted: ${asset.filename} (${id})`);
 
         return {
             statusCode: 200,
@@ -100,8 +129,9 @@ exports.handler = async (event, context) => {
             body: JSON.stringify({
                 ok: true,
                 message: 'Training asset deleted successfully',
-                assetId,
-                deletedFiles: data
+                id,
+                filename: asset.filename,
+                storage_deleted: !storageDeleteError
             }),
         };
 

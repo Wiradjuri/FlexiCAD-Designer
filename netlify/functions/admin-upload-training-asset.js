@@ -1,21 +1,18 @@
 const { createClient } = require('@supabase/supabase-js');
-const formidable = require('formidable');
-const fs = require('fs');
-const path = require('path');
 
-// Admin endpoint to upload training assets (SVG/SCAD/JSONL)
+// Admin endpoint to list training assets from database
 exports.handler = async (event, context) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
     };
 
     if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 200, headers, body: '' };
     }
 
-    if (event.httpMethod !== 'POST') {
+    if (event.httpMethod !== 'GET') {
         return {
             statusCode: 405,
             headers,
@@ -50,150 +47,85 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // Parse multipart form data
-        const form = formidable({
-            maxFileSize: 10 * 1024 * 1024, // 10MB max
-            allowEmptyFiles: false,
-            multiples: true
-        });
+        // Parse query parameters
+        const params = event.queryStringParameters || {};
+        const assetType = params.assetType; // filter by 'svg', 'scad', 'jsonl'
+        const q = params.q || ''; // search query
+        const page = parseInt(params.page || '1', 10);
+        const limit = parseInt(params.limit || '50', 10);
+        const offset = (page - 1) * limit;
 
-        return new Promise((resolve) => {
-            form.parse(event.body, async (err, fields, files) => {
-                if (err) {
-                    resolve({
-                        statusCode: 400,
-                        headers,
-                        body: JSON.stringify({ error: 'Failed to parse upload' })
-                    });
-                    return;
-                }
+        // Build query
+        let query = supabase
+            .from('training_assets')
+            .select('*', { count: 'exact' })
+            .eq('active', true)
+            .order('created_at', { ascending: false })
+            .range(offset, offset + limit - 1);
 
-                const file = files.file && files.file[0] ? files.file[0] : files.file;
-                
-                if (!file) {
-                    resolve({
-                        statusCode: 400,
-                        headers,
-                        body: JSON.stringify({ error: 'No file provided' })
-                    });
-                    return;
-                }
+        // Apply filters
+        if (assetType) {
+            query = query.eq('asset_type', assetType);
+        }
 
-                // Validate file type
-                const allowedTypes = ['.svg', '.scad', '.jsonl'];
-                const fileExt = path.extname(file.originalFilename || '').toLowerCase();
-                
-                if (!allowedTypes.includes(fileExt)) {
-                    resolve({
-                        statusCode: 400,
-                        headers,
-                        body: JSON.stringify({ 
-                            error: `Invalid file type. Allowed: ${allowedTypes.join(', ')}` 
-                        })
-                    });
-                    return;
-                }
+        if (q.trim()) {
+            query = query.or(`filename.ilike.%${q}%,tags.cs.{${q}}`);
+        }
 
+        const { data: assets, error: assetsError, count } = await query;
+
+        if (assetsError) {
+            console.error('🔥 [admin_list_training_assets] Query error:', assetsError);
+            return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({ error: 'Failed to list training assets' }),
+            };
+        }
+
+        // Generate signed URLs for assets
+        const bucketName = process.env.SUPABASE_STORAGE_BUCKET_TRAINING || 'training-assets';
+        const assetsWithUrls = await Promise.all(
+            (assets || []).map(async (asset) => {
                 try {
-                    // Read file content
-                    const fileContent = fs.readFileSync(file.filepath);
-                    
-                    // Basic content validation
-                    const contentStr = fileContent.toString('utf8');
-                    if (fileExt === '.jsonl') {
-                        // Validate JSONL format
-                        const lines = contentStr.split('\n').filter(l => l.trim());
-                        for (const line of lines) {
-                            JSON.parse(line); // This will throw if invalid JSON
-                        }
-                    }
-
-                    // Generate unique filename
-                    const timestamp = Date.now();
-                    const safeFilename = `${timestamp}_${file.originalFilename.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-                    
-                    // Upload to Supabase Storage
-                    const bucketName = process.env.SUPABASE_STORAGE_BUCKET_TRAINING || 'training-assets';
-                    
-                    const { data: uploadData, error: uploadError } = await supabase.storage
-                        .from(bucketName)
-                        .upload(`uploads/${safeFilename}`, fileContent, {
-                            contentType: file.mimetype || 'application/octet-stream',
-                            metadata: {
-                                uploadedBy: user.email,
-                                originalName: file.originalFilename,
-                                fileType: fileExt,
-                                uploadedAt: new Date().toISOString()
-                            }
-                        });
-
-                    if (uploadError) {
-                        console.error('Upload error:', uploadError);
-                        resolve({
-                            statusCode: 500,
-                            headers,
-                            body: JSON.stringify({ error: 'Failed to upload file' })
-                        });
-                        return;
-                    }
-
-                    // Get signed URL for access
                     const { data: urlData } = await supabase.storage
                         .from(bucketName)
-                        .createSignedUrl(`uploads/${safeFilename}`, 86400); // 24 hours
+                        .createSignedUrl(asset.object_path, 3600); // 1 hour
 
-                    // Log to admin audit
-                    try {
-                        await supabase
-                            .from('admin_audit')
-                            .insert([{
-                                admin_email: user.email,
-                                action: 'training_asset_upload',
-                                resource_type: 'training_asset',
-                                resource_id: safeFilename,
-                                details: {
-                                    originalName: file.originalFilename,
-                                    fileType: fileExt,
-                                    fileSize: file.size,
-                                    bucketPath: uploadData.path
-                                }
-                            }]);
-                    } catch (auditError) {
-                        console.warn('Failed to log admin audit:', auditError.message);
-                    }
-
-                    resolve({
-                        statusCode: 200,
-                        headers,
-                        body: JSON.stringify({
-                            ok: true,
-                            asset: {
-                                id: safeFilename,
-                                name: file.originalFilename,
-                                type: fileExt,
-                                size: file.size,
-                                path: uploadData.path,
-                                url: urlData?.signedUrl,
-                                uploadedAt: new Date().toISOString()
-                            }
-                        })
-                    });
-
-                } catch (uploadError) {
-                    console.error('Asset upload error:', uploadError);
-                    resolve({
-                        statusCode: 500,
-                        headers,
-                        body: JSON.stringify({ 
-                            error: uploadError.message 
-                        })
-                    });
+                    return {
+                        ...asset,
+                        url: urlData?.signedUrl
+                    };
+                } catch (urlError) {
+                    console.warn(`Failed to create signed URL for ${asset.object_path}:`, urlError.message);
+                    return asset; // Return without URL if error
                 }
-            });
-        });
+            })
+        );
+
+        console.log(`📋 [admin_list_training_assets] Listed ${assets?.length || 0} assets (${assetType || 'all'} types)`);
+
+        return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({
+                ok: true,
+                assets: assetsWithUrls,
+                pagination: {
+                    page,
+                    limit,
+                    total: count || 0,
+                    totalPages: Math.ceil((count || 0) / limit)
+                },
+                filters: {
+                    assetType: assetType || null,
+                    search: q || null
+                }
+            }),
+        };
 
     } catch (error) {
-        console.error('Admin upload training asset error:', error);
+        console.error('🔥 [admin_list_training_assets] Error:', error);
         return {
             statusCode: 500,
             headers,

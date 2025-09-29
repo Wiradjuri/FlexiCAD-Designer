@@ -180,7 +180,29 @@ SELECT 'Admin access configured for: bmuzza1992@gmail.com' as admin_info;
 -- - Optional table - only needed for webhook monitoring
 ```
 
-**D) Supabase Storage Setup**
+**D) Training Assets Database Table**
+
+```sql
+-- Copy and paste the contents of database/training_assets_schema.sql
+-- This creates training_assets table for uploaded file metadata:
+-- - Stores SVG/SCAD/JSONL file metadata
+-- - Admin-only RLS policies via is_admin() helper function
+-- - Supports tagging and file categorization
+-- - Tracks upload metadata and file paths
+```
+
+**E) AI Feedback Table with Review Workflow**
+
+```sql
+-- Copy and paste the contents of database/ai_feedback_schema.sql
+-- This creates proper ai_feedback table with review workflow:
+-- - Stores user feedback with quality scores and ratings
+-- - Admin review workflow with pending/accepted/rejected states
+-- - Audit trail for admin decisions
+-- - Integration with ai_training_examples for accepted feedback
+```
+
+**F) Supabase Storage Setup**
 
 For training assets management, create a storage bucket:
 

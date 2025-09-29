@@ -12,7 +12,7 @@ class DatabaseHelper {
     /**
      * Check what columns exist in the profiles table
      */
-    async checkProfileColumns() {
+    async checkProfileRows() {
         try {
             // Try to get table info from information_schema
             const { data, error } = await this.supabaseClient
