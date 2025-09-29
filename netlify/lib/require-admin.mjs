@@ -64,7 +64,7 @@ export async function requireAdmin(event) {
     allowList: Array.from(allow) 
   });
 
-  // Check database allow-list
+  // Check database allow-list (admin_emails table)
   let dbAllow = false;
   try {
     const { data: row, error: dbError } = await supabase
@@ -80,29 +80,54 @@ export async function requireAdmin(event) {
     dbAllow = false;
   }
 
-  if (!envAllow && !dbAllow) {
+  // Check profiles.is_admin flag
+  let profileAdmin = false;
+  try {
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', userRes.user.id)
+      .maybeSingle();
+    
+    profileAdmin = !!profile?.is_admin;
+    console.log('👤 [require-admin] Profile admin check:', { profileAdmin, profileError: profileError?.message });
+  } catch (profileErr) {
+    console.warn('⚠️ [require-admin] Profile check failed:', profileErr.message);
+    profileAdmin = false;
+  }
+
+  // Accept admin if ANY of the three checks pass
+  const isAdmin = envAllow || dbAllow || profileAdmin;
+  
+  if (!isAdmin) {
     console.warn('🚫 [require-admin] Access denied:', { 
       requesterEmail, 
       envAllow, 
       dbAllow,
+      profileAdmin,
       envList: Array.from(allow)
     });
     return { 
       ok: false, 
       status: 403, 
       code: 'admin_required', 
-      error: 'Admin access required', 
-      context: { requesterEmail, envAllow, dbAllow } 
+      error: 'Admin access required'
     };
   }
 
   console.log('✅ [require-admin] Access granted:', { 
     requesterEmail, 
     envAllow, 
-    dbAllow 
+    dbAllow,
+    profileAdmin
   });
   
-  return { ok: true, requesterEmail, supabase };
+  return { 
+    ok: true, 
+    requesterEmail, 
+    requesterId: userRes.user.id,
+    supabase 
+  };
 }
 
 export { corsHeaders, json };

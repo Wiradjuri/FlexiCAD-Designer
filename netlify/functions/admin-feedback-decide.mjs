@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { requireAdmin, corsHeaders, json } from '../lib/require-admin.mjs';
 
 // Admin endpoint to accept/reject feedback for training with proper state management
 export const handler = async (event, context) => {
@@ -7,58 +8,24 @@ export const handler = async (event, context) => {
         path: event.path
     });
 
-    const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    };
-
     if (event.httpMethod === 'OPTIONS') {
-        return { statusCode: 200, headers, body: '' };
+        return { statusCode: 200, headers: corsHeaders, body: '' };
     }
 
     if (event.httpMethod !== 'POST') {
-        return {
-            statusCode: 405,
-            headers,
-            body: JSON.stringify({ ok: false, code: 'method_not_allowed', error: 'Method not allowed' }),
-        };
+        return json(405, { ok: false, code: 'method_not_allowed', error: 'Method not allowed' });
     }
 
+    // Check admin access using robust helper
+    const gate = await requireAdmin(event);
+    if (!gate.ok) {
+        return json(gate.status, { ok: false, code: gate.code, error: gate.error });
+    }
+    
+    const requesterEmail = gate.requesterEmail;
+    const supabase = gate.supabase; // service client
+
     try {
-        // Verify admin access
-        const authHeader = event.headers.authorization || event.headers.Authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return {
-                statusCode: 401,
-                headers,
-                body: JSON.stringify({ ok: false, code: 'unauthorized', error: 'Authorization required' }),
-            };
-        }
-
-        const token = authHeader.substring(7);
-        
-        // Use service-role client for admin operations (bypasses RLS)
-        const supabase = createClient(
-            process.env.SUPABASE_URL,
-            process.env.SUPABASE_SERVICE_ROLE_KEY,
-            { auth: { persistSession: false } }
-        );
-
-        // Verify user auth but use service role for data operations
-        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-        
-        if (authError || !user || user.email !== process.env.ADMIN_EMAIL) {
-            console.log('❌ [admin-feedback-decide] Admin access denied:', { 
-                email: user?.email, 
-                expected: process.env.ADMIN_EMAIL 
-            });
-            return {
-                statusCode: 403,
-                headers,
-                body: JSON.stringify({ ok: false, code: 'forbidden', error: 'Admin access required' }),
-            };
-        }
 
         // Parse and validate request body
         const body = JSON.parse(event.body || '{}');
@@ -66,18 +33,14 @@ export const handler = async (event, context) => {
 
         // Validate input
         if (!feedback_id || !decision || !['accept', 'reject'].includes(decision)) {
-            return {
-                statusCode: 400,
-                headers,
-                body: JSON.stringify({ 
-                    ok: false,
-                    code: 'invalid_input',
-                    error: 'feedback_id and decision (accept/reject) are required'
-                }),
-            };
+            return json(400, { 
+                ok: false,
+                code: 'invalid_input',
+                error: 'feedback_id and decision (accept/reject) are required'
+            });
         }
 
-        console.log(`🎯 [admin-feedback-decide] ${user.email} ${decision}ing feedback ${feedback_id}`);
+        console.log(`[admin][feedback-decide] requester=${requesterEmail} id=${feedback_id} decision=${decision}`);
 
         // Start transaction-like operations
         let promotedExampleId = null;
@@ -91,36 +54,28 @@ export const handler = async (event, context) => {
 
         if (feedbackError || !feedback) {
             console.log('❌ [admin-feedback-decide] Feedback not found:', feedback_id);
-            return {
-                statusCode: 404,
-                headers,
-                body: JSON.stringify({ 
-                    ok: false,
-                    code: 'not_found',
-                    error: 'Feedback not found',
-                    feedback_id 
-                }),
-            };
+            return json(404, { 
+                ok: false,
+                code: 'not_found',
+                error: 'Feedback not found',
+                feedback_id 
+            });
         }
 
         // Check if already reviewed (idempotent operation)
         if (feedback.review_status !== 'pending') {
             console.log(`ℹ️ [admin-feedback-decide] Feedback ${feedback_id} already ${feedback.review_status}`);
-            return {
-                statusCode: 200,
-                headers,
-                body: JSON.stringify({
-                    ok: true,
-                    message: `Feedback already ${feedback.review_status}`,
-                    feedback: {
-                        id: feedback.id,
-                        review_status: feedback.review_status,
-                        reviewed_by: feedback.reviewed_by,
-                        reviewed_at: feedback.reviewed_at
-                    },
-                    promoted_example_id: null // already processed
-                }),
-            };
+            return json(200, {
+                ok: true,
+                message: `Feedback already ${feedback.review_status}`,
+                feedback: {
+                    id: feedback.id,
+                    review_status: feedback.review_status,
+                    reviewed_by: feedback.reviewed_by,
+                    reviewed_at: feedback.reviewed_at
+                },
+                promoted_example_id: null // already processed
+            });
         }
 
         const now = new Date().toISOString();
@@ -137,7 +92,7 @@ export const handler = async (event, context) => {
                 tags: tags || ['admin-approved'],
                 category: feedback.template_name || 'general',
                 complexity_level: 'intermediate', // default
-                created_by: user.email,
+                created_by: requesterEmail,
                 active: true
             };
 
@@ -152,16 +107,12 @@ export const handler = async (event, context) => {
 
             if (exampleError) {
                 console.error('❌ [admin-feedback-decide] Failed to create training example:', exampleError);
-                return {
-                    statusCode: 500,
-                    headers,
-                    body: JSON.stringify({ 
-                        ok: false,
-                        code: 'training_example_failed',
-                        error: 'Failed to create training example',
-                        details: exampleError.message
-                    }),
-                };
+                return json(500, { 
+                    ok: false,
+                    code: 'training_example_failed',
+                    error: 'Failed to create training example',
+                    details: exampleError.message
+                });
             }
 
             promotedExampleId = example.id;
@@ -173,7 +124,7 @@ export const handler = async (event, context) => {
             .from('ai_feedback')
             .update({
                 review_status: reviewStatus,
-                reviewed_by: user.email,
+                reviewed_by: requesterEmail,
                 reviewed_at: now,
                 updated_at: now
             })
@@ -183,16 +134,12 @@ export const handler = async (event, context) => {
 
         if (updateError) {
             console.error('❌ [admin-feedback-decide] Failed to update feedback status:', updateError);
-            return {
-                statusCode: 500,
-                headers,
-                body: JSON.stringify({ 
-                    ok: false,
-                    code: 'update_failed',
-                    error: 'Failed to update feedback status',
-                    details: updateError.message
-                }),
-            };
+            return json(500, { 
+                ok: false,
+                code: 'update_failed',
+                error: 'Failed to update feedback status',
+                details: updateError.message
+            });
         }
 
         // Step 4: Log audit entry (don't fail request if this fails)
@@ -200,7 +147,7 @@ export const handler = async (event, context) => {
             await supabase
                 .from('admin_audit')
                 .insert([{
-                    admin_email: user.email,
+                    admin_email: requesterEmail,
                     action: `feedback_${decision}`,
                     resource_type: 'ai_feedback',
                     resource_id: feedback_id,
@@ -217,35 +164,27 @@ export const handler = async (event, context) => {
             // Don't fail the request for audit logging issues
         }
 
-        console.log(`✅ [admin-feedback-decide] Feedback ${feedback_id} ${reviewStatus} by ${user.email}`);
+        console.log(`✅ [admin-feedback-decide] Feedback ${feedback_id} ${reviewStatus} by ${requesterEmail}`);
 
         // Return success with updated row
-        return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({
-                ok: true,
-                message: `Feedback ${reviewStatus} successfully`,
-                feedback: {
-                    id: updatedFeedback.id,
-                    review_status: updatedFeedback.review_status,
-                    reviewed_by: updatedFeedback.reviewed_by,
-                    reviewed_at: updatedFeedback.reviewed_at
-                },
-                promoted_example_id: promotedExampleId
-            }),
-        };
+        return json(200, {
+            ok: true,
+            message: `Feedback ${reviewStatus} successfully`,
+            feedback: {
+                id: updatedFeedback.id,
+                review_status: updatedFeedback.review_status,
+                reviewed_by: updatedFeedback.reviewed_by,
+                reviewed_at: updatedFeedback.reviewed_at
+            },
+            promoted_example_id: promotedExampleId
+        });
 
     } catch (error) {
         console.error('🔥 [admin-feedback-decide] Unexpected error:', error);
-        return {
-            statusCode: 500,
-            headers,
-            body: JSON.stringify({ 
-                ok: false,
-                code: 'internal_error',
-                error: error.message 
-            }),
-        };
+        return json(500, { 
+            ok: false,
+            code: 'internal_error',
+            error: error.message 
+        });
     }
 };

@@ -34,16 +34,48 @@
 - ✅ Transaction-based feedback decisions with idempotent operations and proper error handling
 - ✅ Created comprehensive smoke tests and integration tests
 
-**Files Modified:**
-- ✅ `netlify/functions/admin-feedback-list.mjs` - Production-grade error handling, proper response structure, admin auth
-- ✅ `netlify/functions/admin-feedback-decide.mjs` - Service-role client, transaction-based updates, idempotent operations
-- ✅ `netlify/functions/admin-commit-training-asset.mjs` - Enhanced JSONL validation with line-level error reporting
-- ✅ `public/admin/manage-prompts.html` - Fixed UI state updates, optimistic row updates, structured error handling
-- ✅ `scripts/smoke-admin-feedback-list.mjs` - Smoke test for admin feedback endpoints
-- ✅ `tests/phase-4-4-2-integration-test.mjs` - Comprehensive integration tests
+### Phase 4.4.2.1: Admin Gate Fix (COMPLETED ✅)
+**Goal:** Fix 403 "Admin access required" errors on admin endpoints
+
+**Problems Fixed:**
+- ✅ Robust admin authentication with dual allow-list (env + database)
+- ✅ Consistent admin detection across all admin functions
+- ✅ Proper logging of admin access decisions without leaking secrets
+- ✅ Standardized error handling with structured responses
+
+### Phase 4.4.2.2: Schema-Aware Admin Gate + Fix Feedback List 500 + Commit 403 (COMPLETED ✅)
+**Goal:** Complete admin system with schema-aware authentication and fix all remaining issues
+
+**Major Achievements:**
+- ✅ **Triple Admin Verification**: Environment + Database + Profiles.is_admin
+- ✅ **Fixed admin-feedback-list 500 errors**: Now returns proper `{ ok:true, items:[], total, page }` format
+- ✅ **Schema-matched queries**: Uses actual table columns (template, design_id, etc.)
+- ✅ **Enhanced JSONL validation**: Sample validation with proper error responses
+- ✅ **Consistent logging**: Structured admin access logging without secret leakage
+
+**Verification Results:**
+```
+✅ [require-admin] Access granted: {
+  requesterEmail: 'bmuzza1992@gmail.com',
+  envAllow: true,
+  dbAllow: true,
+  profileAdmin: false
+}
+GET /.netlify/functions/admin-feedback-list?status=pending → 200 OK
+[admin][feedback-list] requester=bmuzza1992@gmail.com status=pending page=1 rows=0
+```
+
+**Files Enhanced:**
+- ✅ `netlify/lib/require-admin.mjs` - Added profiles.is_admin check, triple verification
+- ✅ `netlify/functions/admin-feedback-list.mjs` - Fixed schema matching, consistent responses
+- ✅ `netlify/functions/admin-commit-training-asset.mjs` - Enhanced JSONL validation, proper upserts
+- ✅ `netlify/functions/admin-create-signed-upload.mjs` - Updated to use robust admin auth
+- ✅ `database/admin_emails_setup.sql` - Database admin allow-list table
+- ✅ `.env` - Added ADMIN_EMAILS environment variable
 
 **Technical Improvements:**
 - Service-role Supabase client for admin operations (bypasses RLS restrictions)
+- Dual admin verification: environment allow-list AND database allow-list
 - Structured logging with emoji banners for better debugging
 - JSONL validation: UTF-8 BOM stripping, CRLF handling, line-by-line parsing with 64KB limit
 - Optimistic UI updates with graceful error fallback and toast notifications

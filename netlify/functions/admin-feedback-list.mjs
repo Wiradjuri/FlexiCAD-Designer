@@ -35,111 +35,87 @@ export const handler = async (event, context) => {
         const page = Math.max(1, parseInt(params.page || '1', 10));
         const limit = Math.min(100, Math.max(1, parseInt(params.limit || '20', 10)));
 
-        console.log('📋 [admin-feedback-list] Query params:', { status, search, page, limit });
+        console.log(`[admin][feedback-list] requester=${requesterEmail} status=${status} page=${page} limit=${limit}`);
 
         // Validate status parameter
         if (!['pending', 'accepted', 'rejected', 'all'].includes(status)) {
-            return {
-                statusCode: 400,
-                headers,
-                body: JSON.stringify({ 
-                    ok: false, 
-                    code: 'invalid_status', 
-                    error: 'Status must be: pending, accepted, rejected, or all' 
-                }),
-            };
+            return json(400, { 
+                ok: false, 
+                code: 'invalid_status', 
+                error: 'Status must be: pending, accepted, rejected, or all' 
+            });
         }
 
-        // Build query from ai_feedback table
+        // Build query from ai_feedback table with schema-matched columns
         let query = supabase
             .from('ai_feedback')
             .select(`
                 id,
-                created_at,
-                updated_at,
+                user_id,
                 user_email,
-                design_prompt,
-                template_name,
+                template,
                 design_id,
+                design_prompt,
                 generated_code,
-                user_feedback,
                 quality_score,
-                quality_label,
                 feedback_text,
                 review_status,
                 reviewed_by,
                 reviewed_at,
-                generation_time_ms,
-                tokens_used
+                created_at
             `, { count: 'exact' })
             .order('created_at', { ascending: false });
-
-        // Filter by review status if not 'all'
-        if (status !== 'all') {
-            query = query.eq('review_status', status);
-        }
 
         // Add search filter if provided (escape % and _ for ILIKE)
         if (search.length > 0) {
             const escapedSearch = search.replace(/[%_]/g, '\\$&');
-            query = query.or(`user_email.ilike.%${escapedSearch}%,design_prompt.ilike.%${escapedSearch}%,template_name.ilike.%${escapedSearch}%,feedback_text.ilike.%${escapedSearch}%`);
+            query = query.or(`user_email.ilike.%${escapedSearch}%,template.ilike.%${escapedSearch}%,design_id.ilike.%${escapedSearch}%`);
         }
 
         // Apply pagination
-        const offset = (page - 1) * limit;
-        query = query.range(offset, offset + limit - 1);
+        const from = (page - 1) * limit;
+        const to = from + limit - 1;
+        query = query.range(from, to);
 
-        console.log('🔍 [admin-feedback-list] Executing query with filters:', { status, search, offset, limit });
+        console.log('🔍 [admin-feedback-list] Executing query with filters:', { status, search, from, to, limit });
 
-        const { data: feedback, error: feedbackError, count } = await query;
+        const { data: rows, error: feedbackError, count } = await query;
 
         if (feedbackError) {
             console.error('❌ [admin-feedback-list] Database query failed:', feedbackError);
-            return {
-                statusCode: 500,
-                headers,
-                body: JSON.stringify({ 
-                    ok: false,
-                    code: 'query_failed',
-                    error: 'Failed to load feedback',
-                    details: feedbackError.message
-                }),
-            };
+            return json(500, { 
+                ok: false,
+                code: 'db_error',
+                error: feedbackError.message
+            });
         }
 
-        const totalPages = Math.ceil((count || 0) / limit);
+        const totalPages = Math.max(1, Math.ceil((count || 0) / limit));
         
-        console.log('✅ [admin-feedback-list] Query successful:', { 
-            itemCount: feedback?.length || 0, 
-            total: count, 
-            page, 
-            totalPages 
-        });
+        console.log(`[admin][feedback-list] requester=${requesterEmail} status=${status} page=${page} rows=${rows?.length || 0}`);
 
-        return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({
-                ok: true,
-                items: feedback || [],
-                total: count || 0,
-                page,
-                totalPages,
-                limit,
-                filters: { status, search }
-            }),
-        };
+        return json(200, {
+            ok: true,
+            items: rows || [],
+            total: count || 0,
+            page,
+            totalPages,
+            limit
+        });
 
     } catch (error) {
         console.error('🔥 [admin-feedback-list] Unexpected error:', error);
         return {
             statusCode: 500,
-            headers,
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
             body: JSON.stringify({ 
                 ok: false,
                 code: 'internal_error',
                 error: error.message 
-            }),
+            })
         };
     }
 };
