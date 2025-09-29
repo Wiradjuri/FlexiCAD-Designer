@@ -154,6 +154,43 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // Also insert into ai_feedback table for admin review if rating is provided
+    if (rating !== undefined) {
+      try {
+        // Get user email
+        const { data: userProfile } = await supabaseService
+          .from('profiles')
+          .select('email')
+          .eq('id', userId)
+          .single();
+
+        const feedbackData = {
+          user_id: userId,
+          user_email: userProfile?.email || 'unknown@example.com',
+          session_id: session.id,
+          template: session.design_category,
+          design_id: sessionId,
+          design_prompt: session.user_prompt,
+          generated_code: session.generated_code,
+          quality_score: rating,
+          quality_label: qualityLabel,
+          feedback_text: feedbackText,
+          review_status: 'pending',
+          generation_time_ms: session.generation_time_ms,
+          tokens_used: session.tokens_used
+        };
+
+        await supabaseService
+          .from('ai_feedback')
+          .insert([feedbackData]);
+
+        console.log('✅ Feedback stored in ai_feedback table for admin review');
+      } catch (feedbackError) {
+        console.error('⚠️ Failed to store in ai_feedback table:', feedbackError);
+        // Don't fail the request if ai_feedback storage fails
+      }
+    }
+
     // If user provided corrections, store them separately
     if (finalCode && finalCode !== session.generated_code && correctionType) {
       const { error: correctionError } = await supabaseService

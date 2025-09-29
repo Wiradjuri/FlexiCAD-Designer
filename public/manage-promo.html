@@ -155,6 +155,78 @@
             text-align: center;
         }
 
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+
+        .modal-close:hover {
+            background: var(--bg-secondary);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-body pre {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 6px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
         @media (max-width: 768px) {
             .form-grid {
                 grid-template-columns: 1fr;
@@ -261,6 +333,61 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- User Feedback Management -->
+            <div class="table-section" style="margin-top: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2>User Feedback Review</h2>
+                    <button onclick="loadFeedback()" class="btn btn-secondary">🔄 Refresh</button>
+                </div>
+
+                <div id="feedback-loading" class="loading" style="display: none;">Loading user feedback...</div>
+                <div id="feedback-error" style="display: none;"></div>
+
+                <table class="promo-table" id="feedback-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Template</th>
+                            <th>Quality Score</th>
+                            <th>Feedback</th>
+                            <th>Status</th>
+                            <th>Submitted</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="feedback-table-body">
+                        <!-- Feedback will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Training Assets Management -->
+            <div class="table-section" style="margin-top: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2>Training Assets</h2>
+                    <button onclick="loadTrainingAssets()" class="btn btn-secondary">🔄 Refresh</button>
+                </div>
+
+                <div id="assets-loading" class="loading" style="display: none;">Loading training assets...</div>
+                <div id="assets-error" style="display: none;"></div>
+
+                <table class="promo-table" id="assets-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>File Size</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assets-table-body">
+                        <!-- Training assets will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
@@ -337,6 +464,8 @@
 
                 // Load initial data
                 await loadPromoCodes();
+                await loadFeedback();
+                await loadTrainingAssets();
 
                 return true;
             } catch (error) {
@@ -537,6 +666,292 @@
                 console.error('❌ Failed to delete promo code:', error);
                 showMessage('error', 'Failed to delete promo code: ' + error.message);
             }
+        }
+
+        // Load user feedback for review
+        async function loadFeedback() {
+            console.log('📝 Loading user feedback...');
+
+            const loading = document.getElementById('feedback-loading');
+            const table = document.getElementById('feedback-table');
+            const errorDiv = document.getElementById('feedback-error');
+
+            loading.style.display = 'block';
+            table.style.display = 'none';
+            errorDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/admin-feedback-list', {
+                    headers: {
+                        'Authorization': `Bearer ${window.flexicadAuth.getToken()}`,
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log('✅ Loaded feedback:', result);
+
+                // Populate table
+                const tbody = document.getElementById('feedback-table-body');
+                tbody.innerHTML = '';
+
+                if (!result.items || result.items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-secondary);">No user feedback found.</td></tr>';
+                } else {
+                    result.items.forEach(feedback => {
+                        tbody.appendChild(createFeedbackRow(feedback));
+                    });
+                }
+
+                loading.style.display = 'none';
+                table.style.display = 'table';
+
+            } catch (error) {
+                console.error('❌ Failed to load feedback:', error);
+                loading.style.display = 'none';
+                errorDiv.innerHTML = `<div class="error-message">Failed to load feedback: ${error.message}</div>`;
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // Create table row for feedback
+        function createFeedbackRow(feedback) {
+            const row = document.createElement('tr');
+
+            // Status styling
+            let statusClass = '';
+            switch (feedback.review_status) {
+                case 'pending':
+                    statusClass = 'status-inactive';
+                    break;
+                case 'accepted':
+                    statusClass = 'status-active';
+                    break;
+                case 'rejected':
+                    statusClass = 'status-expired';
+                    break;
+            }
+
+            const feedbackText = feedback.feedback_text ? 
+                (feedback.feedback_text.length > 50 ? 
+                    feedback.feedback_text.substring(0, 50) + '...' : 
+                    feedback.feedback_text) : 
+                '—';
+
+            const actions = feedback.review_status === 'pending' ? 
+                `<button class="btn-small btn-success" onclick="decideFeedback('${feedback.id}', 'accept_and_train')">Accept & Train</button>
+                 <button class="btn-small btn-delete" onclick="decideFeedback('${feedback.id}', 'reject')">Reject</button>` :
+                `<em>Reviewed by ${feedback.reviewed_by || 'Unknown'}</em>`;
+
+            row.innerHTML = `
+                <td>${feedback.user_email || 'Unknown'}</td>
+                <td>${feedback.template || '—'}</td>
+                <td>${feedback.quality_score || '—'}/5</td>
+                <td title="${feedback.feedback_text || ''}">${feedbackText}</td>
+                <td><span class="status-badge ${statusClass}">${feedback.review_status || 'pending'}</span></td>
+                <td>${new Date(feedback.created_at).toLocaleDateString()}</td>
+                <td>${actions}</td>
+            `;
+
+            return row;
+        }
+
+        // Decide on feedback (accept or reject)
+        async function decideFeedback(feedbackId, decision) {
+            console.log('⚖️ Deciding on feedback:', feedbackId, decision);
+
+            try {
+                const response = await fetch('/api/admin-feedback-decide', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${window.flexicadAuth.getToken()}`,
+                    },
+                    body: JSON.stringify({
+                        feedback_id: feedbackId,
+                        decision: decision === 'accept_and_train' ? 'accept' : 'reject'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log('✅ Feedback decision result:', result);
+
+                showMessage('success', result.message || `Feedback ${decision.replace('_', ' ')} successfully!`);
+                await loadFeedback(); // Reload the table
+
+            } catch (error) {
+                console.error('❌ Failed to decide on feedback:', error);
+                showMessage('error', 'Failed to process feedback: ' + error.message);
+            }
+        }
+
+        // Load training assets
+        async function loadTrainingAssets() {
+            console.log('🎯 Loading training assets...');
+
+            const loading = document.getElementById('assets-loading');
+            const table = document.getElementById('assets-table');
+            const errorDiv = document.getElementById('assets-error');
+
+            loading.style.display = 'block';
+            table.style.display = 'none';
+            errorDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/admin-list-training-assets', {
+                    headers: {
+                        'Authorization': `Bearer ${window.flexicadAuth.getToken()}`,
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log('✅ Loaded training assets:', result);
+
+                // Populate table
+                const tbody = document.getElementById('assets-table-body');
+                tbody.innerHTML = '';
+
+                if (!result.items || result.items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-secondary);">No training assets found.</td></tr>';
+                } else {
+                    result.items.forEach(asset => {
+                        tbody.appendChild(createAssetRow(asset));
+                    });
+                }
+
+                loading.style.display = 'none';
+                table.style.display = 'table';
+
+            } catch (error) {
+                console.error('❌ Failed to load training assets:', error);
+                loading.style.display = 'none';
+                errorDiv.innerHTML = `<div class="error-message">Failed to load training assets: ${error.message}</div>`;
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // Create table row for training asset
+        function createAssetRow(asset) {
+            const row = document.createElement('tr');
+
+            const statusClass = asset.status === 'active' ? 'status-active' : 'status-inactive';
+            const fileSize = asset.file_size_mb ? `${asset.file_size_mb} MB` : '—';
+
+            row.innerHTML = `
+                <td><strong>${asset.name}</strong></td>
+                <td>${asset.description || '—'}</td>
+                <td>${fileSize}</td>
+                <td><span class="status-badge ${statusClass}">${asset.status || 'unknown'}</span></td>
+                <td>${new Date(asset.created_at).toLocaleDateString()}</td>
+                <td>
+                    <div class="action-buttons">
+                        ${asset.preview_url ? 
+                            `<button class="btn-small btn-secondary" onclick="previewAsset('${asset.id}')">Preview</button>` : 
+                            ''}
+                        ${asset.download_url ? 
+                            `<a href="${asset.download_url}" class="btn-small btn-primary" target="_blank">Download</a>` : 
+                            ''}
+                    </div>
+                </td>
+            `;
+
+            return row;
+        }
+
+        // Preview training asset
+        async function previewAsset(assetId) {
+            console.log('👁️ Previewing asset:', assetId);
+
+            try {
+                const response = await fetch(`/api/admin-preview-jsonl?asset_id=${assetId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${window.flexicadAuth.getToken()}`,
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log('✅ Asset preview:', result);
+
+                // Create a modal or popup to show the preview
+                showAssetPreview(result);
+
+            } catch (error) {
+                console.error('❌ Failed to preview asset:', error);
+                showMessage('error', 'Failed to preview asset: ' + error.message);
+            }
+        }
+
+        // Show asset preview in a modal
+        function showAssetPreview(previewData) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+                    <div class="modal-header">
+                        <h3>${previewData.asset.name} Preview</h3>
+                        <button class="modal-close" onclick="this.parentElement.parentElement.parentElement.remove()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Description:</strong> ${previewData.asset.description || 'No description'}</p>
+                        <p><strong>File size:</strong> ${(previewData.asset.file_size / (1024 * 1024)).toFixed(2)} MB</p>
+                        <p><strong>Lines shown:</strong> ${previewData.preview.shown_lines} of ${previewData.preview.total_lines} 
+                           ${previewData.preview.truncated ? '(truncated)' : ''}</p>
+                        
+                        <h4>Structure Analysis:</h4>
+                        <ul>
+                            ${Object.entries(previewData.structure).map(([key, info]) => 
+                                `<li><code>${key}</code> (${info.type}): ${info.examples.join(', ')}</li>`
+                            ).join('')}
+                        </ul>
+                        
+                        <h4>Sample Lines:</h4>
+                        <pre style="background: var(--bg-secondary); padding: 1rem; border-radius: 6px; max-height: 300px; overflow-y: auto;">
+${previewData.lines.map(line => 
+    `Line ${line.line}: ${JSON.stringify(line.content, null, 2)}`
+).join('\n\n')}
+                        </pre>
+                        
+                        ${previewData.parse_errors.length > 0 ? `
+                            <h4 style="color: #ef4444;">Parse Errors (${previewData.parse_errors.length}):</h4>
+                            <pre style="background: #fee; color: #c00; padding: 1rem; border-radius: 6px;">
+${previewData.parse_errors.map(err => `Line ${err.line}: ${err.error}`).join('\n')}
+                            </pre>
+                        ` : ''}
+                        
+                        <p><strong>Success rate:</strong> ${previewData.stats.success_rate}</p>
+                    </div>
+                </div>
+            `;
+            
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+            `;
+
+            document.body.appendChild(modal);
         }
 
         // Logout function
