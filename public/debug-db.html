@@ -30,10 +30,10 @@
 
         // Initialize Supabase
         async function initSupabase() {
-            if (window.flexicadConfig?.SUPABASE_URL) {
+            if (window.CONFIG?.SUPABASE_URL) {
                 supabaseClient = window.supabase.createClient(
-                    window.flexicadConfig.SUPABASE_URL,
-                    window.flexicadConfig.SUPABASE_ANON_KEY
+                    window.CONFIG.SUPABASE_URL,
+                    window.CONFIG.SUPABASE_ANON_KEY
                 );
                 
                 // Get current session

@@ -37,7 +37,7 @@
                 <li><a href="ai.html" class="active">AI Generator</a></li>
                 <li><a href="my-designs.html">My Designs</a></li>
                 <li><a href="about.html">About</a></li>
-                <li id="admin-link" style="display: none;"><a href="manage-promo.html" class="admin-nav">Admin</a></li>
+                <li id="admin-link" style="display: none;"><a href="admin/manage-prompts.html" class="admin-nav">Admin</a></li>
             </ul>
             <div class="nav-user">
                 <span class="user-info" id="userInfo"></span>
@@ -152,11 +152,19 @@
                             <div class="rating-section">
                                 <label class="form-label">How would you rate this generation?</label>
                                 <div class="rating-stars" id="ratingStars">
-                                    <span class="star" data-rating="1">⭐</span>
-                                    <span class="star" data-rating="2">⭐</span>
-                                    <span class="star" data-rating="3">⭐</span>
-                                    <span class="star" data-rating="4">⭐</span>
-                                    <span class="star" data-rating="5">⭐</span>
+                                    <span class="star" data-rating="1" title="1★ Unusable/bad (major errors; won't render/compile)">⭐</span>
+                                    <span class="star" data-rating="2" title="2★ Poor (heavy fixes required)">⭐</span>
+                                    <span class="star" data-rating="3" title="3★ OK (works; needs improvements)">⭐</span>
+                                    <span class="star" data-rating="4" title="4★ Good (minor tweaks)">⭐</span>
+                                    <span class="star" data-rating="5" title="5★ Excellent (ready to use)">⭐</span>
+                                </div>
+                                <div class="rating-legend">
+                                    <div class="legend-title">Rating Guide:</div>
+                                    <div class="legend-item">1★ Unusable/bad (major errors; won't render/compile)</div>
+                                    <div class="legend-item">2★ Poor (heavy fixes required)</div>
+                                    <div class="legend-item">3★ OK (works; needs improvements)</div>
+                                    <div class="legend-item">4★ Good (minor tweaks)</div>
+                                    <div class="legend-item">5★ Excellent (ready to use)</div>
                                 </div>
                             </div>
                             
@@ -677,9 +685,22 @@
                     throw new Error('Authentication required - no user data');
                 }
 
+                const qualityLabels = {
+                    1: 'unusable',
+                    2: 'poor', 
+                    3: 'ok',
+                    4: 'good',
+                    5: 'excellent'
+                };
+
                 const feedbackData = {
                     sessionId: currentGeneration.metadata.sessionId,
-                    feedback: currentRating,
+                    feedback: {
+                        rating: currentRating,
+                        quality_score: currentRating,
+                        quality_label: qualityLabels[currentRating],
+                        text: document.getElementById('feedbackText').value.trim() || null
+                    },
                     finalCode: document.getElementById('finalCode').value.trim() || null,
                     correctionType: document.getElementById('finalCode').value.trim() ? 'improvement' : null,
                     correctionDescription: document.getElementById('feedbackText').value.trim() || null
@@ -1055,6 +1076,28 @@
 
         .teaching-hidden {
             display: none !important;
+        }
+
+        .rating-legend {
+            margin-top: 0.75rem;
+            padding: 0.5rem;
+            background: var(--primary-bg);
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        .legend-title {
+            font-weight: bold;
+            color: var(--accent-blue);
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .legend-item {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.1rem;
         }
     </style>
 </body>

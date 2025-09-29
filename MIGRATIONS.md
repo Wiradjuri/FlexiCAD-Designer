@@ -1,12 +1,38 @@
 # FlexiCAD Designer Database Migrations
 
-This document outlines the database migrations needed to fully set up the FlexiCAD Designer system with all features enabled.
+This document outlines the database schema setup and migrations required for FlexiCAD Designer after the surgical hardening improvements.
+
+## Latest Changes (Surgical Hardening Update)
+
+The recent surgical improvements include:
+- Enhanced AI feedback system with quality_score and quality_label
+- Admin console with health monitoring  
+- Star rating system with explicit meanings
+- All existing tables and RLS policies remain functional
 
 ## Prerequisites
 
 - Supabase project set up and configured
 - Admin access to Supabase SQL editor
 - Environment variables properly configured in Netlify
+
+## Required Environment Variables
+
+Ensure these are set in your Netlify dashboard:
+
+**Core:**
+- `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+- `OPENAI_API_KEY`, `OPENAI_MODEL` (defaults to gpt-4o-mini)
+- `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_MONTHLY_PRICE_ID`, `STRIPE_YEARLY_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`
+
+**Admin Test Harness:**
+- `ADMIN_EMAIL` (defaults to bmuzza1992@gmail.com)
+- `STRIPE_PRICE_TEST` (Stripe price ID for admin test checkouts)
+- `OPENAI_MAX_TOKENS` (defaults to 256 for smoke tests)
+
+**Optional:**
+- `E2E_BASE_URL`, `RUN_ADMIN_E2E` (for automated testing)
 
 ## Migration Steps
 
@@ -121,6 +147,58 @@ Set up admin privileges (replace with your actual admin email):
 SELECT 'Admin access configured for: bmuzza1992@gmail.com' as admin_info;
 ```
 
+### 6. Phase 4.3 Admin Test Harness Extensions
+
+**A) Feedback Review System**
+
+```sql
+-- Copy and paste the contents of database/feedback_review_schema.sql
+-- This adds review fields to existing ai_feedback table:
+-- - review_status (pending/accepted/rejected)
+-- - reviewed_by (admin email)
+-- - reviewed_at (timestamp)
+-- - quality_label (unusable/poor/ok/good/excellent)
+```
+
+**B) Training Examples Storage**
+
+```sql
+-- Copy and paste the contents of database/training_examples_schema.sql
+-- This creates ai_training_examples table for curated learning data:
+-- - Stores accepted feedback as training examples
+-- - Admin-only RLS policies
+-- - Tags and categorization support
+```
+
+**C) Webhook Events Tracking (Optional)**
+
+```sql
+-- Copy and paste the contents of database/webhook_events_schema.sql
+-- This creates webhook_events table for admin test harness:
+-- - Tracks Stripe webhook events for testing
+-- - Admin-only access for debugging payment flows
+-- - Optional table - only needed for webhook monitoring
+```
+
+**D) Supabase Storage Setup**
+
+For training assets management, create a storage bucket:
+
+1. Go to Supabase Dashboard → Storage
+2. Create new bucket named `training-assets`
+3. Set bucket policy to admin-only:
+
+```sql
+-- Storage policy for training assets (run in Supabase SQL editor)
+INSERT INTO storage.policies (name, bucket_id, roles, query)
+VALUES (
+    'Admin can manage training assets',
+    'training-assets',
+    '{authenticated}',
+    'auth.uid() IN (SELECT id FROM profiles WHERE email = ''bmuzza1992@gmail.com'')'
+);
+```
+
 ## Verification Steps
 
 After running the migrations, verify everything is working:
@@ -228,6 +306,7 @@ If you encounter issues:
 
 Ensure these are set in your Netlify environment:
 
+**Required for Core Functionality:**
 - `SUPABASE_URL` - Your Supabase project URL
 - `SUPABASE_ANON_KEY` - Supabase anonymous key (public)
 - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (private)
@@ -235,15 +314,56 @@ Ensure these are set in your Netlify environment:
 - `STRIPE_SECRET_KEY` - Stripe secret key for payments
 - `STRIPE_PUBLISHABLE_KEY` - Stripe publishable key (public)
 
+**Required for Admin Test Harness:**
+- `ADMIN_EMAIL` - Admin email (defaults to bmuzza1992@gmail.com)
+- `STRIPE_PRICE_TEST` - Stripe price ID for admin test checkout (e.g., price_test_...)
+
+**Optional for Enhanced Testing:**
+- `OPENAI_MODEL` - AI model (defaults to gpt-4o-mini)
+- `OPENAI_MAX_TOKENS` - Token limit for smoke tests (defaults to 256)
+- `E2E_BASE_URL` - Base URL for E2E testing
+- `RUN_ADMIN_E2E` - Enable admin E2E tests (true/false)
+
+## Admin Test Harness Setup
+
+### 1. Webhook Events Table (Optional)
+
+For full admin testing capabilities, add the webhook events table:
+
+```sql
+-- See database/webhook_events_schema.sql for complete setup
+CREATE TABLE IF NOT EXISTS webhook_events (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    event_id VARCHAR(255) UNIQUE NOT NULL,
+    event_type VARCHAR(100) NOT NULL,
+    customer_email VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+### 2. Stripe Test Mode Configuration
+
+1. Use Stripe **Test Mode** keys only (`sk_test_` and `pk_test_`)
+2. Create a test price in Stripe Dashboard
+3. Set `STRIPE_PRICE_TEST` environment variable to the price ID
+4. Admin console will automatically detect live keys and disable tests
+
+### 3. Admin Access Verification
+
+The admin console at `/admin/manage-prompts.html` requires:
+- Authenticated user with email matching `ADMIN_EMAIL`
+- All environment variables properly configured
+- Proper RLS policies (automatically applied during migrations)
+
 ## Next Steps
 
 After migrations are complete:
 
-1. Test the payment flow end-to-end
-2. Verify AI generation and feedback work
-3. Test promo code creation and validation
-4. Run full integration tests
-5. Set up monitoring and logging
-6. Configure backup strategy for your database
+1. **Test Core Flow**: Registration → Payment → AI Generation → Feedback
+2. **Admin Console**: Access `/admin/manage-prompts.html` and run all tests
+3. **Stripe Testing**: Use test card `4242 4242 4242 4242` for checkout tests
+4. **AI Smoke Test**: Verify AI generation works with token limits
+5. **Monitor Health**: Check system health indicators regularly
+6. **Set Up Monitoring**: Configure logging and error tracking
 
 All migrations are designed to be idempotent - you can run them multiple times safely.

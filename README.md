@@ -1,6 +1,6 @@
 # FlexiCAD Designer
 
-An AI-powered web platform for creating OpenSCAD 3D designs with natural language prompts, featuring template management and user authentication.
+An AI-powered web platform for creating OpenSCAD 3D designs with natural language prompts, featuring template management, user authentication, and comprehensive admin tools.
 
 ## 🔒 Security Notice
 
@@ -8,37 +8,60 @@ An AI-powered web platform for creating OpenSCAD 3D designs with natural languag
 
 ## 🚀 Features
 
-- **AI-Powered Generation**: Create OpenSCAD designs using natural language descriptions
+- **AI-Powered Generation**: Create OpenSCAD designs using natural language descriptions with learning system
 - **Template Library**: Professional, ready-to-use 3D design templates
-- **User Authentication**: Secure user accounts with Supabase auth
+- **Payment-First Authentication**: Secure subscription-based access with Stripe integration
+- **AI Learning System**: Feedback collection and continuous improvement of AI generations
 - **Design Management**: Save, organize, and share your designs
+- **Admin Console**: Comprehensive management dashboard for administrators
+- **Promo Code System**: Discount codes with admin management
+- **Star Rating System**: Quality feedback with explicit rating meanings
 - **Dark Theme UI**: Modern, responsive dark theme interface
 - **Cloud Storage**: Designs automatically saved to the cloud
 - **Export Capabilities**: Download designs as .scad files
-- **Real-time Collaboration**: Share and collaborate on designs
+- **Real-time Analytics**: System health monitoring and user statistics
 
 ## 🛠 Tech Stack
 
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript
-- **Authentication**: Supabase Auth (email/password)
-- **Database**: Supabase (PostgreSQL)
-- **AI**: OpenAI GPT-4 for code generation
+- **Authentication**: Supabase Auth (payment-first system)
+- **Payments**: Stripe (checkout sessions, webhooks)
+- **Database**: Supabase (PostgreSQL with RLS)
+- **AI**: OpenAI GPT-4o-mini for code generation
 - **Hosting**: Netlify with serverless functions
 - **Styling**: Custom dark theme CSS
 
-## 📁 Project Structure
+## � Admin Features
+
+- **Admin Console**: Unified management at `/admin/manage-prompts.html`
+- **System Health**: Real-time monitoring of Supabase, Stripe, and OpenAI
+- **Stripe Testing**: Test checkout flows with real Stripe Test Mode
+- **AI Smoke Tests**: Validate AI generation pipeline
+- **User Management**: View user statistics and entitlements
+- **Promo Codes**: Create and manage discount codes
+- **Configuration**: View runtime configuration (read-only)
+
+## �📁 Project Structure
 
 ```bash
 FlexiCAD-Designer/
 ├── public/                          # Frontend static files
-│   ├── index.html                  # Login/register page
-│   ├── home.html                   # Dashboard/welcome page
+│   ├── index.html                  # Landing/welcome page
+│   ├── login.html                  # Login page
+│   ├── register.html               # Registration page
+│   ├── home.html                   # Dashboard (protected)
 │   ├── about.html                  # About page
 │   ├── ai.html                     # AI generator (protected)
-│   ├── templates.html              # Template browser
+│   ├── templates.html              # Template browser (protected)
 │   ├── my-designs.html             # User designs (protected)
+│   ├── manage-promo.html           # Promo code management (admin)
+│   ├── admin/
+│   │   └── manage-prompts.html     # Unified admin console
 │   ├── css/
 │   │   └── dark-theme.css          # Main stylesheet
+│   ├── js/
+│   │   ├── secure-config-loader.js # Secure configuration system
+│   │   └── flexicad-auth.js        # Payment-first authentication
 │   └── templates/                  # Template library
 │       ├── manifest.json           # Template metadata
 │       ├── arduino-case/           # Example template
@@ -196,12 +219,20 @@ npm test
    - `SUPABASE_ANON_KEY` - Supabase anonymous key
    - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (for server functions)
    - `OPENAI_API_KEY` - OpenAI API key for AI generation
-   - `STRIPE_SECRET_KEY` - Stripe secret key for payments
+   - `STRIPE_SECRET_KEY` - Stripe secret key for payments (use sk_test_ for admin tests)
    - `STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
+   - `STRIPE_PRICE_TEST` - Stripe price ID for admin test checkout
 
 **Optional Environment Variables:**
+   - `ADMIN_EMAIL` - Admin email for management (defaults to bmuzza1992@gmail.com)
+   - `OPENAI_MODEL` - OpenAI model to use (defaults to gpt-4o-mini)
+   - `OPENAI_MAX_TOKENS` - Token limit for admin smoke tests (defaults to 256)
+   - `SUPABASE_STORAGE_BUCKET_TRAINING` - Storage bucket for training assets (defaults to training-assets)
+   - `ALLOW_KEY_REVEAL_PUBLISHABLE` - Allow revealing publishable keys in admin (defaults to true)
+   - `STRIPE_WEBHOOK_SECRET` - Webhook endpoint secret
    - `TEST_USER_EMAIL` - Email for integration testing
-   - `ADMIN_EMAIL` - Admin email for promo code management (defaults to bmuzza1992@gmail.com)
+   - `E2E_BASE_URL` - Base URL for E2E tests
+   - `RUN_ADMIN_E2E` - Enable admin E2E tests (true/false)
 
 3. Deploy settings:
    - Build command: `npm run build`
@@ -263,16 +294,49 @@ npm run test:prod
 
 ### For Administrators
 
-1. **Promo Code Management**:
-   - Access `/manage-promo.html` (admin-only)
-   - Create, update, and disable promo codes
-   - Monitor promo code usage
+1. **Admin Console**:
+   - Access `/admin/manage-prompts.html` (admin-only)
+   - Unified dashboard for system management
+   - Live test harness for all system components
 
-2. **AI Learning Data**:
+2. **Admin Test Harness**:
+   - **Health & Connectivity**: Real-time checks of Supabase, Stripe, and OpenAI
+   - **Stripe Tests**: Create test checkouts and verify entitlements (Test Mode only)
+   - **Auth Flow Tests**: Register/login testing with session validation
+   - **AI Smoke Tests**: Validate AI generation with token-limited testing
+   - **User Management**: View stats and manage entitlements
+   - **Feedback Review**: Accept/reject user feedback for training
+   - **Training Assets**: Upload SVG/SCAD/JSONL files for model improvement
+   - **Runtime Config**: View configuration with key masking and reveal
+
+3. **Feedback Review System**:
+   - View pending, accepted, and rejected user feedback
+   - Accept quality feedback to create training examples
+   - Reject poor feedback with audit trail
+   - Search and filter feedback by status and content
+
+4. **Training Assets Management**:
+   - Upload SVG, SCAD, and JSONL files for AI training
+   - Files stored in Supabase Storage with admin-only access
+   - Delete assets with audit logging
+   - Support for tagged assets and metadata
+
+3. **Stripe Test Mode Requirements**:
+   - Use `sk_test_` and `pk_test_` keys for admin testing
+   - Set `STRIPE_PRICE_TEST` environment variable
+   - Test card: `4242 4242 4242 4242`
+   - Live keys (`sk_live_`) automatically disable test functions
+
+4. **Promo Code Management**:
+   - Create, update, and disable promo codes
+   - Monitor promo code usage and analytics
+   - Set percentage or fixed amount discounts
+
+5. **AI Learning Data**:
    - User feedback is automatically collected
    - AI improvements are applied based on user ratings
+   - Quality labels: Unusable (1★) to Excellent (5★)
    - Training data builds over time
-   - Organize your design portfolio
 
 ### Example AI Prompts
 

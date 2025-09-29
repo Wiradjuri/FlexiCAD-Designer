@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Console - FlexiCAD Designer</title>
+    <link rel="stylesheet" href="../css/dark-theme.css">
+    <style>
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .admin-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: var(--primary-bg);
+            border-radius: 10px;
+            border: 1px solid var(--accent-blue);
+        }
+        
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .admin-card {
+            background: var(--secondary-bg);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background: var(--primary-bg);
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: bold;
+            color: var(--accent-blue);
+        }
+        
+        .card-content {
+            padding: 1rem;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-ok { background: var(--success-color); }
+        .status-warning { background: var(--warning-color); }
+        .status-error { background: var(--error-color); }
+        .status-unknown { background: var(--text-secondary); }
+        
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        .admin-table th,
+        .admin-table td {
+            padding: 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .admin-table th {
+            background: var(--primary-bg);
+        }
+        
+        .admin-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn-small {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        .section-full {
+            grid-column: 1 / -1;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-brand">FlexiCAD Designer - Admin Console</div>
+            <ul class="nav-links">
+                <li><a href="../ai.html">← Back to App</a></li>
+                <li><button onclick="handleLogout()" class="nav-link btn">Logout</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>🔧 FlexiCAD Admin Console</h1>
+            <p>Unified management dashboard for FlexiCAD Designer</p>
+            <div id="admin-status">Checking admin permissions...</div>
+        </div>
+
+        <div id="admin-content" style="display: none;">
+            <div class="admin-grid">
+                <!-- Health & Connectivity Card -->
+                <div class="admin-card">
+                    <div class="card-header">
+                        <span class="status-indicator status-unknown" id="health-status"></span>
+                        Health & Connectivity
+                    </div>
+                    <div class="card-content">
+                        <div id="health-details">Loading system health...</div>
+                        <div class="admin-actions" style="margin-top: 1rem;">
+                            <button onclick="checkSystemHealth()" class="btn btn-secondary btn-small">🔄 Refresh Health</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stripe Integration Card -->
+                <div class="admin-card">
+                    <div class="card-header">
+                        <span class="status-indicator status-unknown" id="stripe-status"></span>
+                        Stripe Integration (Test Mode)
+                    </div>
+                    <div class="card-content">
+                        <div id="stripe-details">Ready for testing...</div>
+                        <div class="admin-actions" style="margin-top: 1rem;">
+                            <button onclick="openTestCheckout()" class="btn btn-primary btn-small">💳 Open Test Checkout</button>
+                            <button onclick="verifyEntitlement()" class="btn btn-secondary btn-small">✅ Verify Entitlement</button>
+                        </div>
+                        <div id="test-email-input" style="display: none; margin-top: 1rem;">
+                            <input type="email" id="test-email" class="form-input" placeholder="Test email (optional)" 
+                                   value="admin+test@flexicad.com.au">
+                            <button onclick="createTestCheckout()" class="btn btn-primary btn-small">Create Session</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auth Flow Tests Card -->
+                <div class="admin-card">
+                    <div class="card-header">
+                        <span class="status-indicator status-ok"></span>
+                        Auth Flow Quick Tests
+                    </div>
+                    <div class="card-content">
+                        <div>Test authentication flows with real providers</div>
+                        <div class="admin-actions" style="margin-top: 1rem;">
+                            <button onclick="openRegisterTest()" class="btn btn-secondary btn-small">📝 Open Register Test</button>
+                            <button onclick="openLoginTest()" class="btn btn-secondary btn-small">🔑 Open Login Test</button>
+                            <button onclick="sessionEcho()" class="btn btn-secondary btn-small">🔊 Session Echo</button>
+                        </div>
+                        <div id="session-echo-result" style="margin-top: 0.5rem; font-family: monospace; font-size: 0.8rem;"></div>
+                    </div>
+                </div>
+
+                <!-- AI Generation Tests Card -->
+                <div class="admin-card">
+                    <div class="card-header">
+                        <span class="status-indicator status-unknown" id="ai-status"></span>
+                        AI Generation Smoke Test
+                    </div>
+                    <div class="card-content">
+                        <div id="ai-details">Ready for testing...</div>
+                        <div class="admin-actions" style="margin-top: 1rem;">
+                            <button onclick="runAISmokeTest()" class="btn btn-primary btn-small">🤖 Run AI Smoke Test</button>
+                        </div>
+                        <div id="ai-test-result" style="margin-top: 0.5rem; font-family: monospace; font-size: 0.8rem;"></div>
+                    </div>
+                </div>
+
+                <!-- Promo Codes Management Card -->
+                <div class="admin-card">
+                    <div class="card-header">
+                        <span class="status-indicator status-ok"></span>
+                        Promo Codes Management
+                    </div>
+                    <div class="card-content">
+                        <div>Create and manage discount codes</div>
+                        <div class="admin-actions" style="margin-top: 1rem;">
+                            <button onclick="window.location.href='../manage-promo.html'" class="btn btn-primary btn-small">🎟️ Manage Promo Codes</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Entitlements Card -->
+                <div class="admin-card">
+                    <div class="card-header">
+                        <span class="status-indicator status-unknown" id="users-status"></span>
+                        User Entitlements
+                    </div>
+                    <div class="card-content">
+                        <div id="user-stats">Loading user statistics...</div>
+                        <div class="admin-actions" style="margin-top: 1rem;">
+                            <button onclick="loadUserStats()" class="btn btn-secondary btn-small">👥 Load User Stats</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Runtime Config Card -->
+                <div class="admin-card section-full">
+                    <div class="card-header">
+                        <span class="status-indicator status-ok"></span>
+                        Runtime Configuration (Read-Only)
+                    </div>
+                    <div class="card-content">
+                        <div id="config-display">Loading configuration...</div>
+                        <div class="admin-actions" style="margin-top: 1rem;">
+                            <button onclick="displayConfig()" class="btn btn-secondary btn-small">🔧 Show Config</button>
+                            <button id="reveal-key-btn" onclick="toggleKeyVisibility()" class="btn btn-secondary btn-small" style="display: none;">👁️ Reveal Keys</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feedback Review Card -->
+                <div class="admin-card section-full">
+                    <div class="card-header">
+                        <span class="status-indicator status-unknown" id="feedback-status"></span>
+                        Feedback Review & Training
+                    </div>
+                    <div class="card-content">
+                        <div class="admin-actions" style="margin-bottom: 1rem;">
+                            <select id="feedback-status-filter" class="form-input" style="margin-right: 0.5rem;">
+                                <option value="pending">Pending Review</option>
+                                <option value="accepted">Accepted</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                            <input type="text" id="feedback-search" class="form-input" placeholder="Search..." style="margin-right: 0.5rem; max-width: 200px;">
+                            <button onclick="loadFeedbackReview()" class="btn btn-secondary btn-small">🔄 Load Feedback</button>
+                        </div>
+                        <div id="feedback-list">Click "Load Feedback" to view user feedback for review</div>
+                    </div>
+                </div>
+
+                <!-- Training Assets Card -->
+                <div class="admin-card section-full">
+                    <div class="card-header">
+                        <span class="status-indicator status-ok"></span>
+                        Training Assets (SVG/SCAD/JSONL)
+                    </div>
+                    <div class="card-content">
+                        <div class="admin-actions" style="margin-bottom: 1rem;">
+                            <input type="file" id="asset-file-input" accept=".svg,.scad,.jsonl" style="margin-right: 0.5rem;">
+                            <button onclick="uploadTrainingAsset()" class="btn btn-primary btn-small">📤 Upload Asset</button>
+                            <button onclick="loadTrainingAssets()" class="btn btn-secondary btn-small">🔄 Refresh List</button>
+                        </div>
+                        <div id="training-assets-list">Click "Refresh List" to view uploaded training assets</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="../js/secure-config-loader.js"></script>
+    <script src="../js/flexicad-auth.js"></script>
+    <script>
+        let adminUser = null;
+        let supabaseClient = null;
+        
+        // Initialize admin console
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🔧 Initializing Admin Console...');
+            
+            try {
+                // Initialize auth system
+                await window.flexicadAuth.init();
+                
+                // Check admin access
+                if (!window.flexicadAuth.user) {
+                    showAdminError('Not authenticated. Redirecting to login...');
+                    setTimeout(() => window.location.href = '../login.html', 2000);
+                    return;
+                }
+                
+                if (!await window.flexicadAuth.checkAdminAccess()) {
+                    showAdminError('Access denied. Admin privileges required.');
+                    setTimeout(() => window.location.href = '../ai.html', 3000);
+                    return;
+                }
+                
+                adminUser = window.flexicadAuth.user;
+                supabaseClient = window.flexicadAuth.getSupabaseClient();
+                
+                document.getElementById('admin-status').innerHTML = `
+                    <span style="color: var(--success-color);">✅ Admin access confirmed: ${adminUser.email}</span>
+                `;
+                
+                document.getElementById('admin-content').style.display = 'block';
+                
+                // Initialize all components with debounced entitlement check
+                let initializationStarted = false;
+                if (!initializationStarted) {
+                    initializationStarted = true;
+                    await Promise.all([
+                        checkSystemHealth(),
+                        loadUserStats(),
+                        displayConfig(),
+                        loadFeedbackReview(),
+                        loadTrainingAssets()
+                    ]);
+                }
+                
+            } catch (error) {
+                console.error('Failed to initialize admin console:', error);
+                showAdminError(`Initialization failed: ${error.message}`);
+            }
+        });
+        
+        function showAdminError(message) {
+            document.getElementById('admin-status').innerHTML = `
+                <span style="color: var(--error-color);">❌ ${message}</span>
+            `;
+        }
+        
+        // Health check - uses admin-health endpoint exclusively
+        async function checkSystemHealth() {
+            const statusEl = document.getElementById('health-status');
+            const detailsEl = document.getElementById('health-details');
+            
+            statusEl.className = 'status-indicator status-unknown';
+            detailsEl.innerHTML = '<span class="loading-spinner"></span> Checking system health...';
+            
+            try {
+                const session = await supabaseClient.auth.getSession();
+                const token = session.data?.session?.access_token;
+                
+                if (!token) {
+                    throw new Error('No authentication token available');
+                }
+                
+                const response = await fetch('/.netlify/functions/admin-health', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Health check failed: ${response.status}`);
+                }
+                
+                const health = await response.json();
+                
+                if (!health.ok) {
+                    throw new Error(health.error || 'Health check returned not ok');
+                }
+                
+                // Update UI based on real health data
+                const supabaseOk = health.supabase?.ok;
+                const stripeOk = health.stripe?.ok;
+                const openaiOk = health.openai?.ok;
+                const isLiveMode = health.stripe?.mode === 'live';
+                
+                const allOk = supabaseOk && stripeOk && openaiOk;
+                
+                statusEl.className = `status-indicator ${allOk ? 'status-ok' : 'status-warning'}`;
+                
+                // Show live mode warning for Stripe tests
+                const stripeWarning = isLiveMode ? 
+                    '<br><span style="color: var(--warning-color);">⚠️ Live keys detected — switch to Test Mode to use admin tests</span>' : '';
+                
+                detailsEl.innerHTML = `
+                    <div>Supabase: <span style="color: ${supabaseOk ? 'var(--success-color)' : 'var(--error-color)'}">
+                        ${supabaseOk ? '✅ Connected' : '❌ Not connected'}</span></div>
+                    <div>Stripe: <span style="color: ${stripeOk ? 'var(--success-color)' : 'var(--error-color)'}">
+                        ${stripeOk ? '✅ Connected' : '❌ Not connected'}</span> (${health.stripe?.mode} mode)${stripeWarning}</div>
+                    <div>OpenAI: <span style="color: ${openaiOk ? 'var(--success-color)' : 'var(--error-color)'}">
+                        ${openaiOk ? '✅ Connected' : '❌ Not connected'}</span> (${health.openai?.model})</div>
+                    <div style="margin-top: 0.5rem; font-size: 0.8rem;">
+                        Environment: ${health.env?.mode} | Node ${health.env?.node} | Rev: ${health.env?.rev}
+                    </div>
+                `;
+                
+                // Disable Stripe test buttons if live keys detected
+                const stripeButtons = document.querySelectorAll('[onclick*="createTestCheckout"], [onclick*="verifyEntitlement"]');
+                stripeButtons.forEach(btn => {
+                    if (isLiveMode) {
+                        btn.disabled = true;
+                        btn.title = 'Disabled - Live keys detected';
+                        btn.style.opacity = '0.5';
+                    } else {
+                        btn.disabled = false;
+                        btn.title = '';
+                        btn.style.opacity = '1';
+                    }
+                });
+                
+            } catch (error) {
+                statusEl.className = 'status-indicator status-error';
+                detailsEl.innerHTML = `<span style="color: var(--error-color);">❌ Health check failed: ${error.message}</span>`;
+            }
+        }
+        
+        // Stripe test functions - use admin endpoints
+        function openTestCheckout() {
+            const inputEl = document.getElementById('test-email-input');
+            inputEl.style.display = inputEl.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        async function createTestCheckout() {
+            const email = document.getElementById('test-email').value || `admin+e2e-${Date.now()}@example.com`;
+            const detailsEl = document.getElementById('stripe-details');
+            
+            detailsEl.innerHTML = '<span class="loading-spinner"></span> Creating test checkout...';
+            
+            try {
+                const session = await supabaseClient.auth.getSession();
+                const token = session.data?.session?.access_token;
+                
+                const response = await fetch('/.netlify/functions/admin-create-test-checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+                
+                const data = await response.json();
+                
+                if (data.ok && data.url) {
+                    window.open(data.url, '_blank');
+                    detailsEl.innerHTML = `
+                        <span style="color: var(--success-color);">✅ PASS</span> - Test checkout created<br>
+                        Email: ${data.testEmail}<br>
+                        <small>Use card 4242 4242 4242 4242 for testing</small><br>
+                        <small>Session: ${data.sessionId?.substring(0, 20)}...</small>
+                    `;
+                    
+                    // Store test email for verification
+                    document.getElementById('test-email').value = data.testEmail;
+                } else {
+                    throw new Error(data.error || 'Failed to create checkout session');
+                }
+            } catch (error) {
+                detailsEl.innerHTML = `
+                    <span style="color: var(--error-color);">❌ FAIL</span> - ${error.message}
+                `;
+            }
+        }
+        
+        async function verifyEntitlement() {
+            const email = document.getElementById('test-email').value;
+            if (!email) {
+                document.getElementById('stripe-details').innerHTML += `<br>
+                    <span style="color: var(--warning-color);">⚠️ Please enter test email first</span>
+                `;
+                return;
+            }
+            
+            const detailsEl = document.getElementById('stripe-details');
+            detailsEl.innerHTML += '<br><span class="loading-spinner"></span> Verifying entitlement...';
+            
+            try {
+                const session = await supabaseClient.auth.getSession();
+                const token = session.data?.session?.access_token;
+                
+                const response = await fetch(`/.netlify/functions/admin-verify-entitlement?email=${encodeURIComponent(email)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.ok) {
+                    const testResult = data.test.pass ? 
+                        `<span style="color: var(--success-color);">✅ PASS</span>` :
+                        `<span style="color: var(--error-color);">❌ FAIL</span>`;
+                    
+                    detailsEl.innerHTML += `<br>
+                        ${testResult} - Entitlement check<br>
+                        Profile: ${data.profile.provisioned ? 'Auto-provisioned' : 'Existing'}<br>
+                        Paid: ${data.profile.is_paid ? 'YES' : 'NO'}<br>
+                        Plan: ${data.profile.subscription_plan || 'None'}<br>
+                        Webhook: ${data.webhook.lastWebhookAt ? new Date(data.webhook.lastWebhookAt).toLocaleString() : 'None'}
+                    `;
+                } else {
+                    throw new Error(data.error || 'Verification failed');
+                }
+            } catch (error) {
+                detailsEl.innerHTML += `<br>
+                    <span style="color: var(--error-color);">❌ FAIL</span> - ${error.message}
+                `;
+            }
+        }
+        
+        // Auth test functions
+        function openRegisterTest() {
+            const testEmail = `admin+e2e-${Date.now()}@example.com`;
+            window.open(`../register.html?prefill=${encodeURIComponent(testEmail)}`, '_blank');
+        }
+        
+        function openLoginTest() {
+            const testEmail = document.getElementById('test-email').value || 'admin+test@example.com';
+            window.open(`../login.html?prefill=${encodeURIComponent(testEmail)}`, '_blank');
+        }
+        
+        async function sessionEcho() {
+            const resultEl = document.getElementById('session-echo-result');
+            resultEl.innerHTML = '<span class="loading-spinner"></span> Checking session...';
+            
+            try {
+                const session = await supabaseClient.auth.getSession();
+                const token = session.data?.session?.access_token;
+                
+                const response = await fetch('/.netlify/functions/session-echo', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                resultEl.innerHTML = `
+                    <strong>Session Echo Result:</strong><br>
+                    Email: ${data.email || 'None'}<br>
+                    Entitled: ${data.entitled ? 'YES' : 'NO'}<br>
+                    Status: <span style="color: var(--success-color);">✅ PASS</span>
+                `;
+            } catch (error) {
+                resultEl.innerHTML = `
+                    <span style="color: var(--error-color);">❌ FAIL - ${error.message}</span>
+                `;
+            }
+        }
+        
+        // AI smoke test - uses admin endpoint
+        async function runAISmokeTest() {
+            const statusEl = document.getElementById('ai-status');
+            const detailsEl = document.getElementById('ai-details');
+            const resultEl = document.getElementById('ai-test-result');
+            
+            statusEl.className = 'status-indicator status-unknown';
+            detailsEl.innerHTML = '<span class="loading-spinner"></span> Running AI smoke test...';
+            resultEl.innerHTML = '';
+            
+            try {
+                const session = await supabaseClient.auth.getSession();
+                const token = session.data?.session?.access_token;
+                
+                const response = await fetch('/.netlify/functions/admin-ai-smoke-test', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.ok) {
+                    statusEl.className = 'status-indicator status-ok';
+                    detailsEl.innerHTML = '<span style="color: var(--success-color);">✅ PASS</span> - AI generation successful';
+                    
+                    resultEl.innerHTML = `
+                        <strong>Test Results:</strong><br>
+                        Tokens used: ${data.tokensUsed}<br>
+                        Output bytes: ${data.outputBytes}<br>
+                        Generation time: ${data.generationTimeMs}ms<br>
+                        Model: ${data.model}<br>
+                        Feedback ID: ${data.feedbackRowId || 'N/A'}<br>
+                        Preview: ${data.codePreview}
+                    `;
+                } else {
+                    throw new Error(data.error || 'AI smoke test failed');
+                }
+                
+            } catch (error) {
+                statusEl.className = 'status-indicator status-error';
+                detailsEl.innerHTML = `<span style="color: var(--error-color);">❌ FAIL</span> - AI test failed`;
+                resultEl.innerHTML = `<span style="color: var(--error-color);">Error: ${error.message}</span>`;
+            }
+        }
+        
+        // User stats
+        async function loadUserStats() {
+            const statusEl = document.getElementById('users-status');
+            const detailsEl = document.getElementById('user-stats');
+            
+            statusEl.className = 'status-indicator status-unknown';
+            detailsEl.innerHTML = '<span class="loading-spinner"></span> Loading user statistics...';
+            
+            try {
+                const { data: profiles, error } = await supabaseClient
+                    .from('profiles')
+                    .select('subscription_plan, is_paid, is_active, created_at');
+                
+                if (error) throw error;
+                
+                const stats = {
+                    total: profiles.length,
+                    paid: profiles.filter(p => p.is_paid).length,
+                    active: profiles.filter(p => p.is_active).length,
+                    monthly: profiles.filter(p => p.subscription_plan === 'monthly').length,
+                    yearly: profiles.filter(p => p.subscription_plan === 'yearly').length
+                };
+                
+                statusEl.className = 'status-indicator status-ok';
+                detailsEl.innerHTML = `
+                    <div><strong>User Statistics:</strong></div>
+                    <div>Total users: ${stats.total}</div>
+                    <div>Paid users: ${stats.paid}</div>
+                    <div>Active users: ${stats.active}</div>
+                    <div>Monthly plans: ${stats.monthly}</div>
+                    <div>Yearly plans: ${stats.yearly}</div>
+                `;
+                
+            } catch (error) {
+                statusEl.className = 'status-indicator status-error';
+                detailsEl.innerHTML = `<span style="color: var(--error-color);">❌ Failed to load stats: ${error.message}</span>`;
+            }
+        }
+        
+        // Config display with key masking and reveal
+        let keysRevealed = false;
+        
+        function displayConfig() {
+            const configEl = document.getElementById('config-display');
+            
+            const safeConfig = {
+                APP_NAME: window.CONFIG.APP_NAME,
+                VERSION: window.CONFIG.VERSION,
+                PAYMENT_FIRST: window.CONFIG.PAYMENT_FIRST,
+                FEATURES: window.CONFIG.FEATURES,
+                PRICING: window.CONFIG.PRICING,
+                SUPABASE_URL: window.CONFIG.SUPABASE_URL,
+                STRIPE_PUBLISHABLE_KEY: keysRevealed 
+                    ? window.CONFIG.STRIPE_PUBLISHABLE_KEY 
+                    : (window.CONFIG.STRIPE_PUBLISHABLE_KEY?.substring(0, 20) + '••••••••••••••••'),
+                NETLIFY_FUNCTIONS_BASE: window.CONFIG.NETLIFY_FUNCTIONS_BASE
+            };
+            
+            configEl.innerHTML = `<pre style="font-size: 0.8rem; background: var(--primary-bg); padding: 1rem; border-radius: 5px; overflow-x: auto;">${JSON.stringify(safeConfig, null, 2)}</pre>`;
+            
+            // Show reveal button only if publishable key exists
+            const revealBtn = document.getElementById('reveal-key-btn');
+            if (window.CONFIG.STRIPE_PUBLISHABLE_KEY) {
+                revealBtn.style.display = 'inline-block';
+            }
+        }
+        
+        function toggleKeyVisibility() {
+            keysRevealed = !keysRevealed;
+            displayConfig();
+            
+            const btn = document.getElementById('reveal-key-btn');
+            btn.innerHTML = keysRevealed ? '🙈 Hide Keys' : '👁️ Reveal Keys';
+        }
+
+        // Feedback Review Functions
+        async function loadFeedbackReview() {
+            const statusEl = document.getElementById('feedback-status');
+            const listEl = document.getElementById('feedback-list');
+            const status = document.getElementById('feedback-status-filter').value;
+            const search = document.getElementById('feedback-search').value;
+            
+            statusEl.className = 'status-indicator status-unknown';
+            listEl.innerHTML = '<span class="loading-spinner"></span> Loading feedback...';
+            
+            try {
+                const session = await supabaseClient.auth.getSession();
+                const token = session.data?.session?.access_token;
+                
+                const queryParams = new URLSearchParams({ status });
+                if (search.trim()) queryParams.append('search', search.trim());
+                
+                const response = await fetch(`/.netlify/functions/admin-feedback-list?${queryParams}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.ok && data.feedback) {
+                    statusEl.className = 'status-indicator status-ok';
+                    
+                    if (data.feedback.length === 0) {
+                        listEl.innerHTML = `<div>No ${status} feedback found.</div>`;
+                        return;
+                    }
+                    
+                    const feedbackHtml = data.feedback.map(item => `
+                        <div style="border: 1px solid var(--border-color); padding: 1rem; margin: 0.5rem 0; border-radius: 5px;">
+                            <div><strong>${item.profiles?.email || 'Unknown'}</strong> • ${new Date(item.created_at).toLocaleDateString()} • ${item.quality_score}⭐ ${item.quality_label || ''}</div>
+                            <div style="margin: 0.5rem 0; font-size: 0.9rem;">
+                                <strong>Prompt:</strong> ${(item.design_prompt || '').substring(0, 150)}${item.design_prompt?.length > 150 ? '...' : ''}
+                            </div>
+                            <div style="margin: 0.5rem 0; font-size: 0.9rem;">
+                                <strong>Feedback:</strong> ${(item.feedback_text || 'No comment').substring(0, 100)}${item.feedback_text?.length > 100 ? '...' : ''}
+                            </div>
+                            <div class="admin-actions">
+                                ${item.review_status === 'pending' ? `
+                                    <button onclick="decideFeedback('${item.id}', 'accept')" class="btn btn-primary btn-small">✅ Accept & Train</button>
+                                    <button onclick="decideFeedback('${item.id}', 'reject')" class="btn btn-secondary btn-small">❌ Reject</button>
+                                ` : `
+                                    <span style="color: var(--accent-blue);">Status: ${item.review_status}</span>
+                                    ${item.reviewed_by ? `<br><small>Reviewed by: ${item.reviewed_by}</small>` : ''}
+                                `}
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    listEl.innerHTML = `
+                        <div><strong>Found ${data.feedback.length} items (Page ${data.pagination.page}/${data.pagination.totalPages})</strong></div>
+                        ${feedbackHtml}
+                    `;
+                } else {
+                    throw new Error(data.error || 'Failed to load feedback');
+                }
+                
+            } catch (error) {
+                statusEl.className = 'status-indicator status-error';
+                listEl.innerHTML = `<span style="color: var(--error-color);">❌ Failed to load feedback: ${error.message}</span>`;
+            }
+        }
+        
+        async function decideFeedback(feedbackId, decision) {
+            try {
+                const session = await supabaseClient.auth.getSession();
+                const token = session.data?.session?.access_token;
+                
+                const response = await fetch('/.netlify/functions/admin-feedback-decide', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        feedback_id: feedbackId,
+                        decision: decision,
+                        tags: decision === 'accept' ? ['admin-approved'] : null
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.ok) {
+                    console.log(`✅ Feedback ${decision}ed:`, data.message);
+                    // Reload feedback list to show updated status
+                    loadFeedbackReview();
+                } else {
+                    throw new Error(data.error || `Failed to ${decision} feedback`);
+                }
+                
+            } catch (error) {
+                console.error(`Failed to ${decision} feedback:`, error);
+                alert(`Failed to ${decision} feedback: ${error.message}`);
+            }
+        }
+
+        // Training Assets Functions
+        async function loadTrainingAssets() {
+            const listEl = document.getElementById('training-assets-list');
+            listEl.innerHTML = '<span class="loading-spinner"></span> Loading training assets...';
+            
+            try {
+                const session = await supabaseClient.auth.getSession();
+                const token = session.data?.session?.access_token;
+                
+                const response = await fetch('/.netlify/functions/admin-list-training-assets', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.ok && data.assets) {
+                    if (data.assets.length === 0) {
+                        listEl.innerHTML = '<div>No training assets uploaded yet.</div>';
+                        return;
+                    }
+                    
+                    const assetsHtml = data.assets.map(asset => `
+                        <div style="border: 1px solid var(--border-color); padding: 1rem; margin: 0.5rem 0; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div><strong>${asset.name}</strong> (${asset.type})</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                                    ${asset.size ? `${Math.round(asset.size / 1024)}KB` : ''} • 
+                                    ${asset.uploadedAt ? new Date(asset.uploadedAt).toLocaleString() : ''} • 
+                                    ${asset.uploadedBy || 'Unknown'}
+                                </div>
+                            </div>
+                            <div class="admin-actions">
+                                ${asset.url ? `<a href="${asset.url}" target="_blank" class="btn btn-secondary btn-small">👁️ View</a>` : ''}
+                                <button onclick="deleteTrainingAsset('${asset.id}')" class="btn btn-secondary btn-small">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    listEl.innerHTML = `
+                        <div><strong>Training Assets (${data.assets.length} items)</strong></div>
+                        ${assetsHtml}
+                    `;
+                } else {
+                    throw new Error(data.error || 'Failed to load training assets');
+                }
+                
+            } catch (error) {
+                listEl.innerHTML = `<span style="color: var(--error-color);">❌ Failed to load assets: ${error.message}</span>`;
+            }
+        }
+        
+        async function uploadTrainingAsset() {
+            const fileInput = document.getElementById('asset-file-input');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a file to upload');
+                return;
+            }
+            
+            const allowedTypes = ['.svg', '.scad', '.jsonl'];
+            const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+            
+            if (!allowedTypes.includes(fileExt)) {
+                alert(`Invalid file type. Allowed: ${allowedTypes.join(', ')}`);
+                return;
+            }
+            
+            const listEl = document.getElementById('training-assets-list');
+            listEl.innerHTML = '<span class="loading-spinner"></span> Uploading training asset...';
+            
+            try {
+                const session = await supabaseClient.auth.getSession();
+                const token = session.data?.session?.access_token;
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const response = await fetch('/.netlify/functions/admin-upload-training-asset', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.ok && data.asset) {
+                    console.log('✅ Asset uploaded:', data.asset);
+                    fileInput.value = ''; // Clear the file input
+                    loadTrainingAssets(); // Reload the list
+                } else {
+                    throw new Error(data.error || 'Upload failed');
+                }
+                
+            } catch (error) {
+                console.error('Upload error:', error);
+                listEl.innerHTML = `<span style="color: var(--error-color);">❌ Upload failed: ${error.message}</span>`;
+            }
+        }
+        
+        async function deleteTrainingAsset(assetId) {
+            if (!confirm('Are you sure you want to delete this training asset?')) {
+                return;
+            }
+            
+            try {
+                const session = await supabaseClient.auth.getSession();
+                const token = session.data?.session?.access_token;
+                
+                const response = await fetch(`/.netlify/functions/admin-delete-training-asset?id=${encodeURIComponent(assetId)}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.ok) {
+                    console.log('✅ Asset deleted:', data.message);
+                    loadTrainingAssets(); // Reload the list
+                } else {
+                    throw new Error(data.error || 'Delete failed');
+                }
+                
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert(`Failed to delete asset: ${error.message}`);
+            }
+        }
+        
+        // Logout
+        function handleLogout() {
+            window.flexicadAuth.logout();
+        }
+    </script>
+</body>
+</html>

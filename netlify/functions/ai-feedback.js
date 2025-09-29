@@ -101,9 +101,38 @@ exports.handler = async (event, context) => {
     // Update the session with feedback
     const updateData = {};
     
-    if (feedback !== undefined) {
-      updateData.user_feedback = feedback;
+    // Handle both old format (number) and new format (object)
+    let rating, qualityLabel, feedbackText;
+    
+    if (typeof feedback === 'object' && feedback !== null) {
+      // New enhanced format
+      rating = feedback.rating || feedback.quality_score;
+      qualityLabel = feedback.quality_label;
+      feedbackText = feedback.text;
+    } else if (typeof feedback === 'number') {
+      // Old format - just a number
+      rating = feedback;
+      const qualityLabels = { 1: 'unusable', 2: 'poor', 3: 'ok', 4: 'good', 5: 'excellent' };
+      qualityLabel = qualityLabels[rating] || 'unknown';
+    }
+    
+    // Validate rating
+    if (rating !== undefined) {
+      if (rating < 1 || rating > 5 || !Number.isInteger(rating)) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Rating must be an integer between 1 and 5' }),
+        };
+      }
+      
+      updateData.user_feedback = rating;
       updateData.updated_at = new Date().toISOString();
+    }
+    
+    // Add feedback text if provided
+    if (feedbackText) {
+      updateData.feedback_text = feedbackText;
     }
 
     if (finalCode) {
