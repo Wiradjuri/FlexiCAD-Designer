@@ -76,6 +76,7 @@ export const handler = async (event, context) => {
     }
 
     // Generate signed URLs for JSONL previews
+    const bucketName = process.env.SUPABASE_STORAGE_BUCKET_TRAINING || 'training-assets';
     const assetsWithUrls = await Promise.all(
       (assets || []).map(async (asset) => {
         let previewUrl = null;
@@ -85,12 +86,12 @@ export const handler = async (event, context) => {
           try {
             // Get signed URL for preview (5 minutes)
             const { data: previewUrlData } = await supabase.storage
-              .from('training-assets')
+              .from(bucketName)
               .createSignedUrl(asset.storage_path, 300);
             
             // Get signed URL for download (1 hour)
             const { data: downloadUrlData } = await supabase.storage
-              .from('training-assets')
+              .from(bucketName)
               .createSignedUrl(asset.storage_path, 3600);
 
             previewUrl = previewUrlData?.signedUrl;

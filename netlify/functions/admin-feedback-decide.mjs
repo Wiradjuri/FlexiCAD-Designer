@@ -19,164 +19,129 @@ export const handler = async (event, context) => {
     // Check admin access using robust helper
     const gate = await requireAdmin(event);
     if (!gate.ok) {
-        return json(gate.status, { ok: false, code: gate.code, error: gate.error });
+        return json(gate.status, { ok: false, code: 'admin_required', error: 'Admin access required' });
     }
     
-    const requesterEmail = gate.requesterEmail;
-    const supabase = gate.supabase; // service client
+    const { supabase, requesterEmail, requesterId } = gate;
+    console.log('[admin][feedback-decide] requester=%s', requesterEmail);
+
+    // Parse and validate request body
+    let body;
+    try {
+        body = JSON.parse(event.body || '{}');
+    } catch {
+        return json(400, { ok: false, code: 'bad_json', error: 'Malformed JSON body' });
+    }
+
+    const { feedback_id, decision } = body;
+    const tags = Array.isArray(body.tags) ? body.tags : ['admin-approved'];
+    const reason = body.reason || null;
+
+    if (!feedback_id || !['accept', 'reject'].includes(decision)) {
+        return json(400, { ok: false, code: 'bad_request', error: 'feedback_id and decision are required' });
+    }
 
     try {
 
-        // Parse and validate request body
-        const body = JSON.parse(event.body || '{}');
-        const { feedback_id, decision, reason, tags } = body;
-
-        // Validate input
-        if (!feedback_id || !decision || !['accept', 'reject'].includes(decision)) {
-            return json(400, { 
-                ok: false,
-                code: 'invalid_input',
-                error: 'feedback_id and decision (accept/reject) are required'
-            });
-        }
-
-        console.log(`[admin][feedback-decide] requester=${requesterEmail} id=${feedback_id} decision=${decision}`);
-
-        // Start transaction-like operations
-        let promotedExampleId = null;
-
-        // Step 1: Get the feedback record
-        const { data: feedback, error: feedbackError } = await supabase
+        // Get the feedback record with detailed error handling
+        const { data: fb, error: sErr } = await supabase
             .from('ai_feedback')
             .select('*')
             .eq('id', feedback_id)
             .single();
 
-        if (feedbackError || !feedback) {
-            console.log('❌ [admin-feedback-decide] Feedback not found:', feedback_id);
-            return json(404, { 
-                ok: false,
-                code: 'not_found',
-                error: 'Feedback not found',
-                feedback_id 
-            });
+        if (sErr) {
+            return json(500, { ok: false, code: 'db_select', error: sErr.message });
+        }
+        if (!fb) {
+            return json(404, { ok: false, code: 'not_found', error: 'Feedback not found' });
         }
 
         // Check if already reviewed (idempotent operation)
-        if (feedback.review_status !== 'pending') {
-            console.log(`ℹ️ [admin-feedback-decide] Feedback ${feedback_id} already ${feedback.review_status}`);
+        if (fb.review_status !== 'pending') {
             return json(200, {
                 ok: true,
-                message: `Feedback already ${feedback.review_status}`,
+                message: `Feedback already ${fb.review_status}`,
                 feedback: {
-                    id: feedback.id,
-                    review_status: feedback.review_status,
-                    reviewed_by: feedback.reviewed_by,
-                    reviewed_at: feedback.reviewed_at
+                    id: fb.id,
+                    review_status: fb.review_status,
+                    reviewed_by: fb.reviewed_by,
+                    reviewed_at: fb.reviewed_at
                 },
-                promoted_example_id: null // already processed
+                promoted_example_id: null
             });
         }
 
-        const now = new Date().toISOString();
-        const reviewStatus = decision === 'accept' ? 'accepted' : 'rejected';
-
-        // Step 2: If accepting, create training example first (idempotent on source_feedback_id)
+        // If accepting, create training example idempotently
+        let promotedId = null;
         if (decision === 'accept') {
-            const trainingExample = {
-                source_feedback_id: feedback_id,
-                input_prompt: feedback.design_prompt,
-                generated_code: feedback.generated_code,
-                quality_score: feedback.quality_score || 5,
-                quality_label: feedback.quality_score >= 4 ? 'good' : 'bad',
-                tags: Array.isArray(tags) ? tags : ['admin-approved'],
-                template: feedback.template || 'general',
-                created_by: requesterEmail,
-                active: true
-            };
-
-            const { data: example, error: exampleError } = await supabase
+            const quality_label = (fb.quality_score ?? 0) >= 4 ? 'good' : 'bad';
+            
+            // Check if training example already exists
+            const { data: exists, error: exErr } = await supabase
                 .from('ai_training_examples')
-                .upsert([trainingExample], { 
-                    onConflict: 'source_feedback_id',
-                    ignoreDuplicates: false 
-                })
-                .select()
-                .single();
+                .select('id')
+                .eq('source_feedback_id', feedback_id)
+                .maybeSingle();
 
-            if (exampleError) {
-                console.error('❌ [admin-feedback-decide] Failed to create training example:', exampleError);
-                return json(500, { 
-                    ok: false,
-                    code: 'training_example_failed',
-                    error: 'Failed to create training example',
-                    details: exampleError.message
-                });
+            if (exErr) {
+                return json(500, { ok: false, code: 'db_check', error: exErr.message });
             }
 
-            promotedExampleId = example.id;
-            console.log(`✅ [admin-feedback-decide] Created/updated training example ${promotedExampleId} from feedback ${feedback_id}`);
+            if (!exists) {
+                // Create new training example
+                const { data: ins, error: insErr } = await supabase
+                    .from('ai_training_examples')
+                    .insert([{
+                        source_feedback_id: feedback_id,
+                        template: fb.template || null,
+                        input_prompt: fb.design_prompt || null,
+                        generated_code: fb.generated_code || null,
+                        quality_score: fb.quality_score ?? null,
+                        quality_label,
+                        tags,
+                        created_by: requesterId
+                    }])
+                    .select('id')
+                    .single();
+
+                if (insErr) {
+                    return json(500, { ok: false, code: 'db_insert_example', error: insErr.message });
+                }
+                promotedId = ins.id;
+            } else {
+                promotedId = exists.id;
+            }
         }
 
-        // Step 3: Update feedback status
-        const { data: updatedFeedback, error: updateError } = await supabase
+        // Update feedback status and return updated columns used by UI
+        const { data: upd, error: updErr } = await supabase
             .from('ai_feedback')
             .update({
-                review_status: reviewStatus,
+                review_status: decision === 'accept' ? 'accepted' : 'rejected',
                 reviewed_by: requesterEmail,
-                reviewed_at: now,
-                updated_at: now
+                reviewed_at: new Date().toISOString()
             })
             .eq('id', feedback_id)
-            .select()
+            .select('id, review_status, reviewed_by, reviewed_at')
             .single();
 
-        if (updateError) {
-            console.error('❌ [admin-feedback-decide] Failed to update feedback status:', updateError);
-            return json(500, { 
-                ok: false,
-                code: 'update_failed',
-                error: 'Failed to update feedback status',
-                details: updateError.message
-            });
+        if (updErr) {
+            return json(500, { ok: false, code: 'db_update_feedback', error: updErr.message });
         }
 
-        // Step 4: Log audit entry (don't fail request if this fails)
+        // Log audit entry (don't fail request if this fails)
         try {
-            await supabase
-                .from('admin_audit')
-                .insert([{
-                    admin_email: requesterEmail,
-                    action: `feedback_${decision}`,
-                    resource_type: 'ai_feedback',
-                    resource_id: feedback_id,
-                    details: {
-                        original_status: feedback.review_status,
-                        new_status: reviewStatus,
-                        reason: reason || null,
-                        tags: tags || null,
-                        promoted_example_id: promotedExampleId
-                    }
-                }]);
+            await supabase.from('admin_audit').insert([{
+                actor_email: requesterEmail,
+                action: 'admin_feedback_decide',
+                details: { feedback_id, decision, reason, promoted_example_id: promotedId }
+            }]);
         } catch (auditError) {
             console.warn('⚠️ [admin-feedback-decide] Failed to log audit entry:', auditError.message);
-            // Don't fail the request for audit logging issues
         }
 
-        console.log(`✅ [admin-feedback-decide] Feedback ${feedback_id} ${reviewStatus} by ${requesterEmail}`);
-
-        // Return success with updated row
-        return json(200, {
-            ok: true,
-            message: `Feedback ${reviewStatus} successfully`,
-            feedback: {
-                id: updatedFeedback.id,
-                review_status: updatedFeedback.review_status,
-                reviewed_by: updatedFeedback.reviewed_by,
-                reviewed_at: updatedFeedback.reviewed_at
-            },
-            promoted_example_id: promotedExampleId
-        });
+        return json(200, { ok: true, feedback: upd, promoted_example_id: promotedId });
 
     } catch (error) {
         console.error('🔥 [admin-feedback-decide] Unexpected error:', error);

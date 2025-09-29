@@ -31,14 +31,17 @@ export const handler = async (event, context) => {
         const body = JSON.parse(event.body || '{}');
         let { object_path, assetType, filename, size, contentType, tags } = body;
 
-        // Validate input
-        if (!object_path || !filename) {
+        // Validate required input
+        if (!object_path || !filename || !contentType || !size || !assetType) {
             return json(400, { 
                 ok: false,
                 code: 'missing_fields',
-                error: 'Missing required fields: object_path, filename' 
+                error: 'Missing required fields: object_path, filename, contentType, size, assetType' 
             });
         }
+
+        // Ensure tags is an array
+        tags = Array.isArray(tags) ? tags : [];
 
         // Derive assetType from object_path if not provided
         if (!assetType) {

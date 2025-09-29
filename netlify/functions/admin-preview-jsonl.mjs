@@ -72,8 +72,9 @@ export const handler = async (event, context) => {
     }
 
     // Download file content
+    const bucketName = process.env.SUPABASE_STORAGE_BUCKET_TRAINING || 'training-assets';
     const { data: fileData, error: downloadError } = await supabase.storage
-      .from('training-assets')
+      .from(bucketName)
       .download(asset.storage_path);
 
     if (downloadError) {

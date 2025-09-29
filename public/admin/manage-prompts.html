@@ -643,7 +643,8 @@
       const data = await res.json();
       
       if (!data.ok) {
-        throw new Error(data.error || data.details || `Failed to ${decision} feedback`);
+        const errorMsg = data.code ? `${data.code}: ${data.error}` : (data.error || data.details || `Failed to ${decision} feedback`);
+        throw new Error(errorMsg);
       }
 
       // Update row UI in place (optimistic update)
