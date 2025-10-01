@@ -75,8 +75,8 @@
     <script src="js/secure-config-loader.js"></script>
     <script src="js/flexicad-auth.js"></script>
     <script src="js/navbar-manager.js"></script>
-    <script type="module" src="js/modals.js"></script>
-    <script type="module" src="js/template-wizards-v2.js"></script>
+    <script src="js/modals.js"></script>
+    <script src="js/template-wizards-v2.js"></script>
     <script src="js/stl-exporter.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
@@ -85,6 +85,13 @@
 
         // Check authentication and load templates
         document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize template wizards
+            if (window.templateWizards) {
+                console.log('[Templates] Template wizards initialized');
+            } else {
+                console.warn('[Templates] Template wizards not available');
+            }
+            
             // Check if user has paid access
             const hasAccess = await window.flexicadAuth.requireAuth();
             

@@ -387,12 +387,13 @@
     <div id="modal-root"></div>
 
     <!-- Scripts -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="js/secure-config-loader.js"></script>
-    <script src="js/flexicad-auth.js"></script>
-    <script src="js/navbar-manager.js"></script>
-    <script type="module" src="js/modals.js"></script>
-    <script src="js/enhanced-ai-generator-clean.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2" defer></script>
+    <script src="js/secure-config-loader.js" defer></script>
+    <script src="js/flexicad-auth.js" defer></script>
+    <script src="js/navbar-manager.js" defer></script>
+    <script src="js/modals.js" defer></script>
+    <script src="js/generator-ui.js" defer></script>
+    <script src="js/enhanced-ai-generator-clean.js" defer></script>
     <script>
         // Phase 4.7.2 AI Generator JavaScript
         
@@ -502,12 +503,17 @@
             setTimeout(scrollToOutput, 100);
             
             try {
+                // Stage 1: Knowledge slicing (10%)
+                updateProgress(10);
+                
                 // Simulate progress during generation
+                let progressStage = 10;
                 const progressInterval = setInterval(() => {
-                    if (currentProgress < 90) {
-                        updateProgress(currentProgress + Math.random() * 10);
+                    if (progressStage < 40) {
+                        progressStage += 2;
+                        updateProgress(progressStage);
                     }
-                }, 200);
+                }, 150);
                 
                 // Retrieve authentication token for paid users
                 const auth = window.flexicadAuth;
@@ -525,6 +531,9 @@
                     throw new Error('Please sign in to generate designs');
                 }
 
+                // Stage 2: Model call (40-80%)
+                updateProgress(40);
+                
                 // Call the AI generation function
                 const response = await fetch('/.netlify/functions/generate-template', {
                     method: 'POST',
@@ -541,11 +550,18 @@
                 
                 clearInterval(progressInterval);
                 
+                // Stage 3: Processing response (80%)
+                updateProgress(80);
+                
                 if (!response.ok) {
-                    throw new Error('Generation failed');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Generation failed');
                 }
                 
                 const result = await response.json();
+                
+                // Stage 4: Rendering output (100%)
+                updateProgress(95);
                 
                 // Complete progress
                 updateProgress(100);

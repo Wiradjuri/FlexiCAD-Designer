@@ -468,6 +468,88 @@ Delete a user's design.
 
 The entire UI uses CSS custom properties defined in `public/css/dark-theme.css`. Modify the `:root` variables to customize colors and appearance.
 
+## 🧪 Testing
+
+### Admin Panel Testing
+
+After logging in as an admin user (e.g., `bmuzza1992@gmail.com`):
+
+#### Browser Testing
+1. Visit `/admin-controlpanel.html`
+2. Verify dashboard stats load (not showing "Loading...")
+3. Click on each card heading to test subpages:
+   - Access Control
+   - Payment Management
+   - AI Management
+   - System Tools
+4. Click "← Back to Dashboard" to return
+5. Test System Tools buttons (Cache Flush, Recompute Tags)
+
+#### Getting Your JWT Token
+1. Open browser DevTools (F12)
+2. Go to Application → Local Storage
+3. Find Supabase session
+4. Copy the `access_token` value
+
+#### Terminal Testing (PowerShell)
+```powershell
+# Set your token
+$TOKEN = "paste-your-access-token-here"
+$BASE = "http://localhost:8888/.netlify/functions"
+
+# Test dashboard stats
+curl -H "Authorization: Bearer $TOKEN" "$BASE/admin-dashboard-stats" | ConvertFrom-Json
+
+# Test access list
+curl -H "Authorization: Bearer $TOKEN" "$BASE/admin-access-list" | ConvertFrom-Json
+
+# Test AI overview
+curl -H "Authorization: Bearer $TOKEN" "$BASE/admin-ai-overview" | ConvertFrom-Json
+
+# Test system tools
+curl -Method POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" `
+  -Body '{"op":"flush-cache"}' "$BASE/admin-system-tools" | ConvertFrom-Json
+```
+
+### Template Wizard Testing
+1. Visit `/templates.html`
+2. Click any "Create" button
+3. Fill out the wizard form
+4. Click "Preview" to see generated code
+5. Click "Generate" to send to AI generator
+6. Verify redirect to `/ai.html` with auto-run
+
+### AI Generator Testing
+1. Visit `/ai.html?prompt=test box&auto=true`
+2. Watch progress bar animate (0% → 10% → 40% → 80% → 100%)
+3. Verify output panel appears with code
+4. Check auto-scroll to output
+5. Test Smart Suggestions (click to add to prompt)
+6. Verify suggestions appear both RHS and below output
+
+### Browser Console Test Script
+Open browser console and paste:
+```javascript
+// Load and run test script
+fetch('/tests/phase-4-7-9-test.mjs')
+  .then(r => r.text())
+  .then(code => eval(code));
+```
+
+Or run directly:
+```javascript
+// Quick inline test
+async function quickTest() {
+  const session = await window.supabase?.auth.getSession();
+  const token = session?.data?.session?.access_token;
+  const res = await fetch('/.netlify/functions/admin-dashboard-stats', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  console.log('Dashboard stats:', await res.json());
+}
+quickTest();
+```
+
 ## 🔒 Security
 
 - **Authentication**: JWT tokens from Supabase
@@ -517,6 +599,17 @@ For support and questions:
 - **v1.0.0**: Initial release with AI generation, templates, and user auth
 - **v1.1.0**: Added design management and improved UI
 - **v1.2.0**: Enhanced AI prompts and template library
+- **Phase 4.7.9** (2025-01-XX): Admin panel boot, template wizards, AI progress tracking
+  - Fixed admin dashboard stats rendering
+  - Fixed template wizard modal initialization
+  - Added AI generator 4-stage progress (10%/40%/80%/100%)
+  - Improved error handling across all systems
+- **Phase 4.7.10** (2025-01-XX): Hotfix — UMD modals, Admin JWT, Smart Suggestions ✅
+  - Converted modals.js to UMD+ESM dual-mode (fixed "export declarations" error)
+  - Rewired admin panel to use flexicadAuth.getSupabaseClient() (no direct window.supabase)
+  - Removed 470+ lines duplicate inline script from admin-controlpanel.html
+  - Made Smart Suggestions interactive (click to append to prompt)
+  - All pages use `defer` for CSP-safe script loading
 
 ---
 

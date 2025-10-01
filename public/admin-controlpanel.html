@@ -104,15 +104,15 @@
 
         <div class="admin-stats">
             <div class="stat-card">
-                <span class="stat-number" id="totalUsers">Loading...</span>
+                <span class="stat-number" data-metric="total-users">—</span>
                 <span class="stat-label">Total Users</span>
             </div>
             <div class="stat-card">
-                <span class="stat-number" id="activeUsers">Loading...</span>
+                <span class="stat-number" data-metric="active-today">—</span>
                 <span class="stat-label">Active Today</span>
             </div>
             <div class="stat-card">
-                <span class="stat-number" id="totalDesigns">Loading...</span>
+                <span class="stat-number" data-metric="total-designs">—</span>
                 <span class="stat-label">Total Designs</span>
             </div>
             <div class="stat-card">
@@ -127,13 +127,13 @@
             <div class="admin-card">
                 <h3>🔐 Access Control</h3>
                 <div class="admin-actions">
-                    <button class="btn btn-secondary" onclick="manageUsers()">
+                    <button class="btn btn-secondary" id="btn-manage-users">
                         👥 Manage Users
                     </button>
-                    <button class="btn btn-secondary" onclick="viewAuditLog()">
+                    <button class="btn btn-secondary" id="btn-audit-log">
                         📋 View Audit Log
                     </button>
-                    <button class="btn btn-secondary" onclick="managePermissions()">
+                    <button class="btn btn-secondary" id="btn-permissions">
                         🛡️ Permissions
                     </button>
                 </div>
@@ -142,13 +142,13 @@
             <div class="admin-card">
                 <h3>💳 Payment Management</h3>
                 <div class="admin-actions">
-                    <button class="btn btn-secondary" onclick="viewSubscriptions()">
+                    <button class="btn btn-secondary" id="btn-view-subscriptions">
                         💰 View Subscriptions
                     </button>
-                    <button class="btn btn-secondary" onclick="managePromoCodes()">
+                    <button class="btn btn-secondary" id="btn-promo-codes">
                         🎫 Promo Codes
                     </button>
-                    <button class="btn btn-secondary" onclick="viewBilling()">
+                    <button class="btn btn-secondary" id="btn-billing">
                         📊 Billing Reports
                     </button>
                 </div>
@@ -157,13 +157,13 @@
             <div class="admin-card">
                 <h3>🤖 AI Management</h3>
                 <div class="admin-actions">
-                    <button class="btn btn-secondary" onclick="viewAIStats()">
+                    <button class="btn btn-secondary" id="btn-ai-stats">
                         📈 AI Usage Stats
                     </button>
-                    <button class="btn btn-secondary" onclick="manageLearning()">
+                    <button class="btn btn-secondary" id="btn-learning">
                         🧠 Learning Data
                     </button>
-                    <button class="btn btn-secondary" onclick="viewFeedback()">
+                    <button class="btn btn-secondary" id="btn-feedback">
                         💬 User Feedback
                     </button>
                 </div>
@@ -172,13 +172,13 @@
             <div class="admin-card">
                 <h3>⚙️ System Tools</h3>
                 <div class="admin-actions">
-                    <button class="btn btn-secondary" onclick="viewLogs()">
+                    <button class="btn btn-secondary" id="btn-system-logs">
                         📄 System Logs
                     </button>
-                    <button class="btn btn-secondary" onclick="checkHealth()">
+                    <button class="btn btn-secondary" id="btn-health">
                         ❤️ Health Check
                     </button>
-                    <button class="btn btn-secondary" onclick="manageBackups()">
+                    <button class="btn btn-secondary" id="btn-backups">
                         💾 Backups
                     </button>
                 </div>
@@ -187,216 +187,21 @@
 
         <div class="admin-card">
             <h3>📊 Recent Activity</h3>
-            <div id="recentActivity">
+            <div id="recent-activity">
                 <p class="text-secondary">Loading recent activity...</p>
             </div>
         </div>
     </div>
 
-    <!-- Core Scripts -->
-    <script src="js/flexicad-auth.js"></script>
-    <script src="js/navbar-manager.js"></script>
-    <script src="js/modals.js"></script>
-
-    <script>
-        // Admin Panel JavaScript
-        class AdminPanel {
-            constructor() {
-                this.initializeAdmin();
-            }
-
-            async initializeAdmin() {
-                // Verify admin access
-                const isAuthorized = await this.verifyAdminAccess();
-                if (!isAuthorized) {
-                    this.showAccessDenied();
-                    return;
-                }
-
-                // Load dashboard data
-                this.loadDashboardStats();
-                this.loadRecentActivity();
-            }
-
-            async verifyAdminAccess() {
-                try {
-                    const response = await fetch('/.netlify/functions/admin-health', {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${window.flexicadAuth?.session?.access_token || ''}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-
-                    return response.ok;
-                } catch (error) {
-                    console.error('Admin verification failed:', error);
-                    return false;
-                }
-            }
-
-            showAccessDenied() {
-                document.body.innerHTML = `
-                    <div class="container" style="text-align: center; padding: 4rem 1rem;">
-                        <h1>🚫 Access Denied</h1>
-                        <p>You do not have permission to access the admin panel.</p>
-                        <p><a href="index.html" class="btn btn-primary">Return Home</a></p>
-                    </div>
-                `;
-            }
-
-            async loadDashboardStats() {
-                // Mock data for now - in production would fetch from API
-                document.getElementById('totalUsers').textContent = '---';
-                document.getElementById('activeUsers').textContent = '---';
-                document.getElementById('totalDesigns').textContent = '---';
-            }
-
-            async loadRecentActivity() {
-                const activityContainer = document.getElementById('recentActivity');
-                activityContainer.innerHTML = `
-                    <p class="text-secondary" style="text-align: center;">
-                        Admin features will be implemented in the next phase.
-                        <br>Currently showing admin access validation only.
-                    </p>
-                `;
-            }
-        }
-
-        // Admin action functions
-        function manageUsers() {
-            showModal(`
-                <div class="modal-content">
-                    <h2>👥 User Management</h2>
-                    <p>User management features coming soon.</p>
-                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
-                </div>
-            `);
-        }
-
-        function viewAuditLog() {
-            showModal(`
-                <div class="modal-content">
-                    <h2>📋 Audit Log</h2>
-                    <p>Audit log features coming soon.</p>
-                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
-                </div>
-            `);
-        }
-
-        function managePermissions() {
-            showModal(`
-                <div class="modal-content">
-                    <h2>🛡️ Permission Management</h2>
-                    <p>Permission management features coming soon.</p>
-                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
-                </div>
-            `);
-        }
-
-        function viewSubscriptions() {
-            showModal(`
-                <div class="modal-content">
-                    <h2>💰 Subscription Management</h2>
-                    <p>Subscription management features coming soon.</p>
-                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
-                </div>
-            `);
-        }
-
-        function managePromoCodes() {
-            // Redirect to existing promo management page
-            window.location.href = 'manage-promo.html';
-        }
-
-        function viewBilling() {
-            showModal(`
-                <div class="modal-content">
-                    <h2>📊 Billing Reports</h2>
-                    <p>Billing report features coming soon.</p>
-                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
-                </div>
-            `);
-        }
-
-        function viewAIStats() {
-            showModal(`
-                <div class="modal-content">
-                    <h2>📈 AI Usage Statistics</h2>
-                    <p>AI statistics features coming soon.</p>
-                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
-                </div>
-            `);
-        }
-
-        function manageLearning() {
-            showModal(`
-                <div class="modal-content">
-                    <h2>🧠 Learning Data Management</h2>
-                    <p>Learning data management features coming soon.</p>
-                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
-                </div>
-            `);
-        }
-
-        function viewFeedback() {
-            showModal(`
-                <div class="modal-content">
-                    <h2>💬 User Feedback</h2>
-                    <p>Feedback management features coming soon.</p>
-                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
-                </div>
-            `);
-        }
-
-        function viewLogs() {
-            showModal(`
-                <div class="modal-content">
-                    <h2>📄 System Logs</h2>
-                    <p>Log viewing features coming soon.</p>
-                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
-                </div>
-            `);
-        }
-
-        function checkHealth() {
-            showModal(`
-                <div class="modal-content">
-                    <h2>❤️ System Health Check</h2>
-                    <p>Health monitoring features coming soon.</p>
-                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
-                </div>
-            `);
-        }
-
-        function manageBackups() {
-            showModal(`
-                <div class="modal-content">
-                    <h2>💾 Backup Management</h2>
-                    <p>Backup management features coming soon.</p>
-                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
-                </div>
-            `);
-        }
-
-        // Initialize admin panel
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check authentication first
-            if (window.flexicadAuth) {
-                window.flexicadAuth.requireAuth().then(() => {
-                    new AdminPanel();
-                });
-            } else {
-                setTimeout(() => {
-                    if (window.flexicadAuth) {
-                        window.flexicadAuth.requireAuth().then(() => {
-                            new AdminPanel();
-                        });
-                    } else {
-                        window.location.href = 'login.html';
-                    }
-                }, 1000);
-            }
+    <!-- Core Scripts - Proper order for CSP-safe loading -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2.58.0/dist/umd/supabase.js" defer></script>
+    <script src="js/secure-config-loader.js" defer></script>
+    <script src="js/flexicad-auth.js" defer></script>
+    <script src="js/navbar-manager.js" defer></script>
+    <script src="js/modals.js" defer></script>
+    <script src="js/admin-controlpanel.js" defer></script>
+</body>
+</html>
         });
     </script>
 </body>
