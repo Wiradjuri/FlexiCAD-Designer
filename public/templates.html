@@ -155,15 +155,16 @@
             const grid = document.getElementById('templateGrid');
             
             grid.innerHTML = templateList.map(template => `
-                <div class="card">
+                <div class="card template-card" data-template-id="${template.id}">
                     <div class="card-title">${template.name}</div>
                     <div class="card-description">${template.description}</div>
                     <div class="card-meta">
                         <span class="card-category">${template.category}</span>
                     </div>
                     <div class="card-actions">
-                        <button class="btn btn-primary btn-small" 
-                                onclick="window.templateWizards.showCreateWizard('${template.id}')">
+                        <button class="btn btn-primary btn-small template-create" 
+                                data-template="${template.id}"
+                                onclick="openTemplateWizard('${template.id}')">
                             �️ Create
                         </button>
                         <button class="btn btn-secondary btn-small" 
@@ -181,6 +182,18 @@
             document.getElementById('loading').classList.add('hidden');
             grid.classList.remove('hidden');
         }
+
+        function openTemplateWizard(templateId) {
+            const id = (templateId || '').toString();
+            if (window.templateWizards?.showCreateWizard) {
+                window.templateWizards.showCreateWizard(id);
+            } else {
+                console.error('Template wizard unavailable for', id);
+                alert('Template wizard not available. Please refresh the page and try again.');
+            }
+        }
+
+        window.openTemplateWizard = openTemplateWizard;
 
         async function viewCode(templateId) {
             try {

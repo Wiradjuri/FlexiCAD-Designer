@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Management - FlexiCAD Admin</title>
+  <link rel="stylesheet" href="../css/dark-theme.css">
+  <style>
+    .admin-page-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    .card-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .payment-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .payment-table th,
+    .payment-table td {
+      padding: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .payment-table th {
+      text-align: left;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+    }
+
+    .empty-state {
+      padding: 1.5rem;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-page-container">
+    <nav class="admin-breadcrumb">
+      <a href="/admin/admin-controlpanel.html">← Admin Dashboard</a>
+      <span>/ Payment Management</span>
+    </nav>
+
+    <header>
+      <h1>Payment Management</h1>
+      <p>Monitor subscriptions, payment status, and plan distribution.</p>
+    </header>
+
+    <section class="card">
+      <div class="card-header">
+        Subscription Overview
+      </div>
+      <div id="paymentSummary" class="card-content">
+        <p>Loading payment metrics…</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        Active Subscribers
+      </div>
+      <div id="subscriberTable" class="card-content">
+        <p>Loading subscribers…</p>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="../js/secure-config-loader.js"></script>
+  <script src="../js/flexicad-auth.js"></script>
+  <script>
+    async function loadPaymentData() {
+      const summaryEl = document.getElementById('paymentSummary');
+      const tableEl = document.getElementById('subscriberTable');
+
+      summaryEl.innerHTML = '<p>Loading payment metrics…</p>';
+      tableEl.innerHTML = '<p>Loading subscribers…</p>';
+
+      try {
+        await window.flexicadAuth.init();
+        const token = await window.flexicadAuth.getSessionToken();
+        if (!token) {
+          throw new Error('Authentication required');
+        }
+
+        const response = await fetch('/.netlify/functions/admin-list-users', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const payload = await response.json().catch(() => ({ ok: false, error: 'Invalid response' }));
+        if (!response.ok || !payload.ok) {
+          throw new Error(payload.error || `Request failed (${response.status})`);
+        }
+
+        const users = payload.users || [];
+        renderSummary(users, summaryEl);
+        renderSubscribers(users, tableEl);
+      } catch (error) {
+        console.error('Payment data load failed', error);
+        summaryEl.innerHTML = `<p class="error-message">Failed to load payment information: ${escapeHtml(error.message)}</p>`;
+        tableEl.innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`;
+      }
+    }
+
+    function renderSummary(users, container) {
+      const totalUsers = users.length;
+      const paidUsers = users.filter((user) => user.is_paid);
+      const unpaidUsers = totalUsers - paidUsers.length;
+      const activeUsers = users.filter((user) => user.is_active).length;
+
+      const monthly = paidUsers.filter((user) => (user.subscription_plan || '').toLowerCase() === 'monthly').length;
+      const yearly = paidUsers.filter((user) => (user.subscription_plan || '').toLowerCase() === 'yearly').length;
+
+      container.innerHTML = `
+        <div class="stat-grid">
+          <div class="stat-card">
+            <span class="stat-label">Paid Subscribers</span>
+            <span class="stat-value">${paidUsers.length}</span>
+            <span class="stat-label">Total users: ${totalUsers}</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Active Accounts</span>
+            <span class="stat-value">${activeUsers}</span>
+            <span class="stat-label">Inactive: ${totalUsers - activeUsers}</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Monthly Plans</span>
+            <span class="stat-value">${monthly}</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Yearly Plans</span>
+            <span class="stat-value">${yearly}</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Unpaid Accounts</span>
+            <span class="stat-value">${unpaidUsers}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSubscribers(users, container) {
+      const paidUsers = users.filter((user) => user.is_paid);
+      if (!paidUsers.length) {
+        container.innerHTML = '<div class="empty-state">No paid subscribers yet.</div>';
+        return;
+      }
+
+      const rows = paidUsers.map((user) => `
+        <tr>
+          <td>${escapeHtml(user.email || 'Unknown')}</td>
+          <td>${escapeHtml((user.subscription_plan || '—').toUpperCase())}</td>
+          <td>${escapeHtml(user.payment_status || 'Active')}</td>
+          <td>${formatDate(user.updated_at)}</td>
+        </tr>
+      `).join('');
+
+      container.innerHTML = `
+        <div class="table-responsive">
+          <table class="payment-table">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Plan</th>
+                <th>Status</th>
+                <th>Last Updated</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function formatDate(value) {
+      if (!value) return '—';
+      try {
+        return new Date(value).toLocaleString();
+      } catch (_) {
+        return value;
+      }
+    }
+
+    function escapeHtml(str) {
+      return (str ?? '').toString().replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[char]);
+    }
+
+    document.addEventListener('DOMContentLoaded', loadPaymentData);
+  </script>
+</body>
+</html>

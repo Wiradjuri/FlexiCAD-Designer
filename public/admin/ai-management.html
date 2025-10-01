@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Management - FlexiCAD Admin</title>
+  <link rel="stylesheet" href="../css/dark-theme.css">
+  <style>
+    .admin-page-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .summary-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .summary-card h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: var(--text-primary);
+    }
+
+    .summary-card p {
+      margin: 0;
+      color: var(--text-secondary);
+    }
+
+    .asset-list,
+    .feedback-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .asset-item,
+    .feedback-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.1rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      letter-spacing: 0.03em;
+      background: rgba(88, 166, 255, 0.15);
+      color: var(--text-accent);
+      margin-right: 0.5rem;
+    }
+
+    .badge.curated {
+      background: rgba(76, 205, 196, 0.18);
+      color: #4ccdc4;
+    }
+
+    .feedback-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-state {
+      padding: 1.5rem;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-page-container">
+    <nav class="admin-breadcrumb">
+      <a href="/admin/admin-controlpanel.html">← Admin Dashboard</a>
+      <span>/ AI Management</span>
+    </nav>
+
+    <header>
+      <h1>AI Management</h1>
+      <p>Review training assets, curated data, and pending feedback for AI improvements.</p>
+    </header>
+
+    <section class="card">
+      <div class="card-header">AI Dataset Overview</div>
+      <div id="aiSummary" class="card-content">
+        <p>Loading AI dataset metrics…</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">Latest Training Assets</div>
+      <div id="trainingAssets" class="card-content">
+        <p>Loading training assets…</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">Pending Feedback Reviews</div>
+      <div id="pendingFeedback" class="card-content">
+        <p>Loading feedback…</p>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="../js/secure-config-loader.js"></script>
+  <script src="../js/flexicad-auth.js"></script>
+  <script>
+    async function loadAiManagement() {
+      const summaryEl = document.getElementById('aiSummary');
+      const assetsEl = document.getElementById('trainingAssets');
+      const feedbackEl = document.getElementById('pendingFeedback');
+
+      summaryEl.innerHTML = '<p>Loading AI dataset metrics…</p>';
+      assetsEl.innerHTML = '<p>Loading training assets…</p>';
+      feedbackEl.innerHTML = '<p>Loading feedback…</p>';
+
+      try {
+        await window.flexicadAuth.init();
+        const token = await window.flexicadAuth.getSessionToken();
+        if (!token) {
+          throw new Error('Authentication required');
+        }
+
+        const [assetsRes, feedbackRes] = await Promise.all([
+          fetch('/.netlify/functions/admin-list-training-assets?limit=5', {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          fetch('/.netlify/functions/admin-feedback-list?status=pending&limit=5', {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ]);
+
+        const assetsData = await assetsRes.json().catch(() => ({ ok: false, error: 'Invalid assets response' }));
+        const feedbackData = await feedbackRes.json().catch(() => ({ ok: false, error: 'Invalid feedback response' }));
+
+        if (!assetsRes.ok || !assetsData.ok) {
+          throw new Error(assetsData.error || `Failed to load training assets (${assetsRes.status})`);
+        }
+        if (!feedbackRes.ok || !feedbackData.ok) {
+          throw new Error(feedbackData.error || `Failed to load feedback (${feedbackRes.status})`);
+        }
+
+        renderSummary(assetsData, feedbackData, summaryEl);
+        renderAssets(assetsData.assets || [], assetsEl);
+        renderFeedback(feedbackData.items || [], feedbackEl);
+      } catch (error) {
+        console.error('AI management load failed', error);
+        summaryEl.innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`;
+        document.getElementById('trainingAssets').innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`;
+        document.getElementById('pendingFeedback').innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`;
+      }
+    }
+
+    function renderSummary(assetsData, feedbackData, container) {
+      const assets = assetsData.assets || [];
+      const totalAssets = assetsData.pagination?.total || assets.length;
+      const curatedCount = assets.filter((asset) => asset.source === 'Curated').length;
+      const typeCounts = assets.reduce((acc, asset) => {
+        const type = (asset.asset_type || 'unknown').toUpperCase();
+        acc[type] = (acc[type] || 0) + 1;
+        return acc;
+      }, {});
+
+      const pendingFeedback = feedbackData.total || (feedbackData.items || []).length;
+
+      container.innerHTML = `
+        <div class="summary-grid">
+          <div class="summary-card">
+            <h3>Total Assets</h3>
+            <p class="stat-value">${totalAssets}</p>
+            <p>Curated references: ${curatedCount}</p>
+          </div>
+          <div class="summary-card">
+            <h3>Asset Types</h3>
+            <p>${Object.entries(typeCounts).map(([type, count]) => `${type}: ${count}`).join('<br>') || 'No assets loaded'}</p>
+          </div>
+          <div class="summary-card">
+            <h3>Pending Feedback</h3>
+            <p class="stat-value">${pendingFeedback}</p>
+            <p>Reviews awaiting action</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAssets(assets, container) {
+      if (!assets.length) {
+        container.innerHTML = '<div class="empty-state">No training assets found.</div>';
+        return;
+      }
+
+      const list = assets.slice(0, 5).map((asset) => {
+        const created = asset.created_at ? new Date(asset.created_at).toLocaleString() : 'Unknown';
+        const sourceBadge = asset.source === 'Curated' ? '<span class="badge curated">Curated</span>' : '';
+        const typeBadge = `<span class="badge">${escapeHtml((asset.asset_type || 'unknown').toUpperCase())}</span>`;
+
+        return `
+          <div class="asset-item">
+            <div>${typeBadge}${sourceBadge}<strong>${escapeHtml(asset.filename || 'Untitled asset')}</strong></div>
+            <div class="feedback-meta">
+              <span>Path: ${escapeHtml(asset.object_path || '—')}</span>
+              <span>Uploaded: ${escapeHtml(created)}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = `<div class="asset-list">${list}</div>`;
+    }
+
+    function renderFeedback(items, container) {
+      if (!items.length) {
+        container.innerHTML = '<div class="empty-state">No pending feedback.</div>';
+        return;
+      }
+
+      const list = items.map((item) => {
+        const submitted = item.created_at ? new Date(item.created_at).toLocaleString() : 'Unknown';
+        return `
+          <div class="feedback-item">
+            <div><strong>${escapeHtml(item.user_email || 'Anonymous')}</strong> • ${escapeHtml(item.template || 'General')}</div>
+            <div>${escapeHtml(item.feedback_text || 'No feedback text provided.')}</div>
+            <div class="feedback-meta">
+              <span>Submitted: ${escapeHtml(submitted)}</span>
+              <span>Status: ${escapeHtml(item.review_status || 'pending')}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = `<div class="feedback-list">${list}</div>`;
+    }
+
+    function escapeHtml(str) {
+      return (str ?? '').toString().replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[char]);
+    }
+
+    document.addEventListener('DOMContentLoaded', loadAiManagement);
+  </script>
+</body>
+</html>

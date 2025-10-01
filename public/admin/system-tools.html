@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Tools - FlexiCAD Admin</title>
+  <link rel="stylesheet" href="../css/dark-theme.css">
+  <style>
+    .admin-page-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .status-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .status-card h3 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .status-ok {
+      color: #4CAF50;
+    }
+
+    .status-fail {
+      color: #ef4444;
+    }
+
+    .status-warning {
+      color: #fbbf24;
+    }
+
+    pre.config-dump {
+      font-size: 0.85rem;
+      line-height: 1.6;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-page-container">
+    <nav class="admin-breadcrumb">
+      <a href="/admin/admin-controlpanel.html">← Admin Dashboard</a>
+      <span>/ System Tools</span>
+    </nav>
+
+    <header>
+      <h1>System Tools</h1>
+      <p>Run diagnostics and review current environment status.</p>
+    </header>
+
+    <section class="card">
+      <div class="card-header">Service Status</div>
+      <div class="card-content">
+        <div class="status-grid" id="serviceStatus">
+          <p>Checking services…</p>
+        </div>
+        <div class="card-actions mt-1">
+          <button id="refreshStatus" class="btn btn-secondary btn-small">Refresh Status</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">Environment Snapshot</div>
+      <div id="envSnapshot" class="card-content">
+        <p>Loading environment data…</p>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="../js/secure-config-loader.js"></script>
+  <script src="../js/flexicad-auth.js"></script>
+  <script>
+    async function loadSystemStatus() {
+      const statusGrid = document.getElementById('serviceStatus');
+      const envContainer = document.getElementById('envSnapshot');
+
+      statusGrid.innerHTML = '<p>Checking services…</p>';
+      envContainer.innerHTML = '<p>Loading environment data…</p>';
+
+      try {
+        await window.flexicadAuth.init();
+        const token = await window.flexicadAuth.getSessionToken();
+        if (!token) {
+          throw new Error('Authentication required');
+        }
+
+        const response = await fetch('/.netlify/functions/admin-health', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const payload = await response.json().catch(() => ({ ok: false, error: 'Invalid response' }));
+        if (!response.ok || !payload.ok) {
+          throw new Error(payload.error || `Request failed (${response.status})`);
+        }
+
+        renderStatus(payload, statusGrid);
+        renderEnvironment(payload.env || {}, envContainer);
+      } catch (error) {
+        console.error('System tools load failed', error);
+        statusGrid.innerHTML = `<p class="status-fail">${escapeHtml(error.message)}</p>`;
+        envContainer.innerHTML = `<p class="status-fail">${escapeHtml(error.message)}</p>`;
+      }
+    }
+
+    function renderStatus(data, container) {
+      const supabaseOk = data.supabase?.ok;
+      const stripeOk = data.stripe?.ok;
+      const openaiOk = data.openai?.ok;
+
+      container.innerHTML = `
+        <div class="status-card">
+          <h3>Supabase</h3>
+          <div class="${supabaseOk ? 'status-ok' : 'status-fail'}">${supabaseOk ? '✅ Connected' : '❌ Offline'}</div>
+          <p>Latency: ${escapeHtml(data.supabase?.latencyMs ? `${data.supabase.latencyMs} ms` : 'n/a')}</p>
+        </div>
+        <div class="status-card">
+          <h3>Stripe</h3>
+          <div class="${stripeOk ? 'status-ok' : 'status-fail'}">${stripeOk ? '✅ Connected' : '❌ Offline'}</div>
+          <p>Mode: ${escapeHtml(data.stripe?.mode || 'unknown')}</p>
+        </div>
+        <div class="status-card">
+          <h3>OpenAI</h3>
+          <div class="${openaiOk ? 'status-ok' : 'status-warning'}">${openaiOk ? '✅ Connected' : '⚠️ Check configuration'}</div>
+          <p>Model: ${escapeHtml(data.openai?.model || 'unknown')}</p>
+        </div>
+      `;
+    }
+
+    function renderEnvironment(env, container) {
+      const envInfo = {
+        mode: env.mode || 'unknown',
+        node: env.node || 'unknown',
+        region: env.region || 'n/a',
+        revision: env.rev || 'n/a'
+      };
+
+      container.innerHTML = `
+        <pre class="config-dump">${escapeHtml(JSON.stringify(envInfo, null, 2))}</pre>
+      `;
+    }
+
+    function escapeHtml(str) {
+      return (str ?? '').toString().replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[char]);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSystemStatus();
+      document.getElementById('refreshStatus').addEventListener('click', loadSystemStatus);
+    });
+  </script>
+</body>
+</html>

@@ -4,6 +4,21 @@
 class TemplateWizards {
     constructor() {
         this.init();
+        this.templateAliases = {
+            'arduino-case': 'arduino_case',
+            'arduino_case': 'arduino_case',
+            'desk-organizer': 'desk_organizer',
+            'desk_organizer': 'desk_organizer',
+            'car-fascia': 'car_dash_fascia',
+            'car_dash_fascia': 'car_dash_fascia',
+            'phone-stand': 'phone_stand',
+            'phone_stand': 'phone_stand',
+            'control-panel': 'control_panel',
+            'control_panel': 'control_panel',
+            'cup-holder': 'cup_holder_insert',
+            'cup_holder': 'cup_holder_insert',
+            'cup_holder_insert': 'cup_holder_insert'
+        };
         this.templateDefinitions = {
             arduino_case: {
                 key: "arduino_case",
@@ -285,7 +300,10 @@ class TemplateWizards {
     }
     
     showCreateWizard(templateId) {
-        const definition = this.templateDefinitions[templateId];
+        const normalizedId = (templateId || '').toString().trim().replace(/[-\s]+/g, '_');
+        const aliasKey = this.templateAliases[templateId] || this.templateAliases[normalizedId];
+        const definitionKey = aliasKey || normalizedId;
+        const definition = this.templateDefinitions[definitionKey] || this.templateDefinitions[templateId];
         if (!definition) {
             alert(`No wizard available for template: ${templateId}`);
             return;

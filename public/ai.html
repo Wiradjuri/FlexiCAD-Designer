@@ -509,12 +509,28 @@
                     }
                 }, 200);
                 
+                // Retrieve authentication token for paid users
+                const auth = window.flexicadAuth;
+                let accessToken = null;
+
+                if (auth?.getSessionToken) {
+                    accessToken = await auth.getSessionToken();
+                }
+
+                if (!accessToken) {
+                    console.error('Missing Supabase session token for AI generation');
+                    if (auth?.requireAuth) {
+                        await auth.requireAuth();
+                    }
+                    throw new Error('Please sign in to generate designs');
+                }
+
                 // Call the AI generation function
                 const response = await fetch('/.netlify/functions/generate-template', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${window.flexicadAuth?.session?.access_token || ''}`
+                        'Authorization': `Bearer ${accessToken}`
                     },
                     body: JSON.stringify({
                         prompt,

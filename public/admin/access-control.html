@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Access Control - FlexiCAD Admin</title>
+  <link rel="stylesheet" href="../css/dark-theme.css">
+  <style>
+    .admin-page-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .card-header-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .admin-table th,
+    .admin-table td {
+      padding: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    .admin-table th {
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.85rem;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.15rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      letter-spacing: 0.03em;
+      background: rgba(76, 175, 80, 0.15);
+      color: #4CAF50;
+    }
+
+    .status-pill.inactive {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+    }
+
+    .status-pill.pending {
+      background: rgba(255, 193, 7, 0.18);
+      color: #fbbf24;
+    }
+
+    .empty-state {
+      padding: 1.5rem;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-page-container">
+    <nav class="admin-breadcrumb">
+      <a href="/admin/admin-controlpanel.html">← Admin Dashboard</a>
+      <span>/ Access Control</span>
+    </nav>
+
+    <header>
+      <h1>Access Control</h1>
+      <p>Manage user accounts, permissions, and subscription status.</p>
+    </header>
+
+    <section class="card">
+      <div class="card-header card-header-actions">
+        <span>User Directory</span>
+        <button id="refreshUsers" class="btn btn-secondary btn-small">Refresh</button>
+      </div>
+      <div id="usersList" class="card-content">
+        <p>Loading users…</p>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="../js/secure-config-loader.js"></script>
+  <script src="../js/flexicad-auth.js"></script>
+  <script>
+    async function fetchUsers() {
+      const container = document.getElementById('usersList');
+      container.innerHTML = '<p>Loading users…</p>';
+
+      try {
+        await window.flexicadAuth.init();
+        const token = await window.flexicadAuth.getSessionToken();
+        if (!token) {
+          throw new Error('Authentication required');
+        }
+
+        const response = await fetch('/.netlify/functions/admin-list-users', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const payload = await response.json().catch(() => ({ ok: false, error: 'Invalid response' }));
+        if (!response.ok || !payload.ok) {
+          throw new Error(payload.error || `Request failed (${response.status})`);
+        }
+
+        renderUsers(payload.users || []);
+      } catch (error) {
+        console.error('Failed to load users', error);
+        container.innerHTML = `<p class="error-message">Failed to load users: ${escapeHtml(error.message)}</p>`;
+      }
+    }
+
+    function renderUsers(users) {
+      const container = document.getElementById('usersList');
+      if (!users.length) {
+        container.innerHTML = '<div class="empty-state">No users found.</div>';
+        return;
+      }
+
+      const rows = users.map((user) => {
+        const isAdmin = user.is_admin ? '<span class="status-pill">Admin</span>' : '<span class="status-pill inactive">User</span>';
+        const paidStatus = user.is_paid ? 'Paid' : 'Unpaid';
+        const paymentClass = user.is_paid ? 'status-pill' : 'status-pill pending';
+
+        return `
+          <tr>
+            <td>${escapeHtml(user.email || 'Unknown')}</td>
+            <td>${isAdmin}</td>
+            <td><span class="${paymentClass}">${escapeHtml(paidStatus)}</span></td>
+            <td>${escapeHtml(user.subscription_plan || '—')}</td>
+            <td>${formatDate(user.created_at)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      container.innerHTML = `
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Payment Status</th>
+                <th>Plan</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function formatDate(value) {
+      if (!value) return '—';
+      try {
+        return new Date(value).toLocaleString();
+      } catch (_) {
+        return value;
+      }
+    }
+
+    function escapeHtml(str) {
+      return (str ?? '').toString().replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[char]);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchUsers();
+      document.getElementById('refreshUsers').addEventListener('click', fetchUsers);
+    });
+  </script>
+</body>
+</html>
