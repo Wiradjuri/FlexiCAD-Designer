@@ -20,6 +20,7 @@
     "@supabase/supabase-js": "^2.39.3",
     "formidable": "^3.5.4",
     "openai": "^4.0.0",
+    "postgres": "^3.4.7",
     "stripe": "^14.21.0",
     "stripe-cli": "^0.1.0"
   },

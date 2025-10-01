@@ -142,17 +142,16 @@
   }
 
   const api = { show, hide, confirm, prompt, toast };
+  
+  // Attach convenience globals for backward compatibility
   if (typeof window !== 'undefined') {
-    window.showModal = (opts) => api.show(opts);
-    window.hideModal = () => api.hide();
+    window.FCModals = api;
+    window.showModal = api.show;
+    window.hideModal = api.hide;
+    window.showHtmlModal = (title, html) => api.show({ title, body: html });
+    window.confirmModal = api.confirm;
+    window.promptModal = api.prompt;
   }
+  
   return api;
 }));
-
-// ESM compat exports (safe even if not used as module)
-export const FCModals = (typeof window !== 'undefined' && window.FCModals) ? window.FCModals : undefined;
-export const showModal = (FCModals && FCModals.show) ? FCModals.show : undefined;
-export const hideModal = (FCModals && FCModals.hide) ? FCModals.hide : undefined;
-export const confirmModal = (FCModals && FCModals.confirm) ? FCModals.confirm : undefined;
-export const promptModal = (FCModals && FCModals.prompt) ? FCModals.prompt : undefined;
-export const toast = (FCModals && FCModals.toast) ? FCModals.toast : undefined;

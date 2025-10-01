@@ -757,8 +757,8 @@ class TemplateWizards {
     }
 }
 
-// Initialize template wizards
-window.templateWizards = new TemplateWizards();
-
-// Export for module use
-export { TemplateWizards };
+// Initialize template wizards and ensure global availability
+if (typeof window !== 'undefined') {
+    window.templateWizards = new TemplateWizards();
+    console.log('[Template Wizards] Initialized and available globally');
+}

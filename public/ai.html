@@ -275,7 +275,11 @@
                         <div class="suggestion-categories">
                             <div class="suggestion-category" data-category="dimensions">
                                 <h5>📏 Dimensions</h5>
-                                <div class="suggestion-item" data-text="with dimensions 100mm × 60mm × 40mm">
+                                <div class="suggestion-item" 
+                                     data-text="with dimensions {detail}" 
+                                     data-needs-detail="true"
+                                     data-detail-prompt="Enter dimensions (e.g., 100mm × 60mm × 40mm):"
+                                     data-detail-placeholder="100mm × 60mm × 40mm">
                                     <span class="suggestion-icon">+</span> Specific size
                                 </div>
                                 <div class="suggestion-item" data-text="parametric sizing">
@@ -288,7 +292,11 @@
                             
                             <div class="suggestion-category" data-category="features">
                                 <h5>⚙️ Features</h5>
-                                <div class="suggestion-item" data-text="with rounded corners">
+                                <div class="suggestion-item" 
+                                     data-text="with rounded corners of {detail} radius"
+                                     data-needs-detail="true"
+                                     data-detail-prompt="Enter corner radius (e.g., 5mm):"
+                                     data-detail-placeholder="5mm">
                                     <span class="suggestion-icon">+</span> Rounded edges
                                 </div>
                                 <div class="suggestion-item" data-text="with mounting holes">
@@ -304,14 +312,22 @@
                             
                             <div class="suggestion-category" data-category="materials">
                                 <h5>🔧 Materials</h5>
-                                <div class="suggestion-item" data-text="designed for PLA printing">
-                                    <span class="suggestion-icon">+</span> PLA friendly
+                                <div class="suggestion-item" 
+                                     data-text="designed for {detail} printing"
+                                     data-needs-detail="true"
+                                     data-detail-prompt="Enter material (e.g., PLA, PETG, ABS):"
+                                     data-detail-placeholder="PLA">
+                                    <span class="suggestion-icon">+</span> Material choice
                                 </div>
                                 <div class="suggestion-item" data-text="with support-free design">
                                     <span class="suggestion-icon">+</span> No supports
                                 </div>
-                                <div class="suggestion-item" data-text="with minimal infill">
-                                    <span class="suggestion-icon">+</span> Material efficient
+                                <div class="suggestion-item" 
+                                     data-text="with {detail} layer height"
+                                     data-needs-detail="true"
+                                     data-detail-prompt="Enter layer height (e.g., 0.2mm):"
+                                     data-detail-placeholder="0.2mm">
+                                    <span class="suggestion-icon">+</span> Layer height
                                 </div>
                             </div>
                             
@@ -446,9 +462,12 @@
             }
         }
         
-        // Suggestions management
-        function handleSuggestionClick(item) {
+        // Suggestions management - Phase 4.8: Interactive with detail prompts
+        async function handleSuggestionClick(item) {
             const text = item.dataset.text;
+            const needsDetail = item.dataset.needsDetail === 'true';
+            const detailPrompt = item.dataset.detailPrompt || 'Enter value:';
+            const detailPlaceholder = item.dataset.detailPlaceholder || '';
             const prompt = document.getElementById('designPrompt');
             
             if (item.classList.contains('active')) {
@@ -458,9 +477,20 @@
                 
                 // Remove from prompt
                 let currentText = prompt.value;
-                currentText = currentText.replace(new RegExp(`\\s*${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*`, 'gi'), ' ');
-                prompt.value = currentText.replace(/\s+/g, ' ').trim();
+                // Remove the suggestion text and any custom details that follow
+                const suggestionRegex = new RegExp(`\\s*${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^,\\.]*`, 'gi');
+                currentText = currentText.replace(suggestionRegex, '');
+                prompt.value = currentText.replace(/\s+/g, ' ').replace(/^\s*,\s*/, '').trim();
             } else {
+                let textToAdd = text;
+                
+                // If detail is needed, prompt the user
+                if (needsDetail && window.promptModal) {
+                    const detail = await window.promptModal(detailPrompt, detailPlaceholder, 'Add Detail');
+                    if (!detail) return; // User cancelled
+                    textToAdd = text.replace(/\{detail\}/, detail);
+                }
+                
                 // Add suggestion
                 item.classList.add('active');
                 item.querySelector('.suggestion-icon').textContent = '−';
@@ -472,7 +502,7 @@
                 } else if (currentText) {
                     currentText += ' ';
                 }
-                currentText += text;
+                currentText += textToAdd;
                 prompt.value = currentText;
             }
         }
