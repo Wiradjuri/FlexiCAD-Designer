@@ -15,18 +15,22 @@ CREATE TABLE IF NOT EXISTS public.ai_designs (
 ALTER TABLE public.ai_designs ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can only see their own designs
+DROP POLICY IF EXISTS "Users can view own designs" ON public.ai_designs;
 CREATE POLICY "Users can view own designs" ON public.ai_designs
     FOR SELECT USING (auth.uid() = user_id);
 
 -- Policy: Users can insert their own designs
+DROP POLICY IF EXISTS "Users can insert own designs" ON public.ai_designs;
 CREATE POLICY "Users can insert own designs" ON public.ai_designs
     FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Policy: Users can update their own designs
+DROP POLICY IF EXISTS "Users can update own designs" ON public.ai_designs;
 CREATE POLICY "Users can update own designs" ON public.ai_designs
     FOR UPDATE USING (auth.uid() = user_id);
 
 -- Policy: Users can delete their own designs
+DROP POLICY IF EXISTS "Users can delete own designs" ON public.ai_designs;
 CREATE POLICY "Users can delete own designs" ON public.ai_designs
     FOR DELETE USING (auth.uid() = user_id);
 

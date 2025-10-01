@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlexiCAD Designer - About</title>
+    <link rel="stylesheet" href="css/dark-theme.css">
+    <style>
+        .contact-email {
+            color: #60a5fa !important;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        
+        .contact-email:hover {
+            color: #3b82f6 !important;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation will be managed by navbar-manager.js -->
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">About FlexiCAD Designer</h1>
+            <p class="page-subtitle">AI-powered OpenSCAD design — clear, fast, printable.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-title">What is FlexiCAD Designer?</div>
+            <div class="card-description">
+                FlexiCAD Designer combines AI with OpenSCAD to make 3D design accessible to everyone.
+                Describe your idea and get clean, professional OpenSCAD code ready for 3D printing.
+                <br><br>
+                <strong>🧠 AI-Powered</strong> — Natural language to precise OpenSCAD.<br>
+                <strong>🎨 Template Library</strong> — Electronics, mechanical parts, household items.<br>
+                <strong>☁️ Cloud-Based</strong> — No installs, secure access anywhere.
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📞 Contact & Support</div>
+            <div class="card-description">
+                Need help? We're here.<br>
+                <strong>Email:</strong> <a class="contact-email" href="mailto:admin@flexicad.com.au">admin@flexicad.com.au</a><br>
+                <strong>Response Time:</strong> within 48 hours
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Root for Phase 4.7.1 -->
+    <div id="modal-root" class="modal-root" hidden>
+        <div class="modal-backdrop"></div>
+        <div class="modal-dialog" role="dialog" aria-modal="true">
+            <button class="modal-close" aria-label="Close">×</button>
+            <div class="modal-content"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="js/secure-config-loader.js"></script>
+    <script src="js/flexicad-auth.js"></script>
+    <script src="js/navbar-manager.js"></script>
+    <script type="module" src="js/modals.js"></script>
+    <script>
+        async function handleLogout() {
+            await window.flexicadAuth.logout();
+        }
+    </script>
+</body>
+</html>

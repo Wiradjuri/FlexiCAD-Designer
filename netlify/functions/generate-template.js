@@ -1,10 +1,13 @@
-// Enhanced AI Template Generator with Persistent Learning
-// Integrates existing AI training data and learns from user interactions
+// Enhanced AI Template Generator with Persistent Learning - Phase 4.6.1
+// Integrates existing AI training data, learns from user interactions, and includes Knowledge Pack
 
 const { createClient } = require('@supabase/supabase-js');
 const OpenAI = require('openai');
 const fs = require('fs');
 const path = require('path');
+
+// Knowledge Pack will be loaded dynamically
+let knowledgePack = null;
 
 // Initialize clients (same as before)
 const supabaseService = createClient(
@@ -257,9 +260,9 @@ async function loadCuratedLearningData(category, tags = [], limit = 5) {
   return { curatedExamples, trainingAssets };
 }
 
-// Build enhanced system prompt with learning context
-function buildEnhancedSystemPrompt(prompt, similarPatterns, userHistory, trainingData, similarUserPrompts = [], curatedData = null) {
-  let systemPrompt = `You are an expert OpenSCAD developer with access to DUAL LEARNING SOURCES: a comprehensive reference library AND personalized user learning history. Generate clean, well-commented, parametric OpenSCAD code based on the user's description.
+// Build enhanced system prompt with learning context - Phase 4.6.1
+function buildEnhancedSystemPrompt(prompt, similarPatterns, userHistory, trainingData, similarUserPrompts = [], curatedData = null, knowledgePreamble = '') {
+  let systemPrompt = knowledgePreamble + `You are an expert OpenSCAD developer with access to DUAL LEARNING SOURCES: a comprehensive reference library AND personalized user learning history. Generate clean, well-commented, parametric OpenSCAD code based on the user's description.
 
 🎓 LEARNING ARCHITECTURE:
 - 📚 REFERENCE LEARNING: ${trainingData.examples ? trainingData.examples.length : 0} professional OpenSCAD examples
@@ -536,6 +539,19 @@ exports.handler = async (event, context) => {
     // Load curated training examples and assets - ADMIN CURATED LEARNING
     const curatedData = await loadCuratedLearningData(category, [], 5);
     
+    // Phase 4.6.1: Load Knowledge Pack from Supabase Storage
+    let knowledgePreamble = '';
+    let assetsUsed = [];
+    try {
+      const { KnowledgePack } = await import('../lib/knowledge-loader.mjs');
+      knowledgePack = new KnowledgePack(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+      knowledgePreamble = await knowledgePack.loadKnowledgePack(prompt);
+      assetsUsed = knowledgePack.getAssetsUsed();
+      console.log(`📦 Knowledge Pack: Loaded ${assetsUsed.length} assets`);
+    } catch (error) {
+      console.warn('⚠️ Knowledge Pack loading failed:', error.message);
+    }
+    
     // Enhanced logging to verify all learning sources are active
     console.log(`🎓 LEARNING SOURCES ACTIVE:`);
     console.log(`  📚 Reference Training Data: ${trainingData.examples ? trainingData.examples.length : 0} examples loaded`);
@@ -544,10 +560,11 @@ exports.handler = async (event, context) => {
     console.log(`  🎯 Similar User Prompts: ${similarUserPrompts.length} found`);
     console.log(`  ✨ Curated Examples: ${curatedData.curatedExamples.length} admin-approved examples`);
     console.log(`  📋 Training Assets: ${curatedData.trainingAssets.svg + curatedData.trainingAssets.scad + curatedData.trainingAssets.jsonl} reference files`);
-    console.log(`  📊 Combined Learning: Reference + User corrections + Admin curation + Feedback`);
+    console.log(`  � Knowledge Pack: ${assetsUsed.length} storage assets integrated`);
+    console.log(`  �📊 Combined Learning: Reference + User corrections + Admin curation + Feedback + Knowledge Pack`);
     
-    // Build enhanced system prompt
-    const systemPrompt = buildEnhancedSystemPrompt(prompt, similarPatterns, userHistory, trainingData, similarUserPrompts, curatedData);
+    // Build enhanced system prompt with Knowledge Pack
+    const systemPrompt = buildEnhancedSystemPrompt(prompt, similarPatterns, userHistory, trainingData, similarUserPrompts, curatedData, knowledgePreamble);
     
     console.log(`Generating ${complexity} ${category} design with ${similarPatterns.length} similar patterns, ${userHistory.length} user examples, and ${curatedData.curatedExamples.length} curated examples`);
 
@@ -569,11 +586,16 @@ exports.handler = async (event, context) => {
     }
 
     // Clean up the code
-    const cleanCode = generatedCode
+    let cleanCode = generatedCode
       .replace(/^```openscad\n?/i, '')
       .replace(/^```\n?/i, '')
       .replace(/\n?```$/i, '')
       .trim();
+
+    // Phase 4.6.1: Add provenance information
+    if (knowledgePack && assetsUsed.length > 0) {
+      cleanCode += knowledgePack.getProvenanceLog();
+    }
 
     const generationTime = Date.now() - startTime;
     const tokensUsed = completion.usage?.total_tokens || 0;
@@ -590,6 +612,14 @@ exports.handler = async (event, context) => {
       generationTime,
       tokensUsed
     }).catch(err => console.error('Failed to store session:', err));
+
+    // Phase 4.6.1: Log provenance for admin tracking
+    if (assetsUsed.length > 0) {
+      console.log(`📋 Admin Provenance Log for ${sessionId}:`);
+      assetsUsed.forEach(asset => {
+        console.log(`  - ${asset.object_path} (${asset.bytesUsed} bytes, ${asset.source})`);
+      });
+    }
 
     return {
       statusCode: 200,

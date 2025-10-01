@@ -1,138 +1,151 @@
-/**
- * Admin Training Assets List
- * Endpoint: GET /api/admin-list-training-assets
- * 
- * Lists training assets with signed URLs for previewing
- * Phase 4.4.3 Implementation - Training Assets Viewer
- */
+// netlify/functions/admin-list-training-assets.mjs
+import { requireAdmin, json, corsHeaders } from '../lib/require-admin.mjs';
 
-import { requireAdmin } from '../lib/require-admin.mjs';
+const BUCKET = process.env.SUPABASE_STORAGE_BUCKET_TRAINING || 'training-assets';
+const CURATED_GLOBAL_PATH = process.env.CURATED_GLOBAL_PATH || 'curated/global/approved.jsonl';
 
-export const handler = async (event, context) => {
-  // CORS preflight
+export async function handler(event) {
   if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      },
-      body: '',
-    };
+    return { statusCode: 200, headers: corsHeaders };
   }
 
-  if (event.httpMethod !== 'GET') {
-    return {
-      statusCode: 405,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Method not allowed' }),
-    };
+  const gate = await requireAdmin(event);
+  if (!gate.ok) {
+    return json(gate.status, { ok:false, code:'admin_required', error:'Admin access required' });
   }
+  const { supabase, requesterEmail } = gate;
+
+  // Parse query params
+  const params = event.queryStringParameters || {};
+  const assetType = params.assetType || '';
+  const q = params.q || '';
+  const page = Math.max(1, parseInt(params.page || '1'));
+  const limit = Math.min(100, Math.max(1, parseInt(params.limit || '20')));
 
   try {
-    // Verify admin authentication
-    const { requesterId, supabase } = await requireAdmin(event);
-
-    // Parse query parameters
-    const params = new URLSearchParams(event.queryStringParameters || '');
-    const page = Math.max(1, parseInt(params.get('page') || '1'));
-    const limit = Math.min(100, Math.max(1, parseInt(params.get('limit') || '20')));
-    const search = params.get('search') || '';
-    const status = params.get('status') || 'all'; // all, active, inactive
-    
-    console.log(`👤 Admin ${requesterId} listing training assets (page ${page}, limit ${limit})`);
-
-    // Build query
+    // 1. Get training_assets from database
     let query = supabase
       .from('training_assets')
-      .select('*', { count: 'exact' })
+      .select('id, object_path, asset_type, filename, content_type, size_bytes, tags, created_at', { count: 'exact' })
+      .eq('active', true)
       .order('created_at', { ascending: false });
 
     // Apply filters
-    if (search) {
-      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+    if (assetType && ['svg', 'scad', 'jsonl'].includes(assetType)) {
+      query = query.eq('asset_type', assetType);
+    }
+    if (q) {
+      query = query.ilike('filename', `%${q}%`);
     }
 
-    if (status === 'active') {
-      query = query.eq('status', 'active');
-    } else if (status === 'inactive') {
-      query = query.neq('status', 'active');
-    }
-
-    // Apply pagination
-    const offset = (page - 1) * limit;
-    query = query.range(offset, offset + limit - 1);
-
-    const { data: assets, error: listError, count } = await query;
-
+    const { data: rawAssets, error: listError, count } = await query;
     if (listError) {
-      console.error('Error listing training assets:', listError);
-      return {
-        statusCode: 500,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Failed to list training assets' }),
-      };
+      console.error('❌ [admin-list-training-assets] Database error:', listError);
+      return json(500, { ok:false, code:'db_error', error: listError.message });
     }
 
-    // Generate signed URLs for JSONL previews
-    const bucketName = process.env.SUPABASE_STORAGE_BUCKET_TRAINING || 'training-assets';
-    const assetsWithUrls = await Promise.all(
-      (assets || []).map(async (asset) => {
-        let previewUrl = null;
-        let downloadUrl = null;
-        
-        if (asset.storage_path) {
-          try {
-            // Get signed URL for preview (5 minutes)
-            const { data: previewUrlData } = await supabase.storage
-              .from(bucketName)
-              .createSignedUrl(asset.storage_path, 300);
-            
-            // Get signed URL for download (1 hour)
-            const { data: downloadUrlData } = await supabase.storage
-              .from(bucketName)
-              .createSignedUrl(asset.storage_path, 3600);
+    const allAssets = [];
 
-            previewUrl = previewUrlData?.signedUrl;
-            downloadUrl = downloadUrlData?.signedUrl;
+    // 2. Add curated global JSONL as synthetic entry if not filtered out
+    if (!assetType || assetType === 'jsonl') {
+      try {
+        const { data: curatedStat, error: statError } = await supabase.storage
+          .from(BUCKET)
+          .list(CURATED_GLOBAL_PATH.split('/').slice(0, -1).join('/'), {
+            search: CURATED_GLOBAL_PATH.split('/').pop()
+          });
+
+        if (!statError && curatedStat?.length > 0) {
+          const curatedFile = curatedStat[0];
+          allAssets.push({
+            id: null, // Synthetic entry
+            object_path: CURATED_GLOBAL_PATH,
+            asset_type: 'jsonl',
+            filename: 'approved.jsonl',
+            content_type: 'application/x-ndjson',
+            size_bytes: curatedFile.metadata?.size || null,
+            tags: ['origin:curated-feedback'],
+            created_at: curatedFile.created_at || null,
+            url: null,
+            source: 'curated'
+          });
+        }
+      } catch (curatedError) {
+        console.warn('⚠️ [admin-list-training-assets] Could not stat curated file:', curatedError.message);
+      }
+    }
+
+    // 3. Process database assets with signed URLs and source tags  
+    const dbAssets = await Promise.all(
+      (rawAssets || []).map(async (asset) => {
+        let url = null;
+        
+        if (['svg', 'scad'].includes(asset.asset_type) && asset.object_path) {
+          try {
+            const { data: urlData } = await supabase.storage
+              .from(BUCKET)
+              .createSignedUrl(asset.object_path, 3600); // 60min
+            url = urlData?.signedUrl || null;
           } catch (urlError) {
-            console.error(`Failed to generate URLs for ${asset.name}:`, urlError);
+            console.warn(`⚠️ [admin-list-training-assets] Failed to create signed URL for ${asset.object_path}:`, urlError.message);
           }
         }
 
+        // Determine source based on tags and object_path
+        let source = 'uploaded';
+        if (asset.tags?.includes('origin:curated-feedback')) {
+          source = 'curated';
+        } else if (asset.object_path?.includes('curated/')) {
+          source = 'curated';
+        }
+
         return {
-          ...asset,
-          preview_url: previewUrl,
-          download_url: downloadUrl,
-          file_size_mb: asset.file_size ? (asset.file_size / (1024 * 1024)).toFixed(2) : null
+          id: asset.id,
+          object_path: asset.object_path,
+          asset_type: asset.asset_type,
+          filename: asset.filename,
+          content_type: asset.content_type,
+          size_bytes: asset.size_bytes,
+          tags: asset.tags || [],
+          created_at: asset.created_at,
+          url,
+          source
         };
       })
     );
 
-    const totalPages = Math.ceil((count || 0) / limit);
+    // 4. Combine and sort all assets (synthetic + database)
+    allAssets.push(...dbAssets);
+    
+    // Sort by created_at desc (nulls last for synthetic entries)
+    allAssets.sort((a, b) => {
+      if (!a.created_at && !b.created_at) return 0;
+      if (!a.created_at) return 1;
+      if (!b.created_at) return -1;
+      return new Date(b.created_at) - new Date(a.created_at);
+    });
 
-    return {
-      statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ok: true,
-        items: assetsWithUrls,
-        total: count || 0,
+    // 5. Apply client-side pagination to combined results
+    const startIdx = (page - 1) * limit;
+    const endIdx = startIdx + limit;
+    const paginatedAssets = allAssets.slice(startIdx, endIdx);
+
+    console.log(`[admin][assets][list] requester=${requesterEmail} assetType=${assetType} q=${q} total=${allAssets.length} returned=${paginatedAssets.length}`);
+
+    return json(200, {
+      ok: true,
+      assets: paginatedAssets,
+      pagination: {
+        total: allAssets.length,
         page,
         limit,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1
-      }),
-    };
+        dbCount: count || 0,
+        syntheticCount: allAssets.length - (count || 0)
+      }
+    });
 
   } catch (error) {
-    console.error('Admin list training assets error:', error);
-    return {
-      statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Internal server error' }),
-    };
+    console.error('❌ [admin-list-training-assets] Unexpected error:', error);
+    return json(500, { ok:false, code:'server_error', error: error.message });
   }
-};
+}

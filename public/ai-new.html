@@ -658,43 +658,8 @@
             scrollToTop();
         }
         
-        // Handle URL parameters for template wizard integration
-        function handleURLParameters() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const prompt = urlParams.get('prompt');
-            const name = urlParams.get('name');
-            const auto = urlParams.get('auto');
-            
-            if (prompt) {
-                const promptTextarea = document.getElementById('designPrompt');
-                if (promptTextarea) {
-                    promptTextarea.value = decodeURIComponent(prompt);
-                }
-            }
-            
-            if (name) {
-                const nameInput = document.getElementById('designName');
-                if (nameInput) {
-                    nameInput.value = decodeURIComponent(name);
-                }
-            }
-            
-            // Auto-run generation if requested
-            if (auto === 'true' && prompt) {
-                setTimeout(() => {
-                    const form = document.getElementById('generateForm');
-                    if (form) {
-                        generateDesign({ preventDefault: () => {} });
-                    }
-                }, 1000); // Small delay to ensure everything is loaded
-            }
-        }
-        
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            // Handle URL parameters first
-            handleURLParameters();
-            
             // Setup suggestions
             document.querySelectorAll('.suggestion-item').forEach(item => {
                 item.addEventListener('click', () => handleSuggestionClick(item));

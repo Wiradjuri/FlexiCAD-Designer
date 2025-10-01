@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlexiCAD Designer - About</title>
+    <link rel="stylesheet" href="css/dark-theme.css">
+    <style>
+        .contact-email {
+            color: #60a5fa !important;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        
+        .contact-email:hover {
+            color: #3b82f6 !important;
+            text-decoration: underline;
+        }
+
+        /* Phase 4.7.2: About page layout styles */
+        .about-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .bordered-card {
+            border: 2px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+        
+        .detail-item h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--accent-blue);
+            font-size: 1rem;
+        }
+        
+        .detail-item p {
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .feature-sections {
+            margin-top: 1rem;
+        }
+        
+        .feature-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .feature-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .feature-section h4 {
+            margin: 0 0 0.75rem 0;
+            color: var(--accent-blue);
+            font-size: 1rem;
+        }
+        
+        .feature-section ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+        
+        .feature-section li {
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+        
+        .contact-ribbon {
+            background: var(--bg-secondary);
+            border-top: 2px solid var(--border);
+            padding: 2rem 0;
+            margin-top: 2rem;
+        }
+        
+        .contact-content {
+            text-align: center;
+        }
+        
+        .contact-content h3 {
+            margin: 0 0 1rem 0;
+            color: var(--text-primary);
+        }
+        
+        .contact-details p {
+            margin: 0.25rem 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation will be managed by navbar-manager.js -->
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">About FlexiCAD Designer</h1>
+            <p class="page-subtitle">AI-powered OpenSCAD design — clear, fast, printable.</p>
+        </div>
+
+        <!-- Phase 4.7.2: Two bordered cards with clean separation -->
+        <div class="about-cards">
+            <!-- Card 1: What is FlexiCAD Designer -->
+            <div class="card bordered-card">
+                <div class="card-title">What is FlexiCAD Designer?</div>
+                <div class="card-description">
+                    FlexiCAD Designer combines AI with OpenSCAD to make 3D design accessible to everyone.
+                    Describe your idea and get clean, professional OpenSCAD code ready for 3D printing.
+                    <br><br>
+                    <strong>🧠 AI-Powered</strong> — Natural language to precise OpenSCAD.<br>
+                    <strong>🎨 Template Library</strong> — Electronics, mechanical parts, household items.<br>
+                    <strong>☁️ Cloud-Based</strong> — No installs, secure access anywhere.
+                </div>
+                
+                <!-- Details Sub-section -->
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <h4>🤖 AI Generator</h4>
+                        <p>Transform natural language prompts into precise OpenSCAD code. Our AI understands engineering principles, 3D printing constraints, and provides guided suggestions. User feedback continuously improves results.</p>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <h4>📐 OpenSCAD Compatibility</h4>
+                        <p>Generate clean, parametric code that follows OpenSCAD standards. All code is editable, uses millimeter units by default, and integrates seamlessly with existing workflows.</p>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <h4>📦 STL Export</h4>
+                        <p>One-click STL generation with optimized mesh quality. Choose resolution levels from rapid prototyping to high-detail production prints. Secure serverless processing with direct download.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Latest Features & Technical Specs -->
+            <div class="card bordered-card">
+                <div class="card-title">Latest Features & Technical Specifications</div>
+                
+                <div class="feature-sections">
+                    <div class="feature-section">
+                        <h4>� Phase 4.6/4.7 Highlights</h4>
+                        <ul>
+                            <li><strong>Knowledge Pack System</strong> — AI learns from curated training data for smarter generation</li>
+                            <li><strong>Enhanced Smart Suggestions</strong> — Context-aware prompts with real-time analysis</li>
+                            <li><strong>Improved Admin Panel</strong> — Modal system with provenance tracking</li>
+                            <li><strong>STL Authentication</strong> — Secure export system with user verification</li>
+                            <li><strong>Template Wizards v2</strong> — Parameter-driven creation workflows</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-section">
+                        <h4>🔧 Technical Specifications</h4>
+                        <ul>
+                            <li><strong>AI Model:</strong> OpenAI GPT-4 with specialized OpenSCAD training</li>
+                            <li><strong>Backend:</strong> Supabase (PostgreSQL) with Row Level Security</li>
+                            <li><strong>Functions:</strong> Netlify serverless functions (Node.js)</li>
+                            <li><strong>Authentication:</strong> JWT-based with Supabase Auth</li>
+                            <li><strong>Storage:</strong> Encrypted cloud storage for designs and templates</li>
+                            <li><strong>Performance:</strong> CDN-optimized, mobile-responsive PWA architecture</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Ribbon at bottom -->
+    <div class="contact-ribbon">
+        <div class="container">
+            <div class="contact-content">
+                <h3>📞 Contact & Support</h3>
+                <div class="contact-details">
+                    <p><strong>Need help? We're here.</strong></p>
+                    <p><strong>Email:</strong> <a class="contact-email" href="mailto:admin@flexicad.com.au">admin@flexicad.com.au</a></p>
+                    <p><strong>Response Time:</strong> within 48 hours</p>
+                </div>
+            </div>
+        </div>
+    </div>
+            <div class="card">
+                <div class="card-title">🧠 Advanced AI Engine</div>
+                <div class="card-description">
+                    Our AI understands engineering principles, 3D printing constraints, and design best practices. 
+                    It learns from every interaction to provide increasingly accurate and optimized designs.
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🧙‍♂️ Interactive Wizards</div>
+                <div class="card-description">
+                    Customize templates with guided wizards. Adjust parameters, preview changes in real-time, 
+                    and generate personalized OpenSCAD code without any programming knowledge.
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📐 STL Export</div>
+                <div class="card-description">
+                    One-click STL generation with optimized mesh quality. Choose resolution levels from rapid prototyping 
+                    to high-detail production prints. Direct download and cloud sharing included.
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🎨 Professional Templates</div>
+                <div class="card-description">
+                    Curated library of industry-standard templates for electronics, automotive, aerospace, and consumer products. 
+                    All templates are parametric and fully customizable.
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">☁️ Secure Cloud Platform</div>
+                <div class="card-description">
+                    Enterprise-grade security with encrypted storage. Access your designs anywhere, collaborate with teams, 
+                    and maintain full version control of all your projects.
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🔄 OpenSCAD Compatible</div>
+                <div class="card-description">
+                    All generated code follows OpenSCAD standards and best practices. Export to any CAD software, 
+                    modify in OpenSCAD, or integrate into existing workflows.
+                </div>
+            </div>
+        </div>
+
+        <!-- New Features Section -->
+        <div class="card">
+            <div class="card-title">✨ Latest Features (Phase 4.6/4.7)</div>
+            <div class="card-description">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <div>
+                        <strong>🎯 Smart AI Suggestions:</strong> Context-aware prompts that guide you to better designs with real-time suggestions based on your input.
+                    </div>
+                    <div>
+                        <strong>🛠️ Template Wizards:</strong> Interactive customization tools for templates with live parameter adjustment and instant code generation.
+                    </div>
+                    <div>
+                        <strong>🏗️ STL Export System:</strong> Client-side 3D mesh generation with multiple quality levels, cloud upload, and direct download capabilities.
+                    </div>
+                    <div>
+                        <strong>🔒 Enhanced Security:</strong> Comprehensive CSP headers, secure API endpoints, and enterprise-grade data protection.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Specifications -->
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-title">⚙️ Technical Specifications</div>
+                <div class="card-description">
+                    <ul style="margin: 0; padding-left: 1.5rem;">
+                        <li>OpenAI GPT-4 powered generation engine</li>
+                        <li>Supabase backend with real-time sync</li>
+                        <li>Netlify Edge Functions for global performance</li>
+                        <li>WebAssembly STL processing</li>
+                        <li>Progressive Web App (PWA) ready</li>
+                        <li>99.9% uptime guarantee</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🎯 Supported Use Cases</div>
+                <div class="card-description">
+                    <ul style="margin: 0; padding-left: 1.5rem;">
+                        <li>Rapid prototyping and concept development</li>
+                        <li>Custom enclosures and cases</li>
+                        <li>Mechanical parts and assemblies</li>
+                        <li>Educational STEM projects</li>
+                        <li>Replacement parts and repairs</li>
+                        <li>Architectural modeling</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing and Support -->
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-title">� Premium Features</div>
+                <div class="card-description">
+                    Unlock advanced capabilities with our premium subscription:
+                    <ul style="margin: 0.5rem 0 0 1.5rem;">
+                        <li>Unlimited AI generations</li>
+                        <li>Priority processing queue</li>
+                        <li>Advanced template library</li>
+                        <li>Team collaboration tools</li>
+                        <li>API access for integration</li>
+                        <li>Priority customer support</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🛠️ Enterprise Solutions</div>
+                <div class="card-description">
+                    Custom solutions for organizations:
+                    <ul style="margin: 0.5rem 0 0 1.5rem;">
+                        <li>Private cloud deployment</li>
+                        <li>Custom AI model training</li>
+                        <li>White-label integration</li>
+                        <li>Advanced security compliance</li>
+                        <li>Dedicated support team</li>
+                        <li>Custom template development</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact & Support Section -->
+        <div class="card">
+            <div class="card-title">📞 Contact & Support</div>
+            <div class="card-description">
+                Need help or have questions? Our support team is here to help you create amazing 3D designs.
+                <br><br>
+                <strong>Email:</strong> <a href="mailto:admin@flexicad.com.au" class="contact-email">admin@flexicad.com.au</a>
+                <br>
+                <strong>Response Time:</strong> Within 24 hours
+            </div>
+        </div>
+
+        <!-- Get Started Section -->
+        <div class="card card-featured">
+            <div class="card-title card-title-featured">🚀 Get Started Today</div>
+            <div class="card-description">
+                Ready to create your first AI-generated 3D design? Choose your path and start building incredible models in minutes.
+            </div>
+            <div class="card-actions card-actions-spaced mt-3">
+                <a href="ai.html" class="btn btn-primary" id="getStartedBtn">
+                    🤖 Try AI Generator
+                </a>
+                <a href="templates.html" class="btn btn-secondary">
+                    📚 Browse Templates
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="js/secure-config-loader.js"></script>
+    <script src="js/flexicad-auth.js"></script>
+    <script src="js/navbar-manager.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await window.flexicadAuth.init();
+            
+            const navUser = document.querySelector('.nav-user');
+            const userInfo = document.getElementById('userInfo');
+            const getStartedBtn = document.getElementById('getStartedBtn');
+            
+            if (window.flexicadAuth.user && navUser && userInfo) {
+                navUser.style.display = 'flex';
+                userInfo.textContent = window.flexicadAuth.user.email;
+                
+                // Update button to go to AI generator if logged in
+                if (getStartedBtn) {
+                    getStartedBtn.href = 'ai.html';
+                    getStartedBtn.innerHTML = '🤖 Try AI Generator';
+                }
+            } else {
+                // Hide nav user section if not logged in
+                if (navUser) {
+                    navUser.style.display = 'none';
+                }
+                
+                // Update button to go to login if not logged in
+                if (getStartedBtn) {
+                    getStartedBtn.href = 'register.html';
+                    getStartedBtn.innerHTML = '🚀 Get Started';
+                }
+            }
+        });
+
+        async function handleLogout() {
+            await window.flexicadAuth.logout();
+        }
+    </script>
+</body>
+</html>

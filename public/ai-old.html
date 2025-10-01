@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlexiCAD Designer - AI Generator</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="css/dark-theme.css">
+    <style>
+        .admin-nav {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4) !important;
+            color: white !important;
+            padding: 0.5rem 1rem !important;
+            border-radius: 20px !important;
+            text-decoration: none !important;
+            font-weight: bold !important;
+            transition: all 0.3s ease !important;
+            border: 2px solid transparent !important;
+        }
+        .admin-nav:hover {
+            transform: scale(1.05) !important;
+            border-color: white !important;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3) !important;
+        }
+        #admin-link {
+            margin-left: auto !important;
+        }
+
+        /* Enhanced AI Generator Styles - Phase 4.6/4.7 */
+        .ai-suggestions {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .suggestion-item {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            margin: 0.5rem 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .suggestion-item:hover {
+            background: var(--bg-primary);
+            border-color: var(--text-accent);
+            transform: translateX(4px);
+        }
+        
+        .suggestion-icon {
+            font-size: 1.1rem;
+        }
+        
+        .ai-context-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .context-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .context-tag {
+            background: var(--button-primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .context-tag:hover {
+            background: var(--button-primary-hover);
+        }
+        
+        .context-tag.active {
+            background: var(--text-accent);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation will be managed by navbar-manager.js -->
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">AI Design Generator</h1>
+            <p class="page-subtitle">Describe your 3D design idea and let AI generate OpenSCAD code for you</p>
+        </div>
+
+        <!-- Phase 4.7.2: Two-column layout for desktop -->
+        <div class="ai-input-grid">
+            <section class="ai-description-panel">
+                <div class="card sticky-prompt">
+                    <div class="card-title">Describe Your Design</div>
+                    <div class="card-description mb-3">
+                        Be specific about dimensions, features, and intended use. Examples:
+                        <ul class="mt-2">
+                            <li>"Create a phone case for iPhone 14 with camera cutouts"</li>
+                            <li>"Design a desk organizer with 4 compartments for pens and paper clips"</li>
+                            <li>"Make a wall mount bracket for a 24-inch monitor"</li>
+                        </ul>
+                    </div>
+                    
+                    <form id="generateForm">
+                        <div class="form-group">
+                            <label for="designPrompt" class="form-label">Design Description</label>
+                            <textarea 
+                                id="designPrompt" 
+                                class="form-textarea" 
+                                placeholder="Describe your 3D design in detail..."
+                                required
+                                rows="5"
+                            ></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="designName" class="form-label">Design Name (optional)</label>
+                            <input 
+                                type="text" 
+                                id="designName" 
+                                class="form-input" 
+                                placeholder="Enter a name for your design"
+                            >
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="generateBtn">
+                            <span class="btn-text">🤖 Generate Design</span>
+                            <div class="spinner hidden"></div>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- AI Context Panel -->
+                <div class="ai-context-panel" id="contextPanel">
+                    <h4>🧠 AI Context</h4>
+                    <p class="text-secondary">Select relevant design contexts to improve AI accuracy:</p>
+                    <div class="context-tags" id="contextTags">
+                        <span class="context-tag" data-context="functional">Functional</span>
+                        <span class="context-tag" data-context="decorative">Decorative</span>
+                        <span class="context-tag" data-context="mechanical">Mechanical</span>
+                        <span class="context-tag" data-context="electronic">Electronic</span>
+                        <span class="context-tag" data-context="household">Household</span>
+                        <span class="context-tag" data-context="automotive">Automotive</span>
+                        <span class="context-tag" data-context="miniature">Miniature</span>
+                        <span class="context-tag" data-context="replacement-part">Replacement Part</span>
+                    </div>
+                </div>
+
+                <!-- Example Prompts -->
+                <div class="card">
+                    <div class="card-title">💡 Example Prompts</div>
+                    <div class="card-description">
+                        Try these example prompts to get started:
+                    </div>
+                    <div class="card-actions mt-2">
+                        <button class="btn btn-secondary btn-small" onclick="useExamplePrompt('Create a parametric box with rounded corners, 100mm long, 60mm wide, 40mm tall, with a removable lid')">
+                            Parametric Box
+                        </button>
+                        <button class="btn btn-secondary btn-small" onclick="useExamplePrompt('Design a desk phone stand with adjustable angle, suitable for smartphones between 4-7 inches')">
+                            Phone Stand
+                        </button>
+                        <button class="btn btn-secondary btn-small" onclick="useExamplePrompt('Make a wall-mounted key holder with 4 hooks and a small shelf for mail')">
+                            Key Holder
+                        </button>
+                        <button class="btn btn-secondary btn-small" onclick="useExamplePrompt('Create a cable management tray that mounts under a desk, 300mm long with multiple cable slots')">
+                            Cable Tray
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Column: Smart Suggestions -->
+            <section class="ai-suggestions-panel">
+                <div class="card suggestions-card">
+                    <h4>🎯 Smart Suggestions</h4>
+                    <p class="text-secondary">Click suggestions to enhance your prompt:</p>
+                    <div class="suggestions-scrollable">
+                        <div class="suggestion-categories">
+                            <div class="suggestion-category" data-category="dimensions">
+                                <h5>📏 Dimensions</h5>
+                                <div class="suggestion-item" data-text="with dimensions 100mm × 60mm × 40mm">
+                                    <span class="suggestion-icon">+</span> Specific size
+                                </div>
+                                <div class="suggestion-item" data-text="parametric sizing">
+                                    <span class="suggestion-icon">+</span> Adjustable size
+                                </div>
+                                <div class="suggestion-item" data-text="scaled for 3D printing">
+                                    <span class="suggestion-icon">+</span> Print optimized
+                                </div>
+                            </div>
+                            
+                            <div class="suggestion-category" data-category="features">
+                                <h5>⚙️ Features</h5>
+                                <div class="suggestion-item" data-text="with rounded corners">
+                                    <span class="suggestion-icon">+</span> Rounded edges
+                                </div>
+                                <div class="suggestion-item" data-text="with mounting holes">
+                                    <span class="suggestion-icon">+</span> Attachment points
+                                </div>
+                                <div class="suggestion-item" data-text="with ventilation holes">
+                                    <span class="suggestion-icon">+</span> Airflow design
+                                </div>
+                                <div class="suggestion-item" data-text="with removable lid">
+                                    <span class="suggestion-icon">+</span> Modular parts
+                                </div>
+                            </div>
+                            
+                            <div class="suggestion-category" data-category="materials">
+                                <h5>🔧 Materials</h5>
+                                <div class="suggestion-item" data-text="designed for PLA printing">
+                                    <span class="suggestion-icon">+</span> PLA friendly
+                                </div>
+                                <div class="suggestion-item" data-text="with support-free design">
+                                    <span class="suggestion-icon">+</span> No supports
+                                </div>
+                                <div class="suggestion-item" data-text="with minimal infill">
+                                    <span class="suggestion-icon">+</span> Material efficient
+                                </div>
+                            </div>
+                            
+                            <div class="suggestion-category" data-category="advanced">
+                                <h5>🚀 Advanced</h5>
+                                <div class="suggestion-item" data-text="with living hinges">
+                                    <span class="suggestion-icon">+</span> Flexible joints
+                                </div>
+                                <div class="suggestion-item" data-text="with threaded connections">
+                                    <span class="suggestion-icon">+</span> Screw together
+                                </div>
+                                <div class="suggestion-item" data-text="with interlocking parts">
+                                    <span class="suggestion-icon">+</span> Puzzle fit
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Phase 4.7.2: Landscape Output Panel at Bottom -->
+        <section id="aiOutputPanel" class="ai-output-panel hidden">
+            <div class="output-header">
+                <div class="output-title-row">
+                    <h3 id="outputTitle">Generated Design</h3>
+                    <button class="btn btn-small btn-secondary" onclick="scrollToTop()">↑ Back to Prompt</button>
+                </div>
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0%</span>
+                </div>
+            </div>
+            
+            <div class="output-content">
+                <div class="code-container">
+                    <div class="code-header">
+                        <span id="outputFileName">generated-design.scad</span>
+                        <div class="code-actions">
+                            <button class="btn btn-small btn-secondary" onclick="copyOutputCode()">Copy Code</button>
+                            <button class="btn btn-small btn-secondary" onclick="downloadSCAD()">Download .scad</button>
+                        </div>
+                    </div>
+                    <pre class="code-block" id="outputCode"></pre>
+                </div>
+                
+                <div class="export-options">
+                    <h4>3D Export Options</h4>
+                    <div class="export-actions">
+                        <button class="btn btn-primary" onclick="showSTLExportModal()">📦 Export STL</button>
+                        <button class="btn btn-secondary" onclick="saveDesign()">💾 Save Design</button>
+                        <button class="btn btn-secondary" onclick="generateAnother()">🔄 Generate Another</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Relocated Smart Suggestions (appears below output after generation) -->
+        <section id="relocatedSuggestions" class="relocated-suggestions hidden">
+            <div class="card">
+                <h4>🎯 More Suggestions</h4>
+                <p class="text-secondary">Enhance your next design:</p>
+                <div class="suggestion-grid">
+                    <!-- Content populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Old sections removed for Phase 4.7.2 restructure -->
+                <aside id="ai-suggestions" class="ai-suggestions">
+                    <h4>🎯 Smart Suggestions</h4>
+                    <p class="text-secondary">Click a suggestion to enhance your prompt:</p>
+                    <div id="suggestionsList">
+                        <div class="suggestion-categories">
+                            <div class="suggestion-category" data-category="dimensions">
+                                <h5>📏 Dimensions</h5>
+                                <div class="suggestion-item" data-text="with dimensions 100mm × 60mm × 40mm">Specific size</div>
+                                <div class="suggestion-item" data-text="parametric sizing">Adjustable size</div>
+                                <div class="suggestion-item" data-text="scaled for 3D printing">Print optimized</div>
+                            </div>
+                            
+                            <div class="suggestion-category" data-category="features">
+                                <h5>⚙️ Features</h5>
+                                <div class="suggestion-item" data-text="with rounded corners">Rounded edges</div>
+                                <div class="suggestion-item" data-text="with mounting holes">Attachment points</div>
+                                <div class="suggestion-item" data-text="with ventilation holes">Airflow design</div>
+                                <div class="suggestion-item" data-text="with removable lid">Modular parts</div>
+                            </div>
+                            
+                            <div class="suggestion-category" data-category="materials">
+                                <h5>🔧 Materials</h5>
+                                <div class="suggestion-item" data-text="designed for PLA printing">PLA friendly</div>
+                                <div class="suggestion-item" data-text="with support-free design">No supports</div>
+                                <div class="suggestion-item" data-text="with minimal infill">Material efficient</div>
+                            </div>
+                            
+                            <div class="suggestion-category" data-category="advanced">
+                                <h5>🚀 Advanced</h5>
+                                <div class="suggestion-item" data-text="with living hinges">Flexible joints</div>
+                                <div class="suggestion-item" data-text="with threaded connections">Screw together</div>
+                                <div class="suggestion-item" data-text="with interlocking parts">Puzzle fit</div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <div id="ai-output-col">
+            <div class="output-section">
+                <!-- Generated Code Display -->
+                <div id="resultSection" class="hidden">
+                    <div class="card">
+                        <div class="card-title" id="resultTitle">Generated Design</div>
+                        <div class="card-description" id="resultDescription"></div>
+                        
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span id="resultFileName">generated-design.scad</span>
+                                <div>
+                                    <button class="btn btn-small btn-secondary" onclick="copyGeneratedCode(event)">Copy Code</button>
+                                    <button class="btn btn-small btn-secondary" onclick="downloadGeneratedCode()">Download</button>
+                                </div>
+                            </div>
+                            <pre class="code-block" id="generatedCode"></pre>
+                        </div>
+                        
+                        <div class="card-actions mt-3">
+                            <button class="btn btn-primary" onclick="saveDesign(event)">💾 Save to My Designs</button>
+                            <button class="btn btn-secondary" onclick="generateAnother()">🔄 Generate Another</button>
+                        </div>
+                    </div>
+                    
+                    <!-- AI Feedback Section -->
+                    <div class="card mt-3" id="feedbackSection">
+                        <div class="card-title">📊 Rate This Generation</div>
+                        <div class="card-description mb-3">
+                            Help improve the AI by rating this generation and providing feedback
+                        </div>
+                        
+                        <div class="feedback-container">
+                            <div class="rating-section">
+                                <label class="form-label">How would you rate this generation?</label>
+                                <div class="rating-stars" id="ratingStars">
+                                    <span class="star" data-rating="1" title="1★ Unusable/bad (major errors; won't render/compile)">⭐</span>
+                                    <span class="star" data-rating="2" title="2★ Poor (heavy fixes required)">⭐</span>
+                                    <span class="star" data-rating="3" title="3★ OK (works; needs improvements)">⭐</span>
+                                    <span class="star" data-rating="4" title="4★ Good (minor tweaks)">⭐</span>
+                                    <span class="star" data-rating="5" title="5★ Excellent (ready to use)">⭐</span>
+                                </div>
+                                <div class="rating-legend">
+                                    <div class="legend-title">Rating Guide:</div>
+                                    <div class="legend-item">1★ Unusable/bad (major errors; won't render/compile)</div>
+                                    <div class="legend-item">2★ Poor (heavy fixes required)</div>
+                                    <div class="legend-item">3★ OK (works; needs improvements)</div>
+                                    <div class="legend-item">4★ Good (minor tweaks)</div>
+                                    <div class="legend-item">5★ Excellent (ready to use)</div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group mt-3">
+                                <label for="feedbackText" class="form-label">Feedback (Optional)</label>
+                                <textarea id="feedbackText" class="form-textarea" rows="3" placeholder="What could be improved? What did you like?"></textarea>
+                            </div>
+                            
+                            <div class="form-group mt-3">
+                                <label for="finalCode" class="form-label">Modified Code (Optional)</label>
+                                <textarea id="finalCode" class="form-textarea code-textarea" rows="8" placeholder="If you modified the generated code, paste your improved version here to help the AI learn"></textarea>
+                            </div>
+                            
+                            <div class="card-actions mt-3">
+                                <button class="btn btn-primary" onclick="submitFeedback()" id="submitFeedbackBtn">Submit Feedback</button>
+                                <button class="btn btn-secondary" onclick="collapseFeedback()">Skip</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Teaching Section -->
+                    <div class="card mt-3" id="teachingSection" style="display: none;">
+                        <div class="card-title">🎓 Teach the AI</div>
+                        <div class="card-description mb-3">
+                            Add this as a learning example to improve future generations
+                        </div>
+                        
+                        <form id="teachingForm">
+                            <div class="form-group">
+                                <label for="patternName" class="form-label">Pattern Name</label>
+                                <input type="text" id="patternName" class="form-input" placeholder="e.g., 'Phone Case with Camera Cutouts'" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="patternDescription" class="form-label">Description</label>
+                                <textarea id="patternDescription" class="form-textarea" rows="2" placeholder="Brief description of what this pattern creates"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="patternKeywords" class="form-label">Keywords (comma-separated)</label>
+                                <input type="text" id="patternKeywords" class="form-input" placeholder="phone, case, protective, cutout, camera">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="patternCategory" class="form-label">Category</label>
+                                <select id="patternCategory" class="form-select">
+                                    <option value="functional">Functional</option>
+                                    <option value="mechanical">Mechanical</option>
+                                    <option value="decorative">Decorative</option>
+                                    <option value="toy">Toy/Game</option>
+                                    <option value="electronic">Electronic</option>
+                                    <option value="architectural">Architectural</option>
+                                    <option value="general">General</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="complexityLevel" class="form-label">Complexity Level</label>
+                                <select id="complexityLevel" class="form-select">
+                                    <option value="beginner">Beginner</option>
+                                    <option value="intermediate">Intermediate</option>
+                                    <option value="advanced">Advanced</option>
+                                </select>
+                            </div>
+                            
+                            <div class="card-actions mt-3">
+                                <button type="submit" class="btn btn-primary">🎓 Teach AI</button>
+                                <button type="button" class="btn btn-secondary" onclick="hideTeaching()">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Error Display -->
+                <div id="errorSection" class="hidden">
+                    <div class="alert alert-error">
+                        <span id="errorMessage"></span>
+                    </div>
+                </div>
+
+                <!-- Placeholder for initial state -->
+                <div id="placeholderSection" class="card placeholder-card">
+                    <div class="placeholder-content">
+                        <div class="placeholder-icon">🤖</div>
+                        <h3>AI-Generated Code Will Appear Here</h3>
+                        <p>Enter your design description and click "Generate Design" to see the OpenSCAD code</p>
+                    </div>
+                </div>
+            </div>
+            </section>
+        </div>
+
+    <!-- Modal Root for Phase 4.7.1 -->
+    <div id="modal-root" class="modal-root" hidden>
+        <div class="modal-backdrop"></div>
+        <div class="modal-dialog" role="dialog" aria-modal="true">
+            <button class="modal-close" aria-label="Close">×</button>
+            <div class="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Modal Root for Phase 4.6 modal system -->
+    <div id="modal-root"></div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="js/secure-config-loader.js"></script>
+    <script src="js/flexicad-auth.js"></script>
+    <script src="js/navbar-manager.js"></script>
+    <script src="js/stl-exporter.js"></script>
+    <script src="js/enhanced-ai-generator-clean.js"></script>
+    <script type="module" src="js/modals.js"></script>
+    <script src="js/ai-page.js"></script>
+    <script>
+        let currentGeneration = null;
+
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check if user has paid access
+            const hasAccess = await window.flexicadAuth.requireAuth();
+            
+            if (hasAccess) {
+                console.log('User has paid access to AI Generator');
+                
+                // Display user info
+                const userInfo = document.querySelector('.user-info');
+                if (window.flexicadAuth.user && userInfo) {
+                    userInfo.textContent = window.flexicadAuth.user.email || 'User';
+                }
+
+                // Debug admin check
+                console.log('🔍 Checking admin status...');
+                console.log('User email:', window.flexicadAuth.user?.email);
+                console.log('Payment status:', window.flexicadAuth.paymentStatus);
+                console.log('Is admin result:', window.flexicadAuth.isAdmin());
+
+                // Show admin link if user is admin
+                if (window.flexicadAuth.isAdmin()) {
+                    console.log('✅ User is admin - showing admin link');
+                    const adminLink = document.getElementById('admin-link');
+                    if (adminLink) {
+                        adminLink.style.display = 'list-item'; // Use list-item for <li> elements
+                        console.log('✅ Admin link displayed');
+                    } else {
+                        console.log('❌ Admin link element not found');
+                    }
+                } else {
+                    console.log('❌ User is not admin - admin link hidden');
+                }
+                
+                // Initialize AI generation functionality
+                initAIGenerator();
+            }
+        });
+
+        function handleLogout() {
+            window.flexicadAuth.logout();
+        }
+
+        function initAIGenerator() {
+            console.log('AI Generator initialized for authenticated user');
+            
+            // AI generation form handler
+            document.getElementById('generateForm').addEventListener('submit', handleGenerateSubmit);
+        }
+
+        // Handle form submission
+        async function handleGenerateSubmit(e) {
+            e.preventDefault();
+            
+            const prompt = document.getElementById('designPrompt').value.trim();
+            const name = document.getElementById('designName').value.trim();
+            
+            if (!prompt) {
+                showError('Please enter a design description.');
+                return;
+            }
+            
+            await generateDesign(prompt, name);
+        }
+
+        async function generateDesign(prompt, name = '') {
+            const submitBtn = document.querySelector('button[type="submit"]');
+            
+            setLoadingState(submitBtn, true);
+            hideResults();
+            hideError();
+            hidePlaceholder();
+            
+            try {
+                // Check if user is authenticated using session storage
+                const userData = window.flexicadAuth.user;
+                if (!userData) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const sessionToken = await window.flexicadAuth.getSessionToken();
+                
+                console.log('Session token type:', typeof sessionToken);
+                console.log('Session token value:', sessionToken);
+                
+                if (!sessionToken || typeof sessionToken !== 'string') {
+                    console.error('Invalid session token:', sessionToken);
+                    throw new Error('Authentication session expired. Please login again.');
+                }
+
+                const response = await fetch('/.netlify/functions/generate-template', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionToken}`
+                    },
+                    body: JSON.stringify({ prompt, name })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to generate design');
+                }
+                
+                const result = await response.json();
+                currentGeneration = {
+                    prompt,
+                    name: name || result.name || 'AI Generated Design',
+                    code: result.code,
+                    metadata: result.metadata || {} // Include metadata for learning system
+                };
+                
+                displayResult(currentGeneration);
+                
+                // Show feedback section for learning
+                showFeedbackSection();
+                
+                // Auto-save the design to Supabase (don't let this fail the generation)
+                try {
+                    await autoSaveDesign();
+                } catch (autoSaveError) {
+                    console.error('Auto-save failed, but generation succeeded:', autoSaveError);
+                }
+                
+            } catch (error) {
+                console.error('Error generating design:', error);
+                showError(`Failed to generate design: ${error.message}`);
+                showPlaceholder();
+            } finally {
+                setLoadingState(submitBtn, false);
+            }
+        }
+
+        function displayResult(generation) {
+            document.getElementById('resultTitle').textContent = generation.name;
+            
+            let description = `Generated from: "${generation.prompt}"`;
+            
+            // Add metadata information if available
+            if (generation.metadata) {
+                const meta = generation.metadata;
+                const metaInfo = [];
+                
+                if (meta.category) metaInfo.push(`Category: ${meta.category}`);
+                if (meta.complexity) metaInfo.push(`Complexity: ${meta.complexity}`);
+                if (meta.similarPatterns) metaInfo.push(`Similar patterns: ${meta.similarPatterns}`);
+                if (meta.userExamples) metaInfo.push(`User examples: ${meta.userExamples}`);
+                if (meta.generationTime) metaInfo.push(`Generated in: ${(meta.generationTime/1000).toFixed(1)}s`);
+                
+                if (metaInfo.length > 0) {
+                    description += `\n\n${metaInfo.join(' • ')}`;
+                }
+            }
+            
+            document.getElementById('resultDescription').textContent = description;
+            document.getElementById('resultFileName').textContent = `${generation.name.toLowerCase().replace(/\s+/g, '-')}.scad`;
+            document.getElementById('generatedCode').textContent = generation.code;
+            
+            // Hide placeholder and show results
+            document.getElementById('placeholderSection').classList.add('hidden');
+            document.getElementById('resultSection').classList.remove('hidden');
+        }
+
+        async function autoSaveDesign() {
+            if (!currentGeneration) {
+                console.log('AutoSave skipped: No current generation');
+                return;
+            }
+            
+            try {
+                const userData = window.flexicadAuth.user;
+                if (!userData) {
+                    console.log('AutoSave skipped: User not authenticated');
+                    return;
+                }
+                
+                const sessionToken = await window.flexicadAuth.getSessionToken();
+                
+                if (!sessionToken) {
+                    console.log('AutoSave skipped: No session token');
+                    return;
+                }
+                console.log('AutoSave: Attempting to save design...');
+                
+                // Auto-save to server
+                const response = await fetch('/.netlify/functions/save-design', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionToken || ''}`
+                    },
+                    body: JSON.stringify({
+                        prompt: currentGeneration.prompt,
+                        code: currentGeneration.code,
+                        name: currentGeneration.name || 'Auto-saved Design',
+                        user_id: userData.id,
+                        is_auto_save: true
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('AutoSave failed:', response.status, errorText);
+                } else {
+                    console.log('AutoSave successful');
+                }
+                
+            } catch (error) {
+                console.error('Error auto-saving design:', error.message || error);
+                // Don't show error to user for auto-save failures
+            }
+        }
+
+        async function saveDesign(event) {
+            if (!currentGeneration) return;
+            
+            try {
+                const userData = window.flexicadAuth.user;
+                const sessionToken = await window.flexicadAuth.getSessionToken();
+                
+                if (!userData || !sessionToken) {
+                    alert('Authentication required');
+                    return;
+                }
+
+                // Send save request to server
+                const response = await fetch('/.netlify/functions/save-design', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionToken || ''}`
+                    },
+                    body: JSON.stringify({
+                        prompt: currentGeneration.prompt,
+                        code: currentGeneration.code,
+                        name: currentGeneration.name || 'Untitled Design',
+                        user_id: userData.id
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to save design');
+                }
+
+                const data = await response.json();
+                
+                // Visual feedback
+                if (event && event.target) {
+                    const btn = event.target;
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '✅ Saved!';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                    }, 2000);
+                } else {
+                    alert('Design saved successfully!');
+                }
+                
+            } catch (error) {
+                console.error('Error saving design:', error);
+                alert('Failed to save design. Please try again.');
+            }
+        }
+
+        function copyGeneratedCode(event) {
+            if (!currentGeneration) return;
+            
+            navigator.clipboard.writeText(currentGeneration.code).then(() => {
+                // Visual feedback
+                if (event && event.target) {
+                    const btn = event.target;
+                    const originalText = btn.textContent;
+                    btn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                    }, 1000);
+                }
+            }).catch(() => {
+                alert('Failed to copy code to clipboard');
+            });
+        }
+
+        function downloadGeneratedCode() {
+            if (!currentGeneration) return;
+            
+            const fileName = `${currentGeneration.name.toLowerCase().replace(/\s+/g, '-')}.scad`;
+            const blob = new Blob([currentGeneration.code], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function generateAnother() {
+            document.getElementById('designPrompt').value = '';
+            document.getElementById('designName').value = '';
+            hideResults();
+            hideError();
+            showPlaceholder();
+            document.getElementById('designPrompt').focus();
+        }
+
+        function useExamplePrompt(prompt) {
+            document.getElementById('designPrompt').value = prompt;
+            document.getElementById('designPrompt').focus();
+        }
+
+        function setLoadingState(button, loading) {
+            const btnText = button.querySelector('.btn-text');
+            const spinner = button.querySelector('.spinner');
+            
+            if (loading) {
+                button.classList.add('btn-loading');
+                button.disabled = true;
+                btnText.textContent = 'Generating...';
+                spinner.classList.remove('hidden');
+            } else {
+                button.classList.remove('btn-loading');
+                button.disabled = false;
+                btnText.textContent = '🤖 Generate Design';
+                spinner.classList.add('hidden');
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorSection').classList.remove('hidden');
+        }
+
+        function hideError() {
+            document.getElementById('errorSection').classList.add('hidden');
+        }
+
+        function hideResults() {
+            document.getElementById('resultSection').classList.add('hidden');
+        }
+
+        function showPlaceholder() {
+            document.getElementById('placeholderSection').classList.remove('hidden');
+        }
+
+        function hidePlaceholder() {
+            document.getElementById('placeholderSection').classList.add('hidden');
+        }
+
+        // AI Learning and Feedback Functions
+        let currentRating = 0;
+
+        // Initialize rating stars
+        document.addEventListener('DOMContentLoaded', function() {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const rating = parseInt(this.dataset.rating);
+                    setRating(rating);
+                });
+
+                star.addEventListener('mouseover', function() {
+                    const rating = parseInt(this.dataset.rating);
+                    highlightStars(rating);
+                });
+            });
+
+            // Reset star highlighting when not hovering
+            document.getElementById('ratingStars').addEventListener('mouseleave', function() {
+                highlightStars(currentRating);
+            });
+
+            // Teaching form submission
+            document.getElementById('teachingForm').addEventListener('submit', handleTeachingSubmit);
+        });
+
+        function setRating(rating) {
+            currentRating = rating;
+            highlightStars(rating);
+        }
+
+        function highlightStars(rating) {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('selected');
+                } else {
+                    star.classList.remove('selected');
+                }
+            });
+        }
+
+        async function submitFeedback() {
+            if (currentRating === 0) {
+                alert('Please select a rating first');
+                return;
+            }
+
+            if (!currentGeneration || !currentGeneration.metadata || !currentGeneration.metadata.sessionId) {
+                alert('No generation session found');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitFeedbackBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            try {
+                // Use the auth system to get the current session token
+                const token = await window.flexicadAuth.getSessionToken();
+                
+                if (!token) {
+                    throw new Error('Authentication required - no valid session');
+                }
+
+                const user = window.flexicadAuth.user;
+                if (!user) {
+                    throw new Error('Authentication required - no user data');
+                }
+
+                const qualityLabels = {
+                    1: 'unusable',
+                    2: 'poor', 
+                    3: 'ok',
+                    4: 'good',
+                    5: 'excellent'
+                };
+
+                const feedbackData = {
+                    sessionId: currentGeneration.metadata.sessionId,
+                    feedback: {
+                        rating: currentRating,
+                        quality_score: currentRating,
+                        quality_label: qualityLabels[currentRating],
+                        text: document.getElementById('feedbackText').value.trim() || null
+                    },
+                    finalCode: document.getElementById('finalCode').value.trim() || null,
+                    correctionType: document.getElementById('finalCode').value.trim() ? 'improvement' : null,
+                    correctionDescription: document.getElementById('feedbackText').value.trim() || null
+                };
+
+                const response = await fetch('/.netlify/functions/ai-feedback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(feedbackData)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to submit feedback');
+                }
+
+                console.log('✅ Feedback submitted successfully');
+                
+                // Show success message and hide feedback form
+                submitBtn.textContent = '✅ Thanks!';
+                submitBtn.style.background = 'var(--success)';
+                
+                // If rating is high, offer to teach the AI
+                if (currentRating >= 4) {
+                    setTimeout(() => {
+                        document.getElementById('teachingSection').style.display = 'block';
+                        prepareTeachingForm();
+                    }, 1000);
+                } else {
+                    setTimeout(() => {
+                        collapseFeedback();
+                    }, 2000);
+                }
+
+            } catch (error) {
+                console.error('Error submitting feedback:', error);
+                alert('Failed to submit feedback: ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Feedback';
+            }
+        }
+
+        function collapseFeedback() {
+            document.getElementById('feedbackSection').style.display = 'none';
+            // Reset feedback form
+            currentRating = 0;
+            highlightStars(0);
+            document.getElementById('feedbackText').value = '';
+            document.getElementById('finalCode').value = '';
+            document.getElementById('submitFeedbackBtn').disabled = false;
+            document.getElementById('submitFeedbackBtn').textContent = 'Submit Feedback';
+            document.getElementById('submitFeedbackBtn').style.background = '';
+        }
+
+        function prepareTeachingForm() {
+            if (!currentGeneration) return;
+
+            // Pre-fill form with generation data
+            const promptText = currentGeneration.prompt || '';
+            const generatedName = currentGeneration.name || 'AI Generated Design';
+            
+            document.getElementById('patternName').value = generatedName;
+            document.getElementById('patternDescription').value = `Learned from: ${promptText.substring(0, 100)}${promptText.length > 100 ? '...' : ''}`;
+            
+            // Extract keywords from prompt
+            const keywords = promptText.toLowerCase()
+                .match(/\b\w{4,}\b/g) || [];
+            const uniqueKeywords = [...new Set(keywords)]
+                .filter(word => !['this', 'that', 'with', 'from', 'create', 'make', 'design'].includes(word))
+                .slice(0, 8);
+            
+            document.getElementById('patternKeywords').value = uniqueKeywords.join(', ');
+            
+            // Set category based on metadata
+            if (currentGeneration.metadata && currentGeneration.metadata.category) {
+                document.getElementById('patternCategory').value = currentGeneration.metadata.category;
+            }
+            
+            // Set complexity based on metadata
+            if (currentGeneration.metadata && currentGeneration.metadata.complexity) {
+                document.getElementById('complexityLevel').value = currentGeneration.metadata.complexity;
+            }
+        }
+
+        async function handleTeachingSubmit(e) {
+            e.preventDefault();
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '🎓 Teaching...';
+
+            try {
+                // Use the auth system to get the current session token
+                const token = await window.flexicadAuth.getSessionToken();
+                
+                if (!token) {
+                    throw new Error('Authentication required - no valid session');
+                }
+
+                const user = window.flexicadAuth.user;
+                if (!user) {
+                    throw new Error('Authentication required - no user data');
+                }
+
+                // Get final code (user's version or original generated code)
+                const finalCode = document.getElementById('finalCode').value.trim() || currentGeneration.code;
+
+                const teachingData = {
+                    patternName: document.getElementById('patternName').value.trim(),
+                    description: document.getElementById('patternDescription').value.trim(),
+                    keywords: document.getElementById('patternKeywords').value.trim(),
+                    examplePrompt: currentGeneration.prompt,
+                    successfulCode: finalCode,
+                    category: document.getElementById('patternCategory').value,
+                    complexityLevel: document.getElementById('complexityLevel').value,
+                    updateFileSystem: true
+                };
+
+                const response = await fetch('/.netlify/functions/teach-ai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(teachingData)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to teach AI');
+                }
+
+                console.log('✅ AI teaching successful:', result);
+                
+                // Show success
+                submitBtn.textContent = '✅ AI Learned!';
+                submitBtn.style.background = 'var(--success)';
+                
+                setTimeout(() => {
+                    hideTeaching();
+                }, 2000);
+
+            } catch (error) {
+                console.error('Error teaching AI:', error);
+                alert('Failed to teach AI: ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🎓 Teach AI';
+            }
+        }
+
+        function hideTeaching() {
+            document.getElementById('teachingSection').style.display = 'none';
+            document.getElementById('teachingForm').reset();
+        }
+
+        // Show feedback section after generation
+        function showFeedbackSection() {
+            document.getElementById('feedbackSection').style.display = 'block';
+            // Scroll to feedback section
+            setTimeout(() => {
+                document.getElementById('feedbackSection').scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }, 500);
+        }
+
+        // Use the flexicadAuth logout function
+        async function handleLogout() {
+            await window.flexicadAuth.logout();
+        }
+
+    </script>
+
+    <style>
+        .generator-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+            max-width: 100vw;
+            padding: 0 1rem;
+            box-sizing: border-box;
+        }
+
+        .input-section, .output-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            min-width: 0; /* Allows grid items to shrink below their content size */
+            overflow: hidden;
+        }
+
+        .placeholder-card {
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-secondary);
+            border: 2px dashed var(--border-color);
+        }
+
+        .placeholder-content {
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .placeholder-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .code-container {
+            margin: 1rem 0;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            font-family: monospace;
+            font-size: 0.875rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .code-block {
+            padding: 1rem;
+            margin: 0;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.4;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+            width: 100%;
+            box-sizing: border-box;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* Ensure cards don't overflow */
+        .card {
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        /* Better button layout in code header */
+        .code-header > div {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 1200px) {
+            .generator-layout {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                max-width: 100%;
+            }
+            
+            .code-block {
+                font-size: 0.8rem;
+                max-height: 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .generator-layout {
+                padding: 0 0.5rem;
+            }
+            
+            .code-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .code-header > div {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            
+            .code-block {
+                font-size: 0.75rem;
+                padding: 0.75rem;
+            }
+        }
+
+        /* Feedback and Teaching UI Styles */
+        .feedback-container {
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+        }
+
+        .rating-section {
+            text-align: center;
+        }
+
+        .rating-stars {
+            display: flex;
+            justify-content: center;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+        }
+
+        .star {
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.3;
+            transition: opacity 0.2s;
+        }
+
+        .star:hover,
+        .star.selected {
+            opacity: 1;
+        }
+
+        .star.selected {
+            filter: drop-shadow(0 0 3px gold);
+        }
+
+        .code-textarea {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .form-textarea,
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .teaching-hidden {
+            display: none !important;
+        }
+
+        .rating-legend {
+            margin-top: 0.75rem;
+            padding: 0.5rem;
+            background: var(--primary-bg);
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        .legend-title {
+            font-weight: bold;
+            color: var(--accent-blue);
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .legend-item {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.1rem;
+        }
+    </style>
+</body>
+</html>

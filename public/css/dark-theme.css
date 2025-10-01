@@ -863,3 +863,899 @@ body {
   margin-right: 10px;
   margin-bottom: 10px;
 }
+
+/* Phase 4.6/4.7 Enhancements */
+
+/* Template Wizard Modal Styles */
+.wizard-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--modal-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.2s ease;
+}
+
+.wizard-modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+}
+
+.wizard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-tertiary);
+}
+
+.wizard-header h2 {
+  color: var(--text-accent);
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.wizard-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.wizard-close:hover {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.wizard-body {
+  padding: 2rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.wizard-progress {
+  margin-bottom: 2rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--button-primary), var(--text-accent));
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.progress-text {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.parameter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.parameter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.parameter-label {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.parameter-input,
+.export-select,
+.export-input {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease;
+}
+
+.parameter-input:focus,
+.export-select:focus,
+.export-input:focus {
+  outline: none;
+  border-color: var(--text-accent);
+  box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.1);
+}
+
+.parameter-info {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.checkbox-label:hover {
+  background: var(--bg-tertiary);
+}
+
+.parameter-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--button-primary);
+}
+
+.code-preview-container {
+  margin: 1.5rem 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.code-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border);
+}
+
+.code-preview {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  padding: 1rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  max-height: 300px;
+  overflow-y: auto;
+  margin: 0;
+}
+
+.wizard-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.wizard-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-tertiary);
+}
+
+.wizard-nav {
+  display: flex;
+  gap: 1rem;
+}
+
+/* STL Export Styles */
+.stl-export-controls {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  animation: slideDown 0.3s ease;
+}
+
+.export-header h4 {
+  color: var(--text-accent);
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.export-info {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.export-settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.setting-group label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.export-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--button-primary);
+  margin-right: 0.5rem;
+}
+
+.export-actions {
+  margin-top: 1.5rem;
+}
+
+.export-progress {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.export-progress .progress-bar {
+  flex: 1;
+  height: 6px;
+}
+
+.stl-export-btn {
+  font-size: 0.85rem !important;
+}
+
+/* Notification Styles */
+.wizard-notification,
+.stl-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 500;
+  z-index: 3000;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.wizard-notification.show,
+.stl-notification.show {
+  transform: translateX(0);
+}
+
+.wizard-notification.success,
+.stl-notification.success {
+  background: var(--success);
+  color: white;
+}
+
+.wizard-notification.error,
+.stl-notification.error {
+  background: var(--error);
+  color: white;
+}
+
+.wizard-notification.warning,
+.stl-notification.warning {
+  background: var(--warning);
+  color: white;
+}
+
+.notification-icon {
+  font-size: 1.2rem;
+}
+
+.notification-text {
+  flex: 1;
+}
+
+/* Enhanced Navigation for Mobile */
+@media (max-width: 768px) {
+  .nav-container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    width: 100%;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .nav-user {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .wizard-modal {
+    width: 95%;
+    margin: 1rem;
+  }
+
+  .parameter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .export-settings {
+    grid-template-columns: 1fr;
+  }
+
+  .wizard-footer {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .wizard-nav {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Accessibility Enhancements */
+.wizard-modal:focus-within {
+  outline: 2px solid var(--text-accent);
+  outline-offset: -2px;
+}
+
+.parameter-input:focus,
+.export-select:focus,
+.export-input:focus {
+  outline: 2px solid var(--text-accent);
+  outline-offset: -2px;
+}
+
+/* Smooth Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideDown {
+  from { 
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Template Wizard Button Enhancement */
+.wizard-btn {
+  font-size: 0.85rem !important;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+  border: none !important;
+  color: white !important;
+}
+
+.wizard-btn:hover {
+  background: linear-gradient(135deg, #5b21b6, #7c3aed) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+/* Phase 4.7.1 Enhancements */
+
+/* Centered Modal System */
+.modal-root {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+}
+
+.modal-root[hidden] {
+  display: none;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+}
+
+.modal-dialog {
+  position: relative;
+  width: min(900px, 92vw);
+  max-height: 86vh;
+  overflow: hidden;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  z-index: 1;
+}
+
+.modal-close:hover {
+  color: var(--text-primary);
+}
+
+.modal-content {
+  padding: 1rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-header {
+  margin-bottom: 1rem;
+  padding-right: 2rem; /* Space for close button */
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--text-accent);
+}
+
+.modal-body {
+  margin-bottom: 1rem;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.code-view {
+  margin: 0;
+  white-space: pre;
+  overflow: auto;
+  max-height: 70vh;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+/* AI Generator Grid Layout - Phase 4.6.1 Enhanced */
+.ai-grid {
+  display: grid;
+  grid-template-columns: 1fr minmax(400px, 500px);
+  gap: 1.5rem;
+  align-items: start;
+  margin-bottom: 2rem;
+}
+
+#ai-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Format selector for Phase 4.6.1 */
+.format-selector {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.radio-label:hover {
+  background: var(--bg-secondary);
+}
+
+.radio-label input[type="radio"] {
+  margin: 0;
+}
+
+.radio-label input[type="radio"]:checked + span {
+  color: var(--accent-blue);
+  font-weight: 600;
+}
+
+@media (max-width: 1024px) {
+  .ai-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  #ai-right-col {
+    flex-direction: column-reverse;
+  }
+  
+  #ai-suggestions {
+    position: static !important;
+  }
+  
+  .format-selector {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+#ai-output-col {
+  min-height: 420px;
+}
+
+.ai-suggestions.sticky {
+  position: sticky;
+  top: 84px;
+}
+
+.ai-suggestions {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.ai-suggestions h4 {
+  color: var(--text-accent);
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+}
+
+.ai-suggestions .text-secondary {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+/* Unified Navbar Enhancement */
+.nav .nav-link {
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  line-height: 1.1;
+  transition: all 0.2s ease;
+}
+
+.nav .nav-link.active {
+  background: color-mix(in srgb, var(--text-accent) 18%, transparent);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.nav .nav-link:hover:not(.active) {
+  background: var(--bg-tertiary);
+}
+
+/* Phase 4.6 Modal System */
+.modal-root {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+}
+
+.modal-root[hidden] {
+  display: none;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.modal-dialog {
+  position: relative;
+  width: min(960px, 92vw);
+  max-height: 86vh;
+  overflow: auto;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+}
+
+.modal-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.modal-close:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.modal-content {
+  padding: 1rem;
+}
+
+pre.code-view {
+  margin: 0;
+  white-space: pre;
+  overflow: auto;
+  max-height: 70vh;
+  background: var(--bg-primary);
+  padding: 1rem;
+  border-radius: 6px;
+  font-family: 'Courier New', monospace;
+}
+
+/* Enhanced navbar styles for Phase 4.6 */
+.nav .nav-link {
+  padding: 0.55rem 0.9rem;
+  border-radius: 8px;
+  line-height: 1.1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.nav .nav-link.active {
+  background: rgba(80, 160, 255, 0.18);
+  outline: 1px solid rgba(80, 160, 255, 0.25);
+  font-weight: 600;
+}
+
+/* Phase 4.7.3 Template Wizard Preview Modal Styles */
+.preview-modal {
+  width: 90vw;
+  max-width: 900px;
+  max-height: 90vh;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-tertiary);
+}
+
+.preview-header h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.4rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.8rem;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.preview-content {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.code-container {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border);
+}
+
+.code-filename {
+  font-family: 'Courier New', monospace;
+  color: var(--text-accent);
+  font-size: 0.9rem;
+}
+
+.code-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-small {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  border-radius: 6px;
+}
+
+.code-block {
+  margin: 0;
+  padding: 1.5rem;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  overflow-x: auto;
+  white-space: pre;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.preview-actions {
+  display: flex;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-tertiary);
+}
+
+.preview-actions .btn {
+  min-width: 120px;
+}
+
+/* Toast notifications */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 10000;
+  min-width: 250px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.toast-error {
+  border-color: var(--error);
+  background: #2d1b1b;
+  color: #ff6b6b;
+}
+
+.toast-success {
+  border-color: var(--success);
+  background: #1b2d1b;
+  color: #51cf66;
+}
+
+/* Responsive adjustments for preview modal */
+@media (max-width: 768px) {
+  .preview-modal {
+    width: 95vw;
+    max-height: 85vh;
+  }
+  
+  .preview-header {
+    padding: 1rem;
+  }
+  
+  .preview-content {
+    padding: 1rem;
+  }
+  
+  .code-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .code-actions {
+    align-self: stretch;
+  }
+  
+  .code-actions .btn-small {
+    flex: 1;
+    text-align: center;
+  }
+  
+  .preview-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .preview-actions .btn {
+    width: 100%;
+  }
+}

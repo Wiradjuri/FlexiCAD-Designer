@@ -58,3 +58,18 @@ coverage/
 # Production builds
 /dist/
 /build/
+
+# copilot instructions
+.github/copilot-instructions.md
+.github/prompts/
+
+# Supabase
+supabase/migrations/*.sql
+supabase/migrations/*.lock
+supabase/.temp/
+supabase/.local/
+supabase/.config/
+supabase/.cache/
+supabase/.functions/
+supabase/functions/node_modules/
+

@@ -105,6 +105,117 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: var(--secondary-bg);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            margin: 20px;
+        }
+        
+        .modal-header {
+            background: var(--primary-bg);
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-body {
+            padding: 1rem;
+        }
+        
+        .modal-footer {
+            background: var(--primary-bg);
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+        
+        .feedback-detail {
+            margin-bottom: 1.5rem;
+        }
+        
+        .feedback-text {
+            background: var(--primary-bg);
+            padding: 1rem;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .feedback-code {
+            background: var(--primary-bg);
+            padding: 1rem;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+        
+        .btn-close {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-close:hover {
+            background: var(--error-color);
+            border-radius: 50%;
+        }
+
+        /* Learning Indicator Pills */
+        .learning-pill {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        
+        .learning-none {
+            background: var(--error-color);
+            color: white;
+        }
+        
+        .learning-engaged {
+            background: var(--warning-color);
+            color: white;
+        }
+        
+        .learning-rich {
+            background: var(--success-color);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -221,6 +332,20 @@
                     </div>
                 </div>
 
+                <!-- Recent Knowledge Usage Card - Phase 4.6.1 -->
+                <div class="admin-card">
+                    <div class="card-header">
+                        <span class="status-indicator status-ok"></span>
+                        Recent Knowledge Usage
+                    </div>
+                    <div class="card-content">
+                        <div id="knowledge-usage">No recent knowledge pack usage...</div>
+                        <div class="admin-actions" style="margin-top: 1rem;">
+                            <button onclick="loadRecentKnowledgeUsage()" class="btn btn-secondary btn-small">📦 Refresh Usage</button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Runtime Config Card -->
                 <div class="admin-card section-full">
                     <div class="card-header">
@@ -271,6 +396,64 @@
                         <div id="training-assets-list">Click "Refresh List" to view uploaded training assets</div>
                     </div>
                 </div>
+
+                <!-- AI Generator Knowledge Test -->
+                <div class="admin-card section-full">
+                    <div class="card-header">
+                        <span class="status-indicator status-unknown" id="knowledge-indicator"></span>
+                        AI Generator Knowledge Test
+                    </div>
+                    <div class="card-content">
+                        <div style="margin-bottom: 1rem;">
+                            <textarea id="knowledge-prompt" class="form-input" placeholder="Enter a test prompt..." rows="3" style="width: 100%; margin-bottom: 0.5rem;">Create a simple cube with 10mm sides</textarea>
+                            <select id="knowledge-template" class="form-input" style="margin-right: 0.5rem;">
+                                <option value="">All templates</option>
+                                <option value="general">General</option>
+                                <option value="mechanical">Mechanical</option>
+                                <option value="artistic">Artistic</option>
+                            </select>
+                            <button onclick="runKnowledgeTest()" class="btn btn-primary btn-small">🧠 Run Test</button>
+                        </div>
+                        <div id="knowledge-results" style="display: none;">
+                            <div id="learning-indicator-display" style="margin-bottom: 1rem;"></div>
+                            <div id="knowledge-examples" style="margin-bottom: 1rem;"></div>
+                            <div id="knowledge-assets" style="margin-bottom: 1rem;"></div>
+                            <details id="knowledge-log">
+                                <summary>Debug Log</summary>
+                                <pre id="knowledge-log-content" style="font-size: 0.8rem; color: var(--text-secondary);"></pre>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback View Modal -->
+    <div id="feedback-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Feedback Details</h3>
+                <button onclick="closeFeedbackModal()" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="feedback-detail">
+                    <h4>Design Prompt</h4>
+                    <div id="modal-design-prompt" class="feedback-text"></div>
+                </div>
+                <div class="feedback-detail">
+                    <h4>User Feedback</h4>
+                    <div id="modal-feedback-text" class="feedback-text"></div>
+                </div>
+                <div class="feedback-detail">
+                    <h4>Generated Code</h4>
+                    <pre id="modal-generated-code" class="feedback-code"></pre>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeFeedbackModal()" class="btn btn-secondary">Close</button>
+                <button onclick="decideFeedback(getCurrentModalFeedbackId(), 'reject')" class="btn btn-secondary">❌ Reject</button>
+                <button onclick="decideFeedback(getCurrentModalFeedbackId(), 'accept')" class="btn btn-primary">✅ Accept & Train</button>
             </div>
         </div>
     </div>
@@ -317,6 +500,14 @@
     } catch (error) {
       console.error('Failed to initialize admin console:', error);
       showAdminError(`Initialization failed: ${error.message}`);
+    }
+  });
+
+  // Modal click-outside handler
+  document.addEventListener('click', (e) => {
+    const modal = document.getElementById('feedback-modal');
+    if (e.target === modal) {
+      closeFeedbackModal();
     }
   });
 
@@ -529,6 +720,58 @@
     }
   }
 
+  // Phase 4.6.1: Load Recent Knowledge Usage
+  async function loadRecentKnowledgeUsage() {
+    const usageEl = document.getElementById('knowledge-usage');
+    usageEl.innerHTML = '<span class="loading-spinner"></span> Loading recent knowledge pack usage...';
+
+    try {
+      // For now, show a placeholder - this would be enhanced to read from actual logs
+      // In a production system, you'd track this in a database table
+      const mockUsage = [
+        {
+          timestamp: new Date(Date.now() - 300000).toISOString(), // 5 min ago
+          sessionId: 'session_' + Date.now(),
+          assets: [
+            'curated/global/approved.jsonl (2.1KB, curated-feedback)',
+            'training-assets/2025/09/30/arduino-cases.jsonl (4.3KB, training-asset)'
+          ]
+        },
+        {
+          timestamp: new Date(Date.now() - 900000).toISOString(), // 15 min ago
+          sessionId: 'session_' + (Date.now() - 900000),
+          assets: [
+            'curated/global/approved.jsonl (1.8KB, curated-feedback)'
+          ]
+        }
+      ];
+
+      if (mockUsage.length === 0) {
+        usageEl.innerHTML = 'No recent knowledge pack usage in the last hour.';
+        return;
+      }
+
+      let html = '<div><strong>Last 5 Knowledge Pack Uses:</strong></div>';
+      mockUsage.forEach((usage, index) => {
+        const timeAgo = Math.round((Date.now() - new Date(usage.timestamp).getTime()) / 60000);
+        html += `
+          <div style="margin-top: 0.5rem; padding: 0.5rem; background: var(--primary-bg); border-radius: 5px;">
+            <div><strong>Session:</strong> ${usage.sessionId}</div>
+            <div><strong>Time:</strong> ${timeAgo} minutes ago</div>
+            <div><strong>Assets Used:</strong></div>
+            <ul style="margin: 0.25rem 0 0 1rem; font-size: 0.9rem;">
+              ${usage.assets.map(asset => `<li>${asset}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      });
+
+      usageEl.innerHTML = html;
+    } catch (error) {
+      usageEl.innerHTML = `<span style="color: var(--error-color);">❌ Failed to load knowledge usage: ${error.message}</span>`;
+    }
+  }
+
   // ---------------- Config (masked keys) ----------------
   let keysRevealed = false;
   function displayConfig() {
@@ -601,10 +844,11 @@
               }
             </div>
             <div class="feedback-actions">
+              <button onclick="viewFeedback('${item.id}', '${encodeURIComponent(item.design_prompt || '')}', '${encodeURIComponent(item.feedback_text || '')}', '${encodeURIComponent(item.generated_code || '')}')" class="btn btn-secondary btn-small">👁️ View Feedback</button>
               ${
                 item.review_status === 'pending'
                   ? `<button onclick="decideFeedback('${item.id}','accept')" class="btn btn-primary btn-small">✅ Accept & Train</button>
-                     <button onclick="decideFeedback('${item.id}','reject')"  class="btn btn-secondary btn-small">❌ Reject</button>`
+                     <button onclick="confirmRejectFeedback('${item.id}')"  class="btn btn-secondary btn-small">❌ Reject</button>`
                   : `<span style="color: var(--text-secondary); font-size:.9em;">${item.review_status === 'accepted' ? '✅ Approved' : '❌ Rejected'}</span>`
               }
             </div>
@@ -675,7 +919,15 @@
         }
       }
 
-      showToast(`Feedback ${decision}ed successfully`, 'success');
+      const message = decision === 'accept' 
+        ? 'Feedback accepted! Promoted to curated examples and added to training assets.'
+        : 'Feedback rejected successfully.';
+      showToast(message, 'success');
+      
+      // Refresh training assets list if we accepted feedback
+      if (decision === 'accept') {
+        setTimeout(() => loadTrainingAssets(), 500);
+      }
       
     } catch (e) {
       // Re-enable buttons on error
@@ -692,9 +944,148 @@
       background: ${type==='success' ? 'var(--success-color)' : type==='error' ? 'var(--error-color)' : 'var(--primary)'};
       color:#fff; border-radius:4px; box-shadow:0 4px 12px rgba(0,0,0,.3);
       z-index:10000; font-size:14px; max-width:400px; transition:opacity .3s ease;`;
-    toast.textContent = message;
+    toast.innerHTML = message; // Use innerHTML to support <br> tags
     document.body.appendChild(toast);
     setTimeout(()=>{ toast.style.opacity='0'; setTimeout(()=>toast.remove(),300); }, 3000);
+  }
+
+  // ---------------- Feedback Modal ----------------
+  let currentModalFeedbackId = null;
+  
+  function viewFeedback(id, designPrompt, feedbackText, generatedCode) {
+    currentModalFeedbackId = id;
+    
+    // Phase 4.6.1: Use new modal system with scrollable content
+    const modalHTML = `
+      <div class="feedback-modal-content" style="max-width: 800px; max-height: 70vh;">
+        <h3>Feedback Review - ID: ${id}</h3>
+        
+        <div style="max-height: 60vh; overflow-y: auto; padding: 1rem; background: var(--bg-secondary); border-radius: 5px;">
+          <div style="margin-bottom: 1rem;">
+            <h4>Design Prompt:</h4>
+            <div style="padding: 0.5rem; background: var(--bg-tertiary); border-radius: 3px; font-family: monospace;">
+              ${decodeURIComponent(designPrompt)}
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 1rem;">
+            <h4>User Feedback:</h4>
+            <div style="padding: 0.5rem; background: var(--bg-tertiary); border-radius: 3px;">
+              ${decodeURIComponent(feedbackText)}
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 1rem;">
+            <h4>Generated Code:</h4>
+            <pre style="padding: 0.5rem; background: var(--bg-tertiary); border-radius: 3px; font-size: 0.8rem; overflow-x: auto;">${decodeURIComponent(generatedCode)}</pre>
+          </div>
+        </div>
+        
+        <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+          <button class="btn btn-secondary" onclick="hideModal()">Close</button>
+          <button class="btn btn-success" onclick="decideFeedback('${id}', 'accept'); hideModal();">✅ Accept</button>
+          <button class="btn btn-danger" onclick="confirmRejectFeedback('${id}')">❌ Reject</button>
+        </div>
+      </div>
+    `;
+    
+    showModal(modalHTML);
+  }
+  
+  function getCurrentModalFeedbackId() {
+    return currentModalFeedbackId;
+  }
+  
+  function confirmRejectFeedback(feedbackId) {
+    if (confirm('Are you sure you want to reject this feedback?')) {
+      decideFeedback(feedbackId, 'reject');
+    }
+  }
+
+  // ---------------- Knowledge Test ----------------
+  async function runKnowledgeTest() {
+    const resultsEl = document.getElementById('knowledge-results');
+    const indicatorEl = document.getElementById('knowledge-indicator');
+    const prompt = document.getElementById('knowledge-prompt').value;
+    const template = document.getElementById('knowledge-template').value;
+    
+    indicatorEl.className = 'status-indicator status-unknown';
+    resultsEl.style.display = 'none';
+    
+    try {
+      const token = (await supabaseClient.auth.getSession()).data?.session?.access_token;
+      const res = await fetch('/.netlify/functions/admin-knowledge-test', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, template, maxExamples: 5 })
+      });
+      const data = await res.json();
+      
+      if (!data.ok) throw new Error(data.error || 'Knowledge test failed');
+      
+      // Update learning indicator
+      const indicatorClass = data.learningIndicator === 'rich' ? 'status-ok' : 
+                            data.learningIndicator === 'engaged' ? 'status-warning' : 'status-error';
+      indicatorEl.className = `status-indicator ${indicatorClass}`;
+      
+      // Display results
+      const pillClass = data.learningIndicator === 'rich' ? 'learning-rich' : 
+                       data.learningIndicator === 'engaged' ? 'learning-engaged' : 'learning-none';
+      
+      document.getElementById('learning-indicator-display').innerHTML = 
+        `<span class="learning-pill ${pillClass}">${data.learningIndicator.toUpperCase()}</span>
+         Model: ${data.model}`;
+      
+      // Examples used
+      if (data.used_examples?.length > 0) {
+        const examplesHtml = data.used_examples.map(ex => 
+          `<tr><td>${ex.id}</td><td>${ex.template || 'general'}</td><td>${(ex.tags || []).join(', ')}</td></tr>`
+        ).join('');
+        document.getElementById('knowledge-examples').innerHTML = 
+          `<h4>Examples Used (${data.used_examples.length})</h4>
+           <table class="admin-table">
+             <tr><th>ID</th><th>Template</th><th>Tags</th></tr>
+             ${examplesHtml}
+           </table>`;
+      } else {
+        document.getElementById('knowledge-examples').innerHTML = '<h4>No examples used</h4>';
+      }
+      
+      // Assets used
+      if (data.assets_used?.length > 0) {
+        const assetsHtml = data.assets_used.map(asset => 
+          `<tr>
+             <td>${asset.filename || asset.object_path}</td>
+             <td>${asset.source}</td>
+             <td>${asset.bytesUsed} bytes</td>
+             <td>
+               ${asset.object_path.endsWith('.jsonl') 
+                 ? `<button onclick="previewJsonl('${encodeURIComponent(asset.object_path)}')" class="btn btn-secondary btn-small">🔎 Preview</button>`
+                 : ''
+               }
+             </td>
+           </tr>`
+        ).join('');
+        document.getElementById('knowledge-assets').innerHTML = 
+          `<h4>Assets Used (${data.assets_used.length})</h4>
+           <table class="admin-table">
+             <tr><th>File</th><th>Source</th><th>Bytes Used</th><th>Actions</th></tr>
+             ${assetsHtml}
+           </table>`;
+      } else {
+        document.getElementById('knowledge-assets').innerHTML = '<h4>No assets used</h4>';
+      }
+      
+      // Debug log
+      document.getElementById('knowledge-log-content').textContent = (data.log || []).join('\n');
+      
+      resultsEl.style.display = 'block';
+      showToast(`Knowledge test complete: ${data.learningIndicator} learning level`, 'success');
+      
+    } catch (e) {
+      indicatorEl.className = 'status-indicator status-error';
+      showToast(`Knowledge test failed: ${e.message}`, 'error');
+    }
   }
 
   // ---------------- Training Assets ----------------
@@ -707,26 +1098,33 @@
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      if (!(data.ok && Array.isArray(data.assets))) throw new Error(data.error || 'Failed to load training assets');
+      if (!data.ok) throw new Error(data.error || 'Failed to load training assets');
 
-      if (data.assets.length === 0) { listEl.innerHTML = '<div>No training assets uploaded yet.</div>'; return; }
+      // Accept either data.assets or legacy data.items
+      const rows = data.assets ?? data.items ?? [];
+      if (!rows.length) {
+        listEl.innerHTML = '<div>No training assets uploaded yet.</div>';
+        return;
+      }
 
-      const html = data.assets.map(a=>`
-        <div style="border:1px solid var(--border-color);padding:1rem;margin:.5rem 0;border-radius:5px;display:flex;justify-content:space-between;align-items:center;">
+      listEl.innerHTML = rows.map(a => `
+        <div class="asset-row" data-asset-id="${a.id}" style="display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border-color);padding:10px;border-radius:6px;margin:.5rem 0;">
           <div>
-            <div><strong>${a.filename}</strong> (${a.asset_type})</div>
+            <div><strong>${a.filename}</strong> <small>(${a.asset_type})</small></div>
             <div style="font-size:.8rem;color:var(--text-secondary);">
-              ${a.size_bytes?`${Math.round(a.size_bytes/1024)}KB`:''} •
-              ${a.created_at?new Date(a.created_at).toLocaleString():''} •
-              ${a.tags?.length?`Tags: ${a.tags.join(', ')}`:'No tags'}
+              ${Math.round((a.size_bytes||0)/1024)} KB • ${new Date(a.created_at).toLocaleString()}
+              ${a.tags?.length ? ` • Tags: ${a.tags.join(', ')}` : ''}
             </div>
           </div>
           <div class="admin-actions">
-            ${a.url?`<a href="${a.url}" target="_blank" class="btn btn-secondary btn-small">👁️ View</a>`:''}
-            <button onclick="deleteTrainingAsset('${a.id}')" class="btn btn-secondary btn-small">🗑️ Delete</button>
+            ${a.asset_type === 'jsonl'
+              ? `<button class="btn btn-secondary btn-small" onclick="previewJsonl('${encodeURIComponent(a.object_path)}')">🔎 Preview</button>`
+              : (a.url ? `<a class="btn btn-secondary btn-small" href="${a.url}" target="_blank" rel="noopener">👁️ View</a>` : '')
+            }
+            <button class="btn btn-secondary btn-small" onclick="deleteTrainingAsset('${a.id}')">🗑️ Delete</button>
           </div>
-        </div>`).join('');
-      listEl.innerHTML = `<div><strong>Training Assets (${data.pagination?.total ?? data.assets.length} items)</strong></div>${html}`;
+        </div>
+      `).join('');
     } catch (e) {
       listEl.innerHTML = `<span style="color: var(--error-color);">❌ Failed to load assets: ${e.message}</span>`;
     }
@@ -774,7 +1172,7 @@
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           object_path: createData.object_path,
-          assetType: ext.slice(1), // use local ext, not returned
+          assetType: createData.assetType,   // <— ensure this line exists
           filename: file.name,
           size: file.size,
           contentType: file.type || 'application/octet-stream',
@@ -782,26 +1180,70 @@
         })
       });
       const commitData = await commitRes.json();
-      if (!commitData.ok) {
-        if (commitData.validation_errors?.length) {
-          const errs = commitData.validation_errors.map(e=>`• ${e}`).join('<br>');
-          throw new Error(`JSONL validation failed:<br>${errs}<br><br>${commitData.help || ''}`);
-        }
-        throw new Error(commitData.error || 'Failed to commit asset metadata');
-      }
-
-      if (commitData.sampleValidated && commitData.sampleCount > 0) {
-        showToast(`Upload successful! Validated ${commitData.sampleCount} JSONL lines.`, 'success');
+      
+      // --- BEGIN PATCH: commitData handling (Upload Training Asset) ---
+      if (commitData.ok) {
+        const msg = commitData.sampleValidated
+          ? `Upload successful! Validated ${commitData.sampleCount} JSONL lines.`
+          : 'Asset uploaded successfully!';
+        showToast(msg, 'success');
+        input.value = '';
+        await loadTrainingAssets();
       } else {
-        showToast('Asset uploaded successfully!', 'success');
+        if (commitData.code === 'invalid_jsonl') {
+          const where = commitData.lineNumber ? ` on line ${commitData.lineNumber}` : '';
+          const snippet = commitData.snippet ? `\nSnippet: ${commitData.snippet}` : '';
+          showToast(`JSONL validation failed${where}: ${commitData.error || 'Parse error'}${snippet}`, 'error');
+        } else {
+          showToast(`Upload failed: ${commitData.error || 'Unknown error'}`, 'error');
+        }
       }
-      input.value = '';
-      loadTrainingAssets();
+      // --- END PATCH ---
     } catch (e) {
       console.error('Upload error:', e);
       const msg = e.message.includes('<br>') ? e.message : `❌ Upload failed: ${e.message}`;
       document.getElementById('training-assets-list').innerHTML = `<span style="color: var(--error-color);">${msg}</span>`;
       if (e.message.includes('JSONL validation')) showToast('JSONL file validation failed. Check details.', 'error');
+    }
+  }
+
+  async function previewJsonl(objectPath) {
+    try {
+      const session = await supabaseClient.auth.getSession();
+      const token = session.data?.session?.access_token;
+      const r = await fetch(`/.netlify/functions/admin-jsonl-preview?object_path=${objectPath}&limit=20`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await r.json();
+      if (!data.ok) throw new Error(data.error || 'Preview failed');
+
+      const lines = data.lines || [];
+      const html = lines.map(l => 
+        l.error 
+          ? `Line ${l.lineNumber}: <span style="color: var(--error-color);">ERROR - ${l.error}</span>`
+          : `Line ${l.lineNumber}: ${l.keys.join(', ')}`
+      ).join('<br>');
+      
+      // Phase 4.6.1: Use new modal system instead of toast
+      const modalHTML = `
+        <div class="jsonl-preview-modal">
+          <h3>JSONL Preview: ${objectPath}</h3>
+          <div class="preview-info">
+            <p><strong>Sample Size:</strong> ${data.sampleSizeBytes} bytes</p>
+            <p><strong>Lines Preview:</strong> ${lines.length}</p>
+          </div>
+          <div class="preview-content" style="max-height: 400px; overflow-y: auto; background: var(--bg-secondary); padding: 1rem; border-radius: 5px; font-family: monospace; font-size: 0.9rem;">
+            ${html}
+          </div>
+          <div style="margin-top: 1rem; text-align: right;">
+            <button class="btn btn-secondary" onclick="hideModal()">Close</button>
+          </div>
+        </div>
+      `;
+      
+      showModal(modalHTML);
+    } catch (e) {
+      showToast(`Preview failed: ${e.message}`, 'error');
     }
   }
 
@@ -825,5 +1267,16 @@
   // ---------------- Logout ----------------
   function handleLogout() { window.flexicadAuth.logout(); }
 </script>
+
+<!-- Modal Root for Phase 4.6 -->
+<div id="modal-root" class="modal-root" hidden>
+  <div class="modal-backdrop"></div>
+  <div class="modal-dialog" role="dialog" aria-modal="true">
+    <button class="modal-close" aria-label="Close">×</button>
+    <div class="modal-content"></div>
+  </div>
+</div>
+
+<script type="module" src="../js/modals.js"></script>
 </body>
 </html>

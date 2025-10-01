@@ -1,154 +1,184 @@
-import { createClient } from '@supabase/supabase-js';
-import { requireAdmin, corsHeaders, json } from '../lib/require-admin.mjs';
+// netlify/functions/admin-feedback-decide.mjs
+import { requireAdmin, json, corsHeaders } from '../lib/require-admin.mjs';
 
-// Admin endpoint to accept/reject feedback for training with proper state management
-export const handler = async (event, context) => {
-    console.log('🚀 [admin-feedback-decide] Request received:', {
-        method: event.httpMethod,
-        path: event.path
+const BUCKET = process.env.SUPABASE_STORAGE_BUCKET_TRAINING || 'training-assets';
+const CURATED_PREFIX = process.env.CURATED_PREFIX || 'curated/templates';
+const CURATED_GLOBAL_PATH = process.env.CURATED_GLOBAL_PATH || 'curated/global/approved.jsonl';
+
+export async function handler(event) {
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers: corsHeaders };
+  }
+
+  const gate = await requireAdmin(event);
+  if (!gate.ok) {
+    return json(gate.status, { ok:false, code:'admin_required', error:'Admin access required' });
+  }
+  const { supabase, requesterEmail, requesterId } = gate;
+
+  let body;
+  try { body = JSON.parse(event.body || '{}'); }
+  catch { return json(400, { ok:false, code:'bad_json', error:'Malformed JSON body' }); }
+
+  const { feedback_id, decision, tags, reason } = body;
+  if (!feedback_id || !['accept', 'reject'].includes(decision)) {
+    return json(400, { ok:false, code:'bad_request', error:'feedback_id and decision required' });
+  }
+
+  try {
+    // Get feedback record
+    const { data: fb, error: selectErr } = await supabase
+      .from('ai_feedback')
+      .select('*')
+      .eq('id', feedback_id)
+      .single();
+
+    if (selectErr) {
+      if (selectErr.code === 'PGRST116') {
+        return json(404, { ok:false, code:'not_found', error:'Feedback not found' });
+      }
+      return json(500, { ok:false, code:'db_select', error: selectErr.message });
+    }
+
+    // Idempotent check
+    if (fb.review_status !== 'pending') {
+      return json(200, {
+        ok: true,
+        message: `Feedback already ${fb.review_status}`,
+        feedback: {
+          id: fb.id,
+          review_status: fb.review_status,
+          reviewed_by: fb.reviewed_by,
+          reviewed_at: fb.reviewed_at
+        }
+      });
+    }
+
+    let promotedId = null;
+    let curatedObjectPath = null;
+
+    // Accept flow: promote to training assets
+    if (decision === 'accept') {
+      // 1. Create training example
+      const exampleTags = Array.isArray(tags) ? tags : ['admin-approved'];
+      exampleTags.push('origin:feedback', `feedback_id:${feedback_id}`);
+      
+      const { data: example, error: exampleErr } = await supabase
+        .from('ai_training_examples')
+        .upsert([{
+          source_feedback_id: feedback_id,
+          template: fb.template || null,
+          input_prompt: fb.design_prompt || null,
+          generated_code: fb.generated_code || null,
+          quality_score: fb.quality_score ?? null,
+          quality_label: (fb.quality_score ?? 0) >= 4 ? 'good' : 'bad',
+          tags: exampleTags,
+          created_by: requesterId
+        }], { onConflict: 'source_feedback_id' })
+        .select('id')
+        .single();
+
+      if (exampleErr) {
+        return json(500, { ok:false, code:'db_insert_example', error: exampleErr.message });
+      }
+      promotedId = example.id;
+
+      // 2. Create JSONL entry
+      const jsonlEntry = {
+        template: fb.template || 'general',
+        input_prompt: fb.design_prompt || null,
+        generated_code: fb.generated_code || null,
+        quality_score: fb.quality_score ?? null,
+        tags: exampleTags
+      };
+      const jsonlLine = JSON.stringify(jsonlEntry) + '\n';
+
+      // 3. Append to both curated paths
+      const paths = [`${CURATED_PREFIX}/approved.jsonl`, CURATED_GLOBAL_PATH];
+      
+      for (const path of paths) {
+        try {
+          // Try to read existing file
+          const { data: existing } = await supabase.storage.from(BUCKET).download(path);
+          let content = '';
+          
+          if (existing) {
+            content = await existing.text();
+          }
+          
+          // Append new line
+          content += jsonlLine;
+          
+          // Upload updated content
+          const { error: uploadErr } = await supabase.storage
+            .from(BUCKET)
+            .upload(path, new Blob([content], { type: 'application/x-ndjson' }), {
+              upsert: true
+            });
+            
+          if (uploadErr) {
+            console.warn(`⚠️ [admin-feedback-decide] Failed to update ${path}:`, uploadErr.message);
+          }
+        } catch (appendErr) {
+          console.warn(`⚠️ [admin-feedback-decide] JSONL append failed for ${path}:`, appendErr);
+        }
+      }
+      
+      curatedObjectPath = CURATED_GLOBAL_PATH;
+
+      // 4. Register as training asset
+      const assetTags = ['origin:curated-feedback', `feedback_id:${feedback_id}`];
+      if (fb.template) assetTags.push(`template:${fb.template}`);
+      
+      const now = new Date().toISOString();
+      await supabase.from('training_assets').upsert([{
+        object_path: curatedObjectPath,
+        asset_type: 'jsonl',
+        filename: 'approved.jsonl',
+        content_type: 'application/x-ndjson',
+        size_bytes: jsonlLine.length, // approximate
+        tags: assetTags,
+        active: true,
+        created_by: requesterId,
+        created_at: now,
+        updated_at: now
+      }], { onConflict: 'object_path' });
+    }
+
+    // Update feedback status
+    const { data: updated, error: updateErr } = await supabase
+      .from('ai_feedback')
+      .update({
+        review_status: decision === 'accept' ? 'accepted' : 'rejected',
+        reviewed_by: requesterEmail,
+        reviewed_at: new Date().toISOString()
+      })
+      .eq('id', feedback_id)
+      .select('id, review_status, reviewed_by, reviewed_at')
+      .single();
+
+    if (updateErr) {
+      return json(500, { ok:false, code:'db_update', error: updateErr.message });
+    }
+
+    // Log audit
+    await supabase.from('admin_audit').insert([{
+      actor_email: requesterEmail,
+      action: 'admin_feedback_decide',
+      details: { feedback_id, decision, reason, promoted_example_id: promotedId }
+    }]);
+
+    console.log(`[admin][feedback-decide] requester=${requesterEmail} id=${feedback_id} decision=${decision}`);
+
+    return json(200, {
+      ok: true,
+      feedback: updated,
+      promoted_example_id: promotedId,
+      curated_object_path: curatedObjectPath
     });
 
-    if (event.httpMethod === 'OPTIONS') {
-        return { statusCode: 200, headers: corsHeaders, body: '' };
-    }
-
-    if (event.httpMethod !== 'POST') {
-        return json(405, { ok: false, code: 'method_not_allowed', error: 'Method not allowed' });
-    }
-
-    // Check admin access using robust helper
-    const gate = await requireAdmin(event);
-    if (!gate.ok) {
-        return json(gate.status, { ok: false, code: 'admin_required', error: 'Admin access required' });
-    }
-    
-    const { supabase, requesterEmail, requesterId } = gate;
-    console.log('[admin][feedback-decide] requester=%s', requesterEmail);
-
-    // Parse and validate request body
-    let body;
-    try {
-        body = JSON.parse(event.body || '{}');
-    } catch {
-        return json(400, { ok: false, code: 'bad_json', error: 'Malformed JSON body' });
-    }
-
-    const { feedback_id, decision } = body;
-    const tags = Array.isArray(body.tags) ? body.tags : ['admin-approved'];
-    const reason = body.reason || null;
-
-    if (!feedback_id || !['accept', 'reject'].includes(decision)) {
-        return json(400, { ok: false, code: 'bad_request', error: 'feedback_id and decision are required' });
-    }
-
-    try {
-
-        // Get the feedback record with detailed error handling
-        const { data: fb, error: sErr } = await supabase
-            .from('ai_feedback')
-            .select('*')
-            .eq('id', feedback_id)
-            .single();
-
-        if (sErr) {
-            return json(500, { ok: false, code: 'db_select', error: sErr.message });
-        }
-        if (!fb) {
-            return json(404, { ok: false, code: 'not_found', error: 'Feedback not found' });
-        }
-
-        // Check if already reviewed (idempotent operation)
-        if (fb.review_status !== 'pending') {
-            return json(200, {
-                ok: true,
-                message: `Feedback already ${fb.review_status}`,
-                feedback: {
-                    id: fb.id,
-                    review_status: fb.review_status,
-                    reviewed_by: fb.reviewed_by,
-                    reviewed_at: fb.reviewed_at
-                },
-                promoted_example_id: null
-            });
-        }
-
-        // If accepting, create training example idempotently
-        let promotedId = null;
-        if (decision === 'accept') {
-            const quality_label = (fb.quality_score ?? 0) >= 4 ? 'good' : 'bad';
-            
-            // Check if training example already exists
-            const { data: exists, error: exErr } = await supabase
-                .from('ai_training_examples')
-                .select('id')
-                .eq('source_feedback_id', feedback_id)
-                .maybeSingle();
-
-            if (exErr) {
-                return json(500, { ok: false, code: 'db_check', error: exErr.message });
-            }
-
-            if (!exists) {
-                // Create new training example
-                const { data: ins, error: insErr } = await supabase
-                    .from('ai_training_examples')
-                    .insert([{
-                        source_feedback_id: feedback_id,
-                        template: fb.template || null,
-                        input_prompt: fb.design_prompt || null,
-                        generated_code: fb.generated_code || null,
-                        quality_score: fb.quality_score ?? null,
-                        quality_label,
-                        tags,
-                        created_by: requesterId
-                    }])
-                    .select('id')
-                    .single();
-
-                if (insErr) {
-                    return json(500, { ok: false, code: 'db_insert_example', error: insErr.message });
-                }
-                promotedId = ins.id;
-            } else {
-                promotedId = exists.id;
-            }
-        }
-
-        // Update feedback status and return updated columns used by UI
-        const { data: upd, error: updErr } = await supabase
-            .from('ai_feedback')
-            .update({
-                review_status: decision === 'accept' ? 'accepted' : 'rejected',
-                reviewed_by: requesterEmail,
-                reviewed_at: new Date().toISOString()
-            })
-            .eq('id', feedback_id)
-            .select('id, review_status, reviewed_by, reviewed_at')
-            .single();
-
-        if (updErr) {
-            return json(500, { ok: false, code: 'db_update_feedback', error: updErr.message });
-        }
-
-        // Log audit entry (don't fail request if this fails)
-        try {
-            await supabase.from('admin_audit').insert([{
-                actor_email: requesterEmail,
-                action: 'admin_feedback_decide',
-                details: { feedback_id, decision, reason, promoted_example_id: promotedId }
-            }]);
-        } catch (auditError) {
-            console.warn('⚠️ [admin-feedback-decide] Failed to log audit entry:', auditError.message);
-        }
-
-        return json(200, { ok: true, feedback: upd, promoted_example_id: promotedId });
-
-    } catch (error) {
-        console.error('🔥 [admin-feedback-decide] Unexpected error:', error);
-        return json(500, { 
-            ok: false,
-            code: 'internal_error',
-            error: error.message 
-        });
-    }
-};
+  } catch (error) {
+    console.error('❌ [admin-feedback-decide] Error:', error);
+    return json(500, { ok:false, code:'internal_error', error: error.message });
+  }
+}

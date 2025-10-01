@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlexiCAD Designer - Admin Control Panel</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="css/dark-theme.css">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .admin-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .admin-header h1 {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .admin-header p {
+            color: var(--text-secondary);
+        }
+        
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .admin-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+        }
+        
+        .admin-card h3 {
+            color: var(--text-accent);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .admin-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        
+        .status-online { background: var(--success); }
+        .status-offline { background: var(--error); }
+        .status-warning { background: var(--warning); }
+        
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--text-accent);
+            display: block;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>🔧 FlexiCAD Admin Control Panel</h1>
+            <p>System administration and monitoring dashboard</p>
+        </div>
+
+        <div class="admin-stats">
+            <div class="stat-card">
+                <span class="stat-number" id="totalUsers">Loading...</span>
+                <span class="stat-label">Total Users</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="activeUsers">Loading...</span>
+                <span class="stat-label">Active Today</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="totalDesigns">Loading...</span>
+                <span class="stat-label">Total Designs</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="systemStatus">
+                    <span class="status-indicator status-online"></span>Online
+                </span>
+                <span class="stat-label">System Status</span>
+            </div>
+        </div>
+
+        <div class="admin-grid">
+            <div class="admin-card">
+                <h3>🔐 Access Control</h3>
+                <div class="admin-actions">
+                    <button class="btn btn-secondary" onclick="manageUsers()">
+                        👥 Manage Users
+                    </button>
+                    <button class="btn btn-secondary" onclick="viewAuditLog()">
+                        📋 View Audit Log
+                    </button>
+                    <button class="btn btn-secondary" onclick="managePermissions()">
+                        🛡️ Permissions
+                    </button>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <h3>💳 Payment Management</h3>
+                <div class="admin-actions">
+                    <button class="btn btn-secondary" onclick="viewSubscriptions()">
+                        💰 View Subscriptions
+                    </button>
+                    <button class="btn btn-secondary" onclick="managePromoCodes()">
+                        🎫 Promo Codes
+                    </button>
+                    <button class="btn btn-secondary" onclick="viewBilling()">
+                        📊 Billing Reports
+                    </button>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <h3>🤖 AI Management</h3>
+                <div class="admin-actions">
+                    <button class="btn btn-secondary" onclick="viewAIStats()">
+                        📈 AI Usage Stats
+                    </button>
+                    <button class="btn btn-secondary" onclick="manageLearning()">
+                        🧠 Learning Data
+                    </button>
+                    <button class="btn btn-secondary" onclick="viewFeedback()">
+                        💬 User Feedback
+                    </button>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <h3>⚙️ System Tools</h3>
+                <div class="admin-actions">
+                    <button class="btn btn-secondary" onclick="viewLogs()">
+                        📄 System Logs
+                    </button>
+                    <button class="btn btn-secondary" onclick="checkHealth()">
+                        ❤️ Health Check
+                    </button>
+                    <button class="btn btn-secondary" onclick="manageBackups()">
+                        💾 Backups
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-card">
+            <h3>📊 Recent Activity</h3>
+            <div id="recentActivity">
+                <p class="text-secondary">Loading recent activity...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Scripts -->
+    <script src="js/flexicad-auth.js"></script>
+    <script src="js/navbar-manager.js"></script>
+    <script src="js/modals.js"></script>
+
+    <script>
+        // Admin Panel JavaScript
+        class AdminPanel {
+            constructor() {
+                this.initializeAdmin();
+            }
+
+            async initializeAdmin() {
+                // Verify admin access
+                const isAuthorized = await this.verifyAdminAccess();
+                if (!isAuthorized) {
+                    this.showAccessDenied();
+                    return;
+                }
+
+                // Load dashboard data
+                this.loadDashboardStats();
+                this.loadRecentActivity();
+            }
+
+            async verifyAdminAccess() {
+                try {
+                    const response = await fetch('/.netlify/functions/admin-health', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${window.flexicadAuth?.session?.access_token || ''}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    return response.ok;
+                } catch (error) {
+                    console.error('Admin verification failed:', error);
+                    return false;
+                }
+            }
+
+            showAccessDenied() {
+                document.body.innerHTML = `
+                    <div class="container" style="text-align: center; padding: 4rem 1rem;">
+                        <h1>🚫 Access Denied</h1>
+                        <p>You do not have permission to access the admin panel.</p>
+                        <p><a href="index.html" class="btn btn-primary">Return Home</a></p>
+                    </div>
+                `;
+            }
+
+            async loadDashboardStats() {
+                // Mock data for now - in production would fetch from API
+                document.getElementById('totalUsers').textContent = '---';
+                document.getElementById('activeUsers').textContent = '---';
+                document.getElementById('totalDesigns').textContent = '---';
+            }
+
+            async loadRecentActivity() {
+                const activityContainer = document.getElementById('recentActivity');
+                activityContainer.innerHTML = `
+                    <p class="text-secondary" style="text-align: center;">
+                        Admin features will be implemented in the next phase.
+                        <br>Currently showing admin access validation only.
+                    </p>
+                `;
+            }
+        }
+
+        // Admin action functions
+        function manageUsers() {
+            showModal(`
+                <div class="modal-content">
+                    <h2>👥 User Management</h2>
+                    <p>User management features coming soon.</p>
+                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
+                </div>
+            `);
+        }
+
+        function viewAuditLog() {
+            showModal(`
+                <div class="modal-content">
+                    <h2>📋 Audit Log</h2>
+                    <p>Audit log features coming soon.</p>
+                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
+                </div>
+            `);
+        }
+
+        function managePermissions() {
+            showModal(`
+                <div class="modal-content">
+                    <h2>🛡️ Permission Management</h2>
+                    <p>Permission management features coming soon.</p>
+                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
+                </div>
+            `);
+        }
+
+        function viewSubscriptions() {
+            showModal(`
+                <div class="modal-content">
+                    <h2>💰 Subscription Management</h2>
+                    <p>Subscription management features coming soon.</p>
+                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
+                </div>
+            `);
+        }
+
+        function managePromoCodes() {
+            // Redirect to existing promo management page
+            window.location.href = 'manage-promo.html';
+        }
+
+        function viewBilling() {
+            showModal(`
+                <div class="modal-content">
+                    <h2>📊 Billing Reports</h2>
+                    <p>Billing report features coming soon.</p>
+                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
+                </div>
+            `);
+        }
+
+        function viewAIStats() {
+            showModal(`
+                <div class="modal-content">
+                    <h2>📈 AI Usage Statistics</h2>
+                    <p>AI statistics features coming soon.</p>
+                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
+                </div>
+            `);
+        }
+
+        function manageLearning() {
+            showModal(`
+                <div class="modal-content">
+                    <h2>🧠 Learning Data Management</h2>
+                    <p>Learning data management features coming soon.</p>
+                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
+                </div>
+            `);
+        }
+
+        function viewFeedback() {
+            showModal(`
+                <div class="modal-content">
+                    <h2>💬 User Feedback</h2>
+                    <p>Feedback management features coming soon.</p>
+                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
+                </div>
+            `);
+        }
+
+        function viewLogs() {
+            showModal(`
+                <div class="modal-content">
+                    <h2>📄 System Logs</h2>
+                    <p>Log viewing features coming soon.</p>
+                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
+                </div>
+            `);
+        }
+
+        function checkHealth() {
+            showModal(`
+                <div class="modal-content">
+                    <h2>❤️ System Health Check</h2>
+                    <p>Health monitoring features coming soon.</p>
+                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
+                </div>
+            `);
+        }
+
+        function manageBackups() {
+            showModal(`
+                <div class="modal-content">
+                    <h2>💾 Backup Management</h2>
+                    <p>Backup management features coming soon.</p>
+                    <button class="btn btn-primary" onclick="hideModal()">Close</button>
+                </div>
+            `);
+        }
+
+        // Initialize admin panel
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check authentication first
+            if (window.flexicadAuth) {
+                window.flexicadAuth.requireAuth().then(() => {
+                    new AdminPanel();
+                });
+            } else {
+                setTimeout(() => {
+                    if (window.flexicadAuth) {
+                        window.flexicadAuth.requireAuth().then(() => {
+                            new AdminPanel();
+                        });
+                    } else {
+                        window.location.href = 'login.html';
+                    }
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>

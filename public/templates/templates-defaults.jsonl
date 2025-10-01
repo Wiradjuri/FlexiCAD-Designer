@@ -1,0 +1,6 @@
+{"template":"arduino_case","defaults":{"board_type":"Uno","screen_cutout":false,"fan_hole":false,"auto_ports":true},"example_prompt":"A protective Arduino Uno R4 case with mm units","quality_score":5}
+{"template":"desk_organizer","defaults":{"large_compartments":true,"small_compartments":true,"pen_holes":true,"compartment_count":4},"example_prompt":"Parametric desk organizer with mixed compartments","quality_score":5}
+{"template":"car_dash_fascia","defaults":{"vehicle":"VW Golf R Mk7.5","include_mib2":true,"aircon_controls":true},"example_prompt":"Fascia for aircon + MIB2 unit","quality_score":4}
+{"template":"phone_stand","defaults":{"device":"Samsung Galaxy S25 Ultra","tilt_adjust":true,"cable_management":false,"landscape_portrait":true},"example_prompt":"Adjustable tilt phone stand","quality_score":5}
+{"template":"control_panel","defaults":{"gang":4,"panel_w":134,"panel_h":40,"switch_type":"Toggle"},"example_prompt":"4-gang mini toggle switch panel","quality_score":5}
+{"template":"cup_holder_insert","defaults":{"fit":"Standard","compartments":2,"coin_holder":true},"example_prompt":"Universal vehicle cup holder insert","quality_score":4}

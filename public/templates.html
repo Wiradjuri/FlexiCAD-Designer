@@ -7,22 +7,7 @@
     <link rel="stylesheet" href="css/dark-theme.css">
 </head>
 <body>
-    <nav class="nav">
-        <div class="nav-container">
-            <a href="/" class="nav-brand">FlexiCAD Designer</a>
-            <ul class="nav-links">
-                <li><a href="home.html">Home</a></li>
-                <li><a href="templates.html" class="active">Templates</a></li>
-                <li><a href="ai.html">AI Generator</a></li>
-                <li><a href="my-designs.html">My Designs</a></li>
-                <li><a href="about.html">About</a></li>
-            </ul>
-            <div class="nav-user" id="navUser">
-                <span class="user-info" id="userInfo"></span>
-                <button class="logout-btn" onclick="handleLogout()">Logout</button>
-            </div>
-        </div>
-    </nav>
+    <!-- Navigation will be managed by navbar-manager.js -->
 
     <div class="container">
         <div class="page-header">
@@ -83,9 +68,16 @@
         </div>
     </div>
 
+    <!-- Modal Root for Phase 4.6 modal system -->
+    <div id="modal-root"></div>
+
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="js/secure-config-loader.js"></script>
     <script src="js/flexicad-auth.js"></script>
+    <script src="js/navbar-manager.js"></script>
+    <script type="module" src="js/modals.js"></script>
+    <script type="module" src="js/template-wizards-v2.js"></script>
+    <script src="js/stl-exporter.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         let currentTemplate = null;
@@ -170,15 +162,15 @@
                         <span class="card-category">${template.category}</span>
                     </div>
                     <div class="card-actions">
-                        <button class="btn btn-secondary btn-small" 
-                                onclick="viewReadme('${template.id}')">
-                            📖 Guide
+                        <button class="btn btn-primary btn-small" 
+                                onclick="window.templateWizards.showCreateWizard('${template.id}')">
+                            �️ Create
                         </button>
                         <button class="btn btn-secondary btn-small" 
                                 onclick="viewCode('${template.id}')">
                             👁️ View Code
                         </button>
-                        <button class="btn btn-primary btn-small" 
+                        <button class="btn btn-secondary btn-small" 
                                 onclick="downloadTemplate('${template.id}')">
                             ⬇️ Download
                         </button>
