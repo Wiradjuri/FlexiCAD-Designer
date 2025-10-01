@@ -1,6 +1,41 @@
 # FlexiCAD Designer
 
-An AI-powered web platform for creating OpenSCAD 3D designs with natural language prompts, featuring template management, user authentication, and comprehensive admin tools.
+An AI-powe## 🔧 Admin Features
+
+- **Admin Console**: Unified management at `/admin/admin-controlpanel.html`
+- **System Health**: Real-time monitoring of Supabase, Stripe, and OpenAI
+- **Dashboard Metrics**: User stats, active today, total designs, recent activity
+- **Admin Subpages**: Access Control, Payment Management, AI Management, System Tools
+- **Training Assets**: Upload and manage SVG/SCAD/JSONL training data
+- **Feedback Review**: Accept/reject user feedback to improve AI training
+- **Stripe Testing**: Test checkout flows with real Stripe Test Mode
+- **AI Smoke Tests**: Validate AI generation pipeline
+- **User Management**: View user statistics and entitlements
+- **Promo Codes**: Create and manage discount codes at `/manage-promo.html`
+- **Configuration**: View runtime configuration (read-only)
+
+### 👤 Admin Access
+
+To access the admin console:
+
+1. **Set Admin Email**:
+   - Add `ADMIN_EMAILS` environment variable with comma-separated emails
+   - Or add row to `admin_emails` table: `INSERT INTO public.admin_emails (email) VALUES ('your-email@example.com');`
+   - Default admin: `bmuzza1992@gmail.com`
+
+2. **Log in** with your admin email at `/login.html`
+
+3. **Admin Link** will appear in the navbar (🔧 Admin)
+
+4. **Access Console** at [/admin/admin-controlpanel.html](/admin/admin-controlpanel.html)
+
+#### Admin Subpages:
+- **Access Control** - Manage admin permissions and user accounts
+- **Payment Management** - View subscriptions, webhooks, plan distribution
+- **AI Management** - Training data, feedback review, model settings
+- **System Tools** - Tag recomputation, system diagnostics
+
+## 📁 Project Structuretform for creating OpenSCAD 3D designs with natural language prompts, featuring template management, user authentication, and comprehensive admin tools.
 
 ## 🔒 Security Notice
 

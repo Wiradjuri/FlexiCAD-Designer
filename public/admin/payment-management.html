@@ -96,10 +96,10 @@
 
     <section class="card">
       <div class="card-header">
-        Active Subscribers
+        Recent Webhook Events
       </div>
       <div id="subscriberTable" class="card-content">
-        <p>Loading subscribers…</p>
+        <p>Loading webhooks…</p>
       </div>
     </section>
   </div>
@@ -122,7 +122,7 @@
           throw new Error('Authentication required');
         }
 
-        const response = await fetch('/.netlify/functions/admin-list-users', {
+        const response = await fetch('/.netlify/functions/admin-payments-overview', {
           headers: { Authorization: `Bearer ${token}` }
         });
         const payload = await response.json().catch(() => ({ ok: false, error: 'Invalid response' }));
@@ -130,9 +130,8 @@
           throw new Error(payload.error || `Request failed (${response.status})`);
         }
 
-        const users = payload.users || [];
-        renderSummary(users, summaryEl);
-        renderSubscribers(users, tableEl);
+        renderSummary(payload, summaryEl);
+        renderWebhooks(payload.recentWebhooks || [], tableEl);
       } catch (error) {
         console.error('Payment data load failed', error);
         summaryEl.innerHTML = `<p class="error-message">Failed to load payment information: ${escapeHtml(error.message)}</p>`;
@@ -140,40 +139,72 @@
       }
     }
 
-    function renderSummary(users, container) {
-      const totalUsers = users.length;
-      const paidUsers = users.filter((user) => user.is_paid);
-      const unpaidUsers = totalUsers - paidUsers.length;
-      const activeUsers = users.filter((user) => user.is_active).length;
+    function renderSummary(data, container) {
+      const { summary, planDistribution } = data;
+      const totalUsers = summary.totalUsers || 0;
+      const paidUsers = summary.paidUsers || 0;
+      const freeUsers = summary.freeUsers || 0;
 
-      const monthly = paidUsers.filter((user) => (user.subscription_plan || '').toLowerCase() === 'monthly').length;
-      const yearly = paidUsers.filter((user) => (user.subscription_plan || '').toLowerCase() === 'yearly').length;
-
-      container.innerHTML = `
+      const html = `
         <div class="stat-grid">
           <div class="stat-card">
-            <span class="stat-label">Paid Subscribers</span>
-            <span class="stat-value">${paidUsers.length}</span>
-            <span class="stat-label">Total users: ${totalUsers}</span>
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value">${totalUsers}</div>
           </div>
           <div class="stat-card">
-            <span class="stat-label">Active Accounts</span>
-            <span class="stat-value">${activeUsers}</span>
-            <span class="stat-label">Inactive: ${totalUsers - activeUsers}</span>
+            <div class="stat-label">Paid Users</div>
+            <div class="stat-value">${paidUsers}</div>
           </div>
           <div class="stat-card">
-            <span class="stat-label">Monthly Plans</span>
-            <span class="stat-value">${monthly}</span>
+            <div class="stat-label">Free Users</div>
+            <div class="stat-value">${freeUsers}</div>
           </div>
           <div class="stat-card">
-            <span class="stat-label">Yearly Plans</span>
-            <span class="stat-value">${yearly}</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Unpaid Accounts</span>
-            <span class="stat-value">${unpaidUsers}</span>
+            <div class="stat-label">Last Webhook</div>
+            <div class="stat-value" style="font-size:1rem;">${summary.lastWebhookTime ? new Date(summary.lastWebhookTime).toLocaleString() : 'Never'}</div>
           </div>
         </div>
+        <div class="card-list">
+          <h4>Plan Distribution (from webhooks)</h4>
+          <p>Basic: ${planDistribution.basic || 0}, Pro: ${planDistribution.pro || 0}, Enterprise: ${planDistribution.enterprise || 0}, Unknown: ${planDistribution.unknown || 0}</p>
+        </div>
+      `;
+      container.innerHTML = html;
+    }
+
+    function renderWebhooks(webhooks, container) {
+      if (webhooks.length === 0) {
+        container.innerHTML = '<div class="empty-state">No recent webhook events</div>';
+        return;
+      }
+
+      const rows = webhooks
+        .map((wh) => {
+          const safeType = escapeHtml(wh.type || 'unknown');
+          const time = wh.createdAt ? new Date(wh.createdAt).toLocaleString() : 'Unknown';
+          return `
+            <tr>
+              <td>${escapeHtml(wh.id)}</td>
+              <td>${safeType}</td>
+              <td>${escapeHtml(time)}</td>
+            </tr>
+          `;
+        })
+        .join('');
+
+      container.innerHTML = `
+        <table class="payment-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Event Type</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
       `;
     }
 

@@ -1036,36 +1036,39 @@
         throw new Error(payload.error || `Request failed (${response.status})`);
       }
 
-      const { stats } = payload;
+      // New response structure: { ok, totals, activeToday, recentActivity, config }
+      const { totals, activeToday, recentActivity } = payload;
 
       if (statElements.totalUsers) {
-        statElements.totalUsers.textContent = stats.totalUsers ?? 0;
+        statElements.totalUsers.textContent = totals?.users ?? 0;
         statElements.totalUsers.classList.remove('loading', 'error');
       }
       if (statElements.activeToday) {
-        statElements.activeToday.textContent = stats.activeToday ?? 0;
+        statElements.activeToday.textContent = activeToday?.users ?? 0;
         statElements.activeToday.classList.remove('loading', 'error');
       }
       if (statElements.totalDesigns) {
-        statElements.totalDesigns.textContent = stats.totalDesigns ?? 0;
+        statElements.totalDesigns.textContent = totals?.designs ?? 0;
         statElements.totalDesigns.classList.remove('loading', 'error');
       }
 
       if (recentActivityEl) {
-        const recent = Array.isArray(stats.recentActivity) ? stats.recentActivity : [];
+        const recent = Array.isArray(recentActivity) ? recentActivity : [];
         if (recent.length === 0) {
           recentActivityEl.innerHTML = '<div class="no-activity">No recent activity</div>';
         } else {
           recentActivityEl.innerHTML = recent
             .map((activity) => {
-              const safeEmail = escapeHtml(activity.email || 'Unknown user');
-              const safeName = escapeHtml(activity.name || 'Untitled Design');
-              const createdAt = activity.created ? new Date(activity.created).toLocaleString() : 'Unknown time';
+              const safeBy = escapeHtml(activity.by || 'Unknown user');
+              const safeSummary = escapeHtml(activity.summary || 'No summary');
+              const activityTime = activity.at ? new Date(activity.at).toLocaleString() : 'Unknown time';
+              const typeIcon = activity.type === 'design' ? '🎨' : '💬';
               return `
                 <div class="activity-item">
-                  <div class="activity-user">${safeEmail}</div>
-                  <div class="activity-design">${safeName}</div>
-                  <div class="activity-time">${escapeHtml(createdAt)}</div>
+                  <div class="activity-type">${typeIcon} ${escapeHtml(activity.type)}</div>
+                  <div class="activity-user">${safeBy}</div>
+                  <div class="activity-summary">${safeSummary}</div>
+                  <div class="activity-time">${escapeHtml(activityTime)}</div>
                 </div>
               `;
             })
