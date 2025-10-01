@@ -1,0 +1,719 @@
+{
+  "html": [
+    {
+      "file": "public/about-new.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js",
+        "/js/navbar-manager.js",
+        "/js/modals.js"
+      ],
+      "links": [
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/about-old-backup.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js",
+        "/js/navbar-manager.js"
+      ],
+      "links": [
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/about-phase472.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js",
+        "/js/navbar-manager.js"
+      ],
+      "links": [
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/about.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js",
+        "/js/navbar-manager.js"
+      ],
+      "links": [
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/admin/access-control.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "../js/secure-config-loader.js",
+        "../js/flexicad-auth.js"
+      ],
+      "links": [
+        "../css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/admin/admin-controlpanel.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "../js/secure-config-loader.js",
+        "../js/flexicad-auth.js",
+        "../js/modals.js"
+      ],
+      "links": [
+        "../css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/admin/ai-management.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "../js/secure-config-loader.js",
+        "../js/flexicad-auth.js"
+      ],
+      "links": [
+        "../css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/admin/payment-management.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "../js/secure-config-loader.js",
+        "../js/flexicad-auth.js"
+      ],
+      "links": [
+        "../css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/admin/system-tools.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "../js/secure-config-loader.js",
+        "../js/flexicad-auth.js"
+      ],
+      "links": [
+        "../css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/admin-controlpanel.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2.58.0/dist/umd/supabase.js",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js",
+        "/js/navbar-manager.js",
+        "/js/modals.js",
+        "/js/admin-controlpanel.js"
+      ],
+      "links": [
+        "favicon.svg",
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/ai-new.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js",
+        "/js/navbar-manager.js",
+        "/js/modals.js",
+        "/js/enhanced-ai-generator-clean.js"
+      ],
+      "links": [
+        "favicon.svg",
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/ai-old.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js",
+        "/js/navbar-manager.js",
+        "/js/stl-exporter.js",
+        "/js/enhanced-ai-generator-clean.js",
+        "/js/modals.js",
+        "/js/ai-page.js"
+      ],
+      "links": [
+        "favicon.svg",
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/ai.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js",
+        "/js/navbar-manager.js",
+        "/js/modals.js",
+        "/js/generator-ui.js",
+        "/js/enhanced-ai-generator-clean.js"
+      ],
+      "links": [
+        "favicon.svg",
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/auth-system-test.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js"
+      ],
+      "links": [
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/config-test.html",
+      "scripts": [
+        "/js/secure-config-loader.js"
+      ],
+      "links": []
+    },
+    {
+      "file": "public/database-test.html",
+      "scripts": [
+        "/js/secure-config-loader.js",
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/dist/umd/supabase.min.js",
+        "/js/db-helper.js",
+        "/js/flexicad-auth.js"
+      ],
+      "links": [
+        "/css/flexicad.css"
+      ]
+    },
+    {
+      "file": "public/debug-ai-learning.html",
+      "scripts": [
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js"
+      ],
+      "links": [
+        "/css/style.css"
+      ]
+    },
+    {
+      "file": "public/debug-db.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js"
+      ],
+      "links": [
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/debug-user-auth.html",
+      "scripts": [
+        "/js/secure-config-loader.js"
+      ],
+      "links": [
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/fix-login.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js"
+      ],
+      "links": [
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/fix-payment.html",
+      "scripts": [],
+      "links": [
+        "favicon.svg",
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/home.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js",
+        "/js/navbar-manager.js"
+      ],
+      "links": [
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/index.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js",
+        "/js/navbar-manager.js"
+      ],
+      "links": [
+        "favicon.svg",
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/login.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js"
+      ],
+      "links": [
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/manage-promo.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js"
+      ],
+      "links": [
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/manual-fix.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js"
+      ],
+      "links": [
+        "favicon.svg",
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/my-designs.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js",
+        "/js/navbar-manager.js",
+        "/js/stl-exporter.js"
+      ],
+      "links": [
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/payment-first-system-test.html",
+      "scripts": [],
+      "links": []
+    },
+    {
+      "file": "public/payment-first-verification.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js"
+      ],
+      "links": []
+    },
+    {
+      "file": "public/payment-success.html",
+      "scripts": [
+        "https://js.stripe.com/v3/",
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js"
+      ],
+      "links": [
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/payment.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js"
+      ],
+      "links": [
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/proxy-auth-test.html",
+      "scripts": [],
+      "links": [
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/register.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js"
+      ],
+      "links": [
+        "favicon.svg",
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/simple-auth-test.html",
+      "scripts": [
+        "/js/secure-config-loader.js",
+        "https://unpkg.com/@supabase/supabase-js@2"
+      ],
+      "links": []
+    },
+    {
+      "file": "public/templates.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js",
+        "/js/navbar-manager.js",
+        "/js/modals.js",
+        "/js/template-wizards-v2.js",
+        "/js/stl-exporter.js",
+        "https://cdn.jsdelivr.net/npm/marked/marked.min.js"
+      ],
+      "links": [
+        "/css/dark-theme.css"
+      ]
+    },
+    {
+      "file": "public/test-supabase.html",
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2",
+        "/js/secure-config-loader.js",
+        "/js/flexicad-auth.js"
+      ],
+      "links": []
+    }
+  ],
+  "js": [
+    "build-config.js",
+    "build-env-config.js",
+    "config/config.js",
+    "public/config/env-config-local.js",
+    "public/js/admin-controlpanel.js",
+    "public/js/ai-page.js",
+    "public/js/auth.js",
+    "public/js/db-helper.js",
+    "public/js/enhanced-ai-generator-clean.js",
+    "public/js/enhanced-ai-generator.js",
+    "public/js/flexicad-auth.js",
+    "public/js/generator-ui.js",
+    "public/js/modals.js",
+    "public/js/navbar-manager.js",
+    "public/js/secure-config-loader.js",
+    "public/js/stl-exporter.js",
+    "public/js/supabase-client.js",
+    "public/js/template-wizard.js",
+    "public/js/template-wizards-v2.js",
+    "public/js/template-wizards.js",
+    "scripts/build-ai-training.js",
+    "scripts/build-secure-config.js",
+    "scripts/final-security-check.js",
+    "scripts/fix-paths.mjs",
+    "scripts/fix-script-tags.js",
+    "scripts/inventory.mjs",
+    "scripts/restore-config-backup.js",
+    "scripts/smoke-admin-feedback-list.mjs",
+    "scripts/update-config-references.js",
+    "tests/integration-test.js",
+    "tests/path-consistency.test.mjs",
+    "tests/phase-4-4-2-integration-test.mjs",
+    "tests/phase-4-4-2-test.js",
+    "tests/phase-4-7-7-test.mjs",
+    "tests/phase-4-7-9-test.mjs"
+  ],
+  "css": [
+    "public/css/dark-theme.css"
+  ],
+  "functions": [
+    {
+      "file": "netlify/functions/admin-access-list.mjs",
+      "imports": [
+        "../lib/require-admin.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/admin-access-update.mjs",
+      "imports": [
+        "../lib/require-admin.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/admin-ai-overview.mjs",
+      "imports": [
+        "../lib/require-admin.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/admin-ai-smoke-test.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/admin-commit-training-asset.mjs",
+      "imports": [
+        "../lib/require-admin.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/admin-create-signed-upload.mjs",
+      "imports": [
+        "@supabase/supabase-js",
+        "../lib/require-admin.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/admin-create-test-checkout.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/admin-dashboard-stats.mjs",
+      "imports": [
+        "../lib/require-admin.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/admin-delete-training-asset.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/admin-delete-training-asset.mjs",
+      "imports": [
+        "../lib/require-admin.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/admin-feedback-decide.mjs",
+      "imports": [
+        "../lib/require-admin.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/admin-feedback-list.mjs",
+      "imports": [
+        "@supabase/supabase-js",
+        "../lib/require-admin.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/admin-health.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/admin-health.mjs",
+      "imports": [
+        "stripe",
+        "openai",
+        "../lib/require-admin.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/admin-jsonl-preview.mjs",
+      "imports": [
+        "../lib/require-admin.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/admin-knowledge-test.mjs",
+      "imports": [
+        "../lib/require-admin.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/admin-list-training-assets.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/admin-list-training-assets.mjs",
+      "imports": [
+        "../lib/require-admin.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/admin-list-users.mjs",
+      "imports": [
+        "../lib/require-admin.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/admin-payments-overview.mjs",
+      "imports": [
+        "../lib/require-admin.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/admin-preview-jsonl.mjs",
+      "imports": [
+        "../lib/require-admin.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/admin-reset-password.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/admin-system-tools.mjs",
+      "imports": [
+        "../lib/require-admin.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/admin-training-examples-list.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/admin-upload-training-asset.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/admin-verify-entitlement.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/ai-feedback.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/analyze-user-patterns.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/auth-proxy.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/check-database.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/check-payment-status.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/create-checkout-session.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/create-profile-on-login.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/debug-list-users.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/debug-system-prompt.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/delete-design.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/export-stl.mjs",
+      "imports": [
+        "../lib/require-auth.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/fix-user-payment.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/generate-template-enhanced.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/generate-template-original.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/generate-template.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/get-public-config.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/get-user-history.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/handle-payment-success.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/list-designs.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/list-objects.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/manage-promo-codes.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/save-design.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/session-echo.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/simple-payment-fix.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/stripe-webhook.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/teach-ai.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/test-env.js",
+      "imports": []
+    },
+    {
+      "file": "netlify/functions/upload-stl.mjs",
+      "imports": [
+        "../lib/require-auth.mjs"
+      ]
+    },
+    {
+      "file": "netlify/functions/validate-promo-code.js",
+      "imports": []
+    }
+  ],
+  "libs": [
+    "netlify/lib/knowledge-loader.mjs",
+    "netlify/lib/require-admin.mjs",
+    "netlify/lib/require-auth.mjs"
+  ],
+  "problems": []
+}

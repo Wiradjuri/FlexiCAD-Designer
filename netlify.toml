@@ -15,7 +15,12 @@
 # Admin page redirect (backward compatibility)
 [[redirects]]
   from = "/admin/manage-prompts.html"
-  to = "/admin/admin-controlpanel.html"
+  to = "/admin-controlpanel.html"
+  status = 301
+
+[[redirects]]
+  from = "/admin/manage-promos.html"
+  to = "/admin-controlpanel.html"
   status = 301
 
 # SECURITY: Block access to config files containing API keys
