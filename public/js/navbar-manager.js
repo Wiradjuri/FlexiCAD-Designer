@@ -2,6 +2,9 @@
 // Exact 5 items with consistent highlight and sizing
 
 class FlexiCADNavbar {
+    static ADMIN_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+    static adminHealthCache = { expiresAt: 0, value: null };
+
     constructor() {
         this.navItems = [
             { text: 'Home', href: 'index.html', id: 'home' },
@@ -12,6 +15,7 @@ class FlexiCADNavbar {
         ];
         this.currentPage = this.getCurrentPage();
         this.user = null;
+        this.isServerValidatedAdmin = false;
         this.initializeNavbar();
     }
 
@@ -34,49 +38,65 @@ class FlexiCADNavbar {
 
     async loadUserInfo() {
         try {
-            // Check if FlexiCAD auth is available
-            if (window.flexicadAuth && window.flexicadAuth.session) {
-                this.user = window.flexicadAuth.session.user;
-                
-                // Check admin status via server-side validation
+            if (window.flexicadAuth?.init) {
+                await window.flexicadAuth.init();
+                this.user = window.flexicadAuth.user || null;
+                if (!this.user) {
+                    const stored = sessionStorage.getItem('flexicad_user');
+                    if (stored) {
+                        try {
+                            this.user = JSON.parse(stored);
+                        } catch (_) {
+                            this.user = null;
+                        }
+                    }
+                }
+
                 await this.validateAdminStatus();
-                
                 return;
             }
-            
-            // Fallback: Check if user is logged in via session storage or auth token
-            const authResponse = await fetch('/api/auth/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            
-            if (authResponse.ok) {
-                const data = await authResponse.json();
-                this.user = data.user;
-            }
+
+            this.user = null;
+            this.isServerValidatedAdmin = false;
         } catch (error) {
             console.warn('Could not verify user authentication:', error);
+            this.user = null;
+            this.isServerValidatedAdmin = false;
         }
     }
     
     async validateAdminStatus() {
-        if (!this.user || !window.flexicadAuth?.session?.access_token) {
+        if (!this.user || !window.flexicadAuth?.getSessionToken) {
             this.isServerValidatedAdmin = false;
+            FlexiCADNavbar.adminHealthCache = { value: false, expiresAt: Date.now() + 60 * 1000 };
             return;
         }
-        
+
+        const now = Date.now();
+        const cache = FlexiCADNavbar.adminHealthCache;
+        if (cache.value !== null && cache.expiresAt > now) {
+            this.isServerValidatedAdmin = Boolean(cache.value);
+            return;
+        }
+
         try {
+            const token = await window.flexicadAuth.getSessionToken();
+            if (!token) {
+                this.isServerValidatedAdmin = false;
+                FlexiCADNavbar.adminHealthCache = { value: false, expiresAt: now + 60 * 1000 };
+                return;
+            }
+
             const response = await fetch('/.netlify/functions/admin-health', {
-                method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${window.flexicadAuth.session.access_token}`,
-                    'Content-Type': 'application/json'
+                    Authorization: `Bearer ${token}`
                 }
             });
-            
+
             if (response.ok) {
                 const data = await response.json();
-                this.isServerValidatedAdmin = data.admin === true;
+                const isAdmin = data?.ok === true && data?.admin === true;
+                this.isServerValidatedAdmin = isAdmin;
             } else {
                 this.isServerValidatedAdmin = false;
             }
@@ -84,11 +104,16 @@ class FlexiCADNavbar {
             console.warn('Admin validation failed:', error);
             this.isServerValidatedAdmin = false;
         }
+
+        FlexiCADNavbar.adminHealthCache = {
+            value: this.isServerValidatedAdmin,
+            expiresAt: now + FlexiCADNavbar.ADMIN_CACHE_TTL
+        };
     }
 
     generateNavHTML() {
         const isAuthenticated = !!this.user;
-        const isAdmin = this.isServerValidatedAdmin || (this.user?.email && this.isAdminEmail(this.user.email));
+        const isAdmin = this.isServerValidatedAdmin;
         
         let linksHTML = '';
         
@@ -226,18 +251,7 @@ class FlexiCADNavbar {
     }
 
     isAdminEmail(email) {
-        // Phase 4.7.2: Check against ADMIN_EMAILS env var if available, otherwise use default list
-        const defaultAdminEmails = [
-            'bmuzza1992@gmail.com',
-            'brad@bradmax.com.au',
-            'admin@flexicad.com.au'
-        ];
-        
-        // In production, this would check process.env.ADMIN_EMAILS
-        // For now, using client-side fallback
-        const adminEmails = window.config?.adminEmails || defaultAdminEmails;
-        
-        return adminEmails.includes(email?.toLowerCase());
+        return false;
     }
 
     async handleLogout() {

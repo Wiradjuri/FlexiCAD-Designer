@@ -7,126 +7,129 @@ const corsHeaders = {
 };
 
 function json(status, body) {
-  return { 
-    statusCode: status, 
-    headers: { 'Content-Type': 'application/json', ...corsHeaders }, 
-    body: JSON.stringify(body) 
+  return {
+    statusCode: status,
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    body: JSON.stringify(body)
   };
 }
 
 function parseAllowlist() {
   const raw = (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || '').split(',');
-  const set = new Set(raw.map(s => (s || '').toLowerCase().trim()).filter(Boolean));
-  return set;
+  return new Set(raw.map((s) => (s || '').toLowerCase().trim()).filter(Boolean));
 }
 
+const withTimestamp = (message) => `[${new Date().toISOString()}] ${message}`;
+
 export async function requireAdmin(event) {
-  console.log('🔐 [require-admin] Checking admin access...');
-  
-  const auth = event.headers?.authorization || event.headers?.Authorization;
-  if (!auth?.startsWith('Bearer ')) {
-    console.warn('🚫 [require-admin] Missing or invalid Authorization header');
-    return { 
-      ok: false, 
-      status: 401, 
-      code: 'unauthorized', 
-      error: 'Missing or invalid Authorization header' 
+  console.log(withTimestamp('=== REQUIRE-ADMIN START ==='));
+
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceRoleKey) {
+    console.error(withTimestamp('require-admin: Missing SUPABASE_SERVICE_ROLE_KEY environment variable'));
+    return {
+      ok: false,
+      status: 500,
+      code: 'config_missing',
+      error: 'Server configuration incomplete'
     };
   }
-  
-  const accessToken = auth.slice('Bearer '.length);
+
+  const auth = event.headers?.authorization || event.headers?.Authorization;
+  if (!auth?.startsWith('Bearer ')) {
+    console.warn(withTimestamp('require-admin: Missing or invalid Authorization header'));
+    return {
+      ok: false,
+      status: 401,
+      code: 'unauthorized',
+      error: 'Missing or invalid Authorization header'
+    };
+  }
+
+  const accessToken = auth.slice('Bearer '.length).trim();
 
   const supabase = createClient(
-    process.env.SUPABASE_URL, 
-    process.env.SUPABASE_SERVICE_ROLE_KEY, 
+    process.env.SUPABASE_URL,
+    serviceRoleKey,
     { auth: { persistSession: false } }
   );
 
-  const { data: userRes, error: userErr } = await supabase.auth.getUser(accessToken);
-  if (userErr || !userRes?.user?.email) {
-    console.warn('🚫 [require-admin] Invalid session token:', userErr?.message || 'No user email');
-    return { 
-      ok: false, 
-      status: 401, 
-      code: 'unauthorized', 
-      error: 'Invalid session token' 
+  let userRes;
+  try {
+    const { data, error } = await supabase.auth.getUser(accessToken);
+    if (error) throw error;
+    userRes = data;
+  } catch (error) {
+    console.warn(withTimestamp(`require-admin: Invalid session token (${error.message})`));
+    return {
+      ok: false,
+      status: 401,
+      code: 'unauthorized',
+      error: 'Invalid session token'
     };
   }
-  
-  const requesterEmail = userRes.user.email.toLowerCase().trim();
-  console.log('👤 [require-admin] Checking access for:', requesterEmail);
 
-  // Check environment allow-list
-  const allow = parseAllowlist();
-  const envAllow = allow.has(requesterEmail);
-  console.log('📝 [require-admin] Environment allow-list check:', { 
-    envAllow, 
-    allowList: Array.from(allow) 
-  });
+  const requesterEmail = userRes?.user?.email?.toLowerCase().trim();
+  if (!requesterEmail) {
+    console.warn(withTimestamp('require-admin: Token resolved without email claim'));
+    return {
+      ok: false,
+      status: 401,
+      code: 'unauthorized',
+      error: 'Invalid session token'
+    };
+  }
 
-  // Check database allow-list (admin_emails table)
+  console.log(withTimestamp(`require-admin: Evaluating admin access for ${requesterEmail}`));
+
+  const envAllowList = parseAllowlist();
+  const envAllow = envAllowList.has(requesterEmail);
+
   let dbAllow = false;
   try {
-    const { data: row, error: dbError } = await supabase
+    const { data, error } = await supabase
       .from('admin_emails')
       .select('email')
       .eq('email', requesterEmail)
       .maybeSingle();
-    
-    dbAllow = !!row;
-    console.log('🗄️ [require-admin] Database allow-list check:', { dbAllow, dbError: dbError?.message });
-  } catch (dbErr) {
-    console.warn('⚠️ [require-admin] Database check failed:', dbErr.message);
-    dbAllow = false;
+    if (error) throw error;
+    dbAllow = Boolean(data);
+  } catch (error) {
+    console.warn(withTimestamp(`require-admin: admin_emails lookup failed (${error.message})`));
   }
 
-  // Check profiles.is_admin flag
   let profileAdmin = false;
   try {
-    const { data: profile, error: profileError } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .select('is_admin')
       .eq('id', userRes.user.id)
       .maybeSingle();
-    
-    profileAdmin = !!profile?.is_admin;
-    console.log('👤 [require-admin] Profile admin check:', { profileAdmin, profileError: profileError?.message });
-  } catch (profileErr) {
-    console.warn('⚠️ [require-admin] Profile check failed:', profileErr.message);
-    profileAdmin = false;
+    if (error) throw error;
+    profileAdmin = Boolean(data?.is_admin);
+  } catch (error) {
+    console.warn(withTimestamp(`require-admin: profiles lookup failed (${error.message})`));
   }
 
-  // Accept admin if ANY of the three checks pass
   const isAdmin = envAllow || dbAllow || profileAdmin;
-  
+
   if (!isAdmin) {
-    console.warn('🚫 [require-admin] Access denied:', { 
-      requesterEmail, 
-      envAllow, 
-      dbAllow,
-      profileAdmin,
-      envList: Array.from(allow)
-    });
-    return { 
-      ok: false, 
-      status: 403, 
-      code: 'admin_required', 
+    console.warn(withTimestamp(`require-admin: Access denied for ${requesterEmail}`));
+    return {
+      ok: false,
+      status: 403,
+      code: 'admin_required',
       error: 'Admin access required'
     };
   }
 
-  console.log('✅ [require-admin] Access granted:', { 
-    requesterEmail, 
-    envAllow, 
-    dbAllow,
-    profileAdmin
-  });
-  
-  return { 
-    ok: true, 
-    requesterEmail, 
+  console.log(withTimestamp(`require-admin: Access granted for ${requesterEmail}`));
+
+  return {
+    ok: true,
+    requesterEmail,
     requesterId: userRes.user.id,
-    supabase 
+    supabase
   };
 }
 

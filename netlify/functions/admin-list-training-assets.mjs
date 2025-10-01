@@ -22,6 +22,9 @@ export async function handler(event) {
   const page = Math.max(1, parseInt(params.page || '1'));
   const limit = Math.min(100, Math.max(1, parseInt(params.limit || '20')));
 
+  const startedAt = new Date().toISOString();
+  console.log(`[${startedAt}] === ADMIN-LIST-TRAINING-ASSETS START ===`, { requesterEmail, assetType, q, page, limit });
+
   try {
     // 1. Get training_assets from database
     let query = supabase
@@ -57,21 +60,22 @@ export async function handler(event) {
 
         if (!statError && curatedStat?.length > 0) {
           const curatedFile = curatedStat[0];
+          const curatedFilename = CURATED_GLOBAL_PATH.split('/').pop() || 'approved.jsonl';
           allAssets.push({
             id: null, // Synthetic entry
             object_path: CURATED_GLOBAL_PATH,
             asset_type: 'jsonl',
-            filename: 'approved.jsonl',
+            filename: curatedFilename,
             content_type: 'application/x-ndjson',
             size_bytes: curatedFile.metadata?.size || null,
             tags: ['origin:curated-feedback'],
             created_at: curatedFile.created_at || null,
             url: null,
-            source: 'curated'
+            source: 'Curated'
           });
         }
       } catch (curatedError) {
-        console.warn('⚠️ [admin-list-training-assets] Could not stat curated file:', curatedError.message);
+        console.warn(`[${new Date().toISOString()}] ⚠️ ADMIN-LIST-TRAINING-ASSETS curated stat failed:`, curatedError.message);
       }
     }
 
@@ -92,11 +96,11 @@ export async function handler(event) {
         }
 
         // Determine source based on tags and object_path
-        let source = 'uploaded';
+        let source = 'Admin Upload';
         if (asset.tags?.includes('origin:curated-feedback')) {
-          source = 'curated';
+          source = 'Curated';
         } else if (asset.object_path?.includes('curated/')) {
-          source = 'curated';
+          source = 'Curated';
         }
 
         return {
@@ -109,6 +113,7 @@ export async function handler(event) {
           tags: asset.tags || [],
           created_at: asset.created_at,
           url,
+          download_url: url,
           source
         };
       })
@@ -130,7 +135,15 @@ export async function handler(event) {
     const endIdx = startIdx + limit;
     const paginatedAssets = allAssets.slice(startIdx, endIdx);
 
-    console.log(`[admin][assets][list] requester=${requesterEmail} assetType=${assetType} q=${q} total=${allAssets.length} returned=${paginatedAssets.length}`);
+    const totalBytes = allAssets.reduce((sum, asset) => sum + (asset.size_bytes || 0), 0);
+
+    console.log(`[${new Date().toISOString()}] === ADMIN-LIST-TRAINING-ASSETS COMPLETE ===`, {
+      requesterEmail,
+      assetType,
+      totalAssets: allAssets.length,
+      returned: paginatedAssets.length,
+      totalBytes
+    });
 
     return json(200, {
       ok: true,
@@ -141,11 +154,14 @@ export async function handler(event) {
         limit,
         dbCount: count || 0,
         syntheticCount: allAssets.length - (count || 0)
+      },
+      stats: {
+        totalBytes
       }
     });
 
   } catch (error) {
-    console.error('❌ [admin-list-training-assets] Unexpected error:', error);
+    console.error(`[${new Date().toISOString()}] ❌ ADMIN-LIST-TRAINING-ASSETS ERROR:`, error);
     return json(500, { ok:false, code:'server_error', error: error.message });
   }
 }

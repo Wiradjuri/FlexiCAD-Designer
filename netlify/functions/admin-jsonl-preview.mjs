@@ -19,6 +19,8 @@ export async function handler(event) {
   const objectPath = params.object_path;
   const limit = Math.min(50, Math.max(1, parseInt(params.limit || '20')));
 
+  console.log(`[${new Date().toISOString()}] === ADMIN-JSONL-PREVIEW START ===`, { objectPath, limit });
+
   if (!objectPath) {
     return json(400, { ok:false, code:'bad_request', error:'Missing object_path parameter' });
   }
@@ -54,27 +56,41 @@ export async function handler(event) {
         
         result.push({
           lineNumber: i + 1,
-          keys
+          keys,
+          json: parsed,
+          raw: line
         });
         processed++;
       } catch (e) {
         result.push({
           lineNumber: i + 1,
           keys: [],
-          error: e.message
+          error: e.message,
+          raw: line
         });
         processed++;
       }
     }
 
-    return json(200, {
+    const response = {
       ok: true,
       lines: result,
-      sampleSizeBytes: head.length
+      sampleSizeBytes: head.length,
+      assetSizeBytes: typeof blob.size === 'number' ? blob.size : buf.length,
+      truncated: head.length < buf.length
+    };
+
+    console.log(`[${new Date().toISOString()}] === ADMIN-JSONL-PREVIEW COMPLETE ===`, {
+      objectPath,
+      lines: response.lines.length,
+      sampleSize: response.sampleSizeBytes,
+      truncated: response.truncated
     });
 
+    return json(200, response);
+
   } catch (error) {
-    console.error('❌ [admin-jsonl-preview] Error:', error);
+    console.error(`[${new Date().toISOString()}] ❌ ADMIN-JSONL-PREVIEW ERROR:`, error);
     return json(500, { ok:false, code:'internal_error', error: error.message });
   }
 }

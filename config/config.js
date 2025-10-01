@@ -12,7 +12,7 @@
             anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpZnFxbmZseHdmZ25pZGF3eHp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MzUyNDUsImV4cCI6MjA3NDUxMTI0NX0.-49wxfcA9xwEbTHzuSL3RFGS9QCLaH9Dyb8lw_zSDk0"
         },
         stripe: {
-            publishableKey: "pk_test_your_stripe_publishable_key_here"
+            publishableKey: "pk_live_51S0HmuPJgpJveDpNR9rM9NxgbmAGtLpBWkG4JkWwGcAw4IzOeSlKFXe9ggnyIFCfi6hm1UvcPXqiyFZD1jFGCv0P00I2jQNOw8"
         },
         features: {
             aiGeneration: true,

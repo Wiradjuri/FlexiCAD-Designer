@@ -9,61 +9,85 @@ class FlexiCADAuth {
         this.isLoggingIn = false;
         this.supabaseClient = null;
         this.authStateChangeListener = null;
+        this.isInitializing = false;
+        this._initPromise = null;
+        this.adminCheckCache = { value: null, expiresAt: 0 };
     }
 
     // Initialize authentication system
     async init() {
-        try {
-            console.log('🔄 Initializing FlexiCAD Payment-First Authentication...');
-
-            // CRITICAL: Wait for CONFIG to load before doing anything
-            if (window.CONFIG && window.CONFIG.waitForLoad) {
-                console.log('🔧 Waiting for secure configuration...');
-                await window.CONFIG.waitForLoad();
-                console.log('✅ Secure configuration loaded');
-            }
-
-            // Initialize Supabase client
-            await this.initializeSupabase();
-
-            // Check current Supabase session
-            const { data: { session }, error } = await this.supabaseClient.auth.getSession();
-            
-            if (error) {
-                console.error('Session check error:', error);
-            }
-
-            if (session && session.user) {
-                console.log('✅ Found existing Supabase session');
-                this.user = session.user;
-                
-                // Check if user has paid access
-                await this.checkPaymentStatus();
-                
-                // If user is not paid, redirect to register for payment
-                if (!this.paymentStatus?.hasPaid) {
-                    console.log('⚠️ User found but no payment - redirecting to register');
-                    await this.logout(); // Clear invalid session
-                    window.location.href = '/register.html?payment=required';
-                    return false;
-                }
-                
-                sessionStorage.setItem('flexicad_user', JSON.stringify(this.user));
-            }
-
-            // Set up auth state change listener
-            this.setupAuthStateListener();
-
-            this.isInitialized = true;
-            console.log('✅ Payment-first authentication system initialized');
+        if (this.isInitialized) {
             return true;
-        } catch (error) {
-            console.error('❌ Auth initialization error:', error);
-            throw error;
         }
+
+        if (this._initPromise) {
+            return this._initPromise;
+        }
+
+        this.isInitializing = true;
+
+        const initPromise = (async () => {
+            try {
+                console.log('🔄 Initializing FlexiCAD Payment-First Authentication...');
+
+                // CRITICAL: Wait for CONFIG to load before doing anything
+                if (window.CONFIG && window.CONFIG.waitForLoad) {
+                    console.log('🔧 Waiting for secure configuration...');
+                    await window.CONFIG.waitForLoad();
+                    console.log('✅ Secure configuration loaded');
+                }
+
+                // Initialize Supabase client
+                await this.initializeSupabase();
+
+                // Check current Supabase session
+                const { data: { session }, error } = await this.supabaseClient.auth.getSession();
+                
+                if (error) {
+                    console.error('Session check error:', error);
+                }
+
+                if (session && session.user) {
+                    console.log('✅ Found existing Supabase session');
+                    this.user = session.user;
+                    
+                    // Check if user has paid access
+                    await this.checkPaymentStatus();
+                    
+                    // If user is not paid, redirect to register for payment
+                    if (!this.paymentStatus?.hasPaid) {
+                        console.log('⚠️ User found but no payment - redirecting to register');
+                        await this.logout(); // Clear invalid session
+                        window.location.href = '/register.html?payment=required';
+                        return false;
+                    }
+                    
+                    sessionStorage.setItem('flexicad_user', JSON.stringify(this.user));
+                }
+
+                // Set up auth state change listener
+                this.setupAuthStateListener();
+
+                this.isInitialized = true;
+                console.log('✅ Payment-first authentication system initialized');
+                return true;
+            } catch (error) {
+                console.error('❌ Auth initialization error:', error);
+                throw error;
+            } finally {
+                this.isInitializing = false;
+            }
+        })();
+
+        this._initPromise = initPromise.catch((error) => {
+            this._initPromise = null;
+            throw error;
+        });
+
+        return this._initPromise;
     }
 
-    // Initialize Supabase client with secure config loading
+    // Initialize Supabase client
     async initializeSupabase() {
         try {
             console.log('🔧 Initializing Supabase client...');
@@ -672,24 +696,53 @@ class FlexiCADAuth {
     // Check if user is admin
     isAdmin() {
         if (!this.user || !this.paymentStatus?.hasPaid) return false;
-        // Only bmuzza1992@gmail.com is authorized as admin
-        return this.user.email === 'bmuzza1992@gmail.com';
+        const now = Date.now();
+        if (this.adminCheckCache.value !== null && this.adminCheckCache.expiresAt > now) {
+            return this.adminCheckCache.value;
+        }
+        return false;
     }
 
     // Check admin access for sensitive operations
     async checkAdminAccess() {
         console.log('🔐 Checking admin access for user:', this.user?.email);
-        
+
         if (!this.user || !this.paymentStatus?.hasPaid) {
             console.log('❌ User not authenticated or payment not verified');
             return false;
         }
 
-        // Only bmuzza1992@gmail.com is authorized as admin
-        const isAdmin = this.user.email === 'bmuzza1992@gmail.com';
-        console.log('Admin check result:', isAdmin);
-        
-        return isAdmin;
+        const now = Date.now();
+        if (this.adminCheckCache.value !== null && this.adminCheckCache.expiresAt > now) {
+            console.log('♻️ Using cached admin status');
+            return this.adminCheckCache.value;
+        }
+
+        try {
+            const token = await this.getSessionToken();
+            if (!token) {
+                this.adminCheckCache = { value: false, expiresAt: now + 60 * 1000 };
+                return false;
+            }
+
+            const response = await fetch('/.netlify/functions/admin-health', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = response.ok ? await response.json() : null;
+            const isAdmin = response.ok && data?.ok === true && data?.admin === true;
+
+            this.adminCheckCache = {
+                value: isAdmin,
+                expiresAt: now + 5 * 60 * 1000
+            };
+
+            console.log('Admin check result:', isAdmin);
+            return isAdmin;
+        } catch (error) {
+            console.error('Admin validation failed:', error);
+            this.adminCheckCache = { value: false, expiresAt: now + 60 * 1000 };
+            return false;
+        }
     }
 
     // Check URL parameters

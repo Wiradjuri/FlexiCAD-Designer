@@ -82,6 +82,294 @@
             gap: 0.5rem;
             flex-wrap: wrap;
         }
+
+    .training-assets-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .training-assets-summary {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .training-assets-table .tag-pill,
+    .feedback-tags .tag-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.1rem 0.5rem;
+      margin: 0 0.25rem 0.25rem 0;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      background: var(--primary-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+    }
+
+    .tag-pill-empty {
+      font-style: italic;
+      opacity: 0.7;
+    }
+
+    .training-assets-table tbody tr.curated-row {
+      background: rgba(76, 205, 196, 0.08);
+    }
+
+    .asset-name {
+      font-weight: 600;
+    }
+
+    .asset-path {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      word-break: break-all;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.1rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .status-badge.status-primary {
+      background: rgba(59, 130, 246, 0.18);
+      color: var(--accent-blue);
+    }
+
+    .status-badge.status-neutral {
+      background: rgba(148, 163, 184, 0.18);
+      color: var(--text-secondary);
+    }
+
+    .status-badge.pending { background: rgba(255, 196, 0, 0.18); color: var(--warning-color); }
+    .status-badge.accepted { background: rgba(16, 185, 129, 0.2); color: var(--success-color); }
+    .status-badge.rejected { background: rgba(239, 68, 68, 0.2); color: var(--error-color); }
+
+    .jsonl-preview-modal {
+      max-width: 720px;
+    }
+
+    .jsonl-keys {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+    }
+
+    .jsonl-line {
+      display: grid;
+      grid-template-columns: 3rem 1fr;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      background: var(--primary-bg);
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+    }
+
+    .jsonl-line-number {
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+
+    .jsonl-line pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .jsonl-line-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .jsonl-line-error {
+      border-color: rgba(239, 68, 68, 0.4);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .jsonl-error-message {
+      color: var(--error-color);
+      font-weight: 600;
+    }
+
+    .preview-meta {
+      margin-bottom: 1rem;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .preview-content {
+      max-height: 420px;
+      overflow-y: auto;
+      background: var(--bg-secondary);
+      padding: 1rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+
+    .training-assets-pagination {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    .feedback-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .feedback-card {
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 1rem;
+      background: var(--bg-secondary);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .feedback-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .feedback-author {
+      font-weight: 600;
+    }
+
+    .feedback-timestamp {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .feedback-snippet {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .feedback-snippet strong {
+      color: var(--text-primary);
+    }
+
+    .feedback-status {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .feedback-reviewer {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .feedback-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .feedback-summary {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .feedback-quality {
+      font-size: 0.8rem;
+      color: var(--accent-blue);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .feedback-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .feedback-modal-content {
+      max-width: 800px;
+      max-height: 75vh;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .feedback-modal-body {
+      max-height: 60vh;
+      overflow-y: auto;
+      padding: 1rem;
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .modal-section h4 {
+      margin-bottom: 0.5rem;
+    }
+
+    .modal-pre {
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      padding: 0.75rem;
+      font-family: "Fira Code", "Courier New", monospace;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid var(--border-color);
+    }
+
+    .modal-footer.actions-right {
+      justify-content: flex-end;
+    }
+
+    .empty-state {
+      padding: 1rem;
+      border-radius: 6px;
+      border: 1px dashed var(--border-color);
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    .error-text {
+      color: var(--error-color);
+    }
+
+    .hidden { display: none !important; }
+    .mt-1 { margin-top: 1rem; }
+    .mt-05 { margin-top: 0.5rem; }
+    .mb-1 { margin-bottom: 1rem; }
+    .mb-05 { margin-bottom: 0.5rem; }
+    .mr-05 { margin-right: 0.5rem; }
+    .w-100 { width: 100%; }
+    .maxw-200 { max-width: 200px; }
+    .monospace-note { font-family: 'Courier New', monospace; font-size: 0.8rem; }
+  .log-pre { font-size: 0.8rem; color: var(--text-secondary); }
+    .config-pre {
+      font-size: 0.8rem;
+      background: var(--primary-bg);
+      padding: 1rem;
+      border-radius: 5px;
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+    }
         
         .btn-small {
             padding: 0.25rem 0.5rem;
@@ -236,7 +524,7 @@
             <div id="admin-status">Checking admin permissions...</div>
         </div>
 
-        <div id="admin-content" style="display: none;">
+  <div id="admin-content" class="hidden">
             <div class="admin-grid">
                 <!-- Health & Connectivity Card -->
                 <div class="admin-card">
@@ -246,7 +534,7 @@
                     </div>
                     <div class="card-content">
                         <div id="health-details">Loading system health...</div>
-                        <div class="admin-actions" style="margin-top: 1rem;">
+                        <div class="admin-actions mt-1">
                             <button onclick="checkSystemHealth()" class="btn btn-secondary btn-small">🔄 Refresh Health</button>
                         </div>
                     </div>
@@ -260,11 +548,11 @@
                     </div>
                     <div class="card-content">
                         <div id="stripe-details">Ready for testing...</div>
-                        <div class="admin-actions" style="margin-top: 1rem;">
+                        <div class="admin-actions mt-1">
                             <button onclick="openTestCheckout()" class="btn btn-primary btn-small">💳 Open Test Checkout</button>
                             <button onclick="verifyEntitlement()" class="btn btn-secondary btn-small">✅ Verify Entitlement</button>
                         </div>
-                        <div id="test-email-input" style="display: none; margin-top: 1rem;">
+                        <div id="test-email-input" class="hidden mt-1">
                             <input type="email" id="test-email" class="form-input" placeholder="Test email (optional)" 
                                    value="admin+test@flexicad.com.au">
                             <button onclick="createTestCheckout()" class="btn btn-primary btn-small">Create Session</button>
@@ -280,12 +568,12 @@
                     </div>
                     <div class="card-content">
                         <div>Test authentication flows with real providers</div>
-                        <div class="admin-actions" style="margin-top: 1rem;">
+                        <div class="admin-actions mt-1">
                             <button onclick="openRegisterTest()" class="btn btn-secondary btn-small">📝 Open Register Test</button>
                             <button onclick="openLoginTest()" class="btn btn-secondary btn-small">🔑 Open Login Test</button>
                             <button onclick="sessionEcho()" class="btn btn-secondary btn-small">🔊 Session Echo</button>
                         </div>
-                        <div id="session-echo-result" style="margin-top: 0.5rem; font-family: monospace; font-size: 0.8rem;"></div>
+                        <div id="session-echo-result" class="mt-05 monospace-note"></div>
                     </div>
                 </div>
 
@@ -297,10 +585,10 @@
                     </div>
                     <div class="card-content">
                         <div id="ai-details">Ready for testing...</div>
-                        <div class="admin-actions" style="margin-top: 1rem;">
+                        <div class="admin-actions mt-1">
                             <button onclick="runAISmokeTest()" class="btn btn-primary btn-small">🤖 Run AI Smoke Test</button>
                         </div>
-                        <div id="ai-test-result" style="margin-top: 0.5rem; font-family: monospace; font-size: 0.8rem;"></div>
+                        <div id="ai-test-result" class="mt-05 monospace-note"></div>
                     </div>
                 </div>
 
@@ -312,7 +600,7 @@
                     </div>
                     <div class="card-content">
                         <div>Create and manage discount codes</div>
-                        <div class="admin-actions" style="margin-top: 1rem;">
+                        <div class="admin-actions mt-1">
                             <button onclick="window.location.href='../manage-promo.html'" class="btn btn-primary btn-small">🎟️ Manage Promo Codes</button>
                         </div>
                     </div>
@@ -326,7 +614,7 @@
                     </div>
                     <div class="card-content">
                         <div id="user-stats">Loading user statistics...</div>
-                        <div class="admin-actions" style="margin-top: 1rem;">
+                        <div class="admin-actions mt-1">
                             <button onclick="loadUserStats()" class="btn btn-secondary btn-small">👥 Load User Stats</button>
                         </div>
                     </div>
@@ -340,7 +628,7 @@
                     </div>
                     <div class="card-content">
                         <div id="knowledge-usage">No recent knowledge pack usage...</div>
-                        <div class="admin-actions" style="margin-top: 1rem;">
+                        <div class="admin-actions mt-1">
                             <button onclick="loadRecentKnowledgeUsage()" class="btn btn-secondary btn-small">📦 Refresh Usage</button>
                         </div>
                     </div>
@@ -354,9 +642,9 @@
                     </div>
                     <div class="card-content">
                         <div id="config-display">Loading configuration...</div>
-                        <div class="admin-actions" style="margin-top: 1rem;">
+                        <div class="admin-actions mt-1">
                             <button onclick="displayConfig()" class="btn btn-secondary btn-small">🔧 Show Config</button>
-                            <button id="reveal-key-btn" onclick="toggleKeyVisibility()" class="btn btn-secondary btn-small" style="display: none;">👁️ Reveal Keys</button>
+                            <button id="reveal-key-btn" onclick="toggleKeyVisibility()" class="btn btn-secondary btn-small hidden">👁️ Reveal Keys</button>
                         </div>
                     </div>
                 </div>
@@ -368,13 +656,13 @@
                         Feedback Review & Training
                     </div>
                     <div class="card-content">
-                        <div class="admin-actions" style="margin-bottom: 1rem;">
-                            <select id="feedback-status-filter" class="form-input" style="margin-right: 0.5rem;">
+                        <div class="admin-actions mb-1">
+                            <select id="feedback-status-filter" class="form-input mr-05">
                                 <option value="pending">Pending Review</option>
                                 <option value="accepted">Accepted</option>
                                 <option value="rejected">Rejected</option>
                             </select>
-                            <input type="text" id="feedback-search" class="form-input" placeholder="Search..." style="margin-right: 0.5rem; max-width: 200px;">
+                            <input type="text" id="feedback-search" class="form-input mr-05 maxw-200" placeholder="Search...">
                             <button onclick="loadFeedbackReview()" class="btn btn-secondary btn-small">🔄 Load Feedback</button>
                         </div>
                         <div id="feedback-list">Click "Load Feedback" to view user feedback for review</div>
@@ -388,8 +676,8 @@
                         Training Assets (SVG/SCAD/JSONL)
                     </div>
                     <div class="card-content">
-                        <div class="admin-actions" style="margin-bottom: 1rem;">
-                            <input type="file" id="asset-file-input" accept=".svg,.scad,.jsonl" style="margin-right: 0.5rem;">
+                        <div class="admin-actions mb-1">
+                            <input type="file" id="asset-file-input" accept=".svg,.scad,.jsonl" class="mr-05">
                             <button onclick="uploadTrainingAsset()" class="btn btn-primary btn-small">📤 Upload Asset</button>
                             <button onclick="loadTrainingAssets()" class="btn btn-secondary btn-small">🔄 Refresh List</button>
                         </div>
@@ -404,9 +692,9 @@
                         AI Generator Knowledge Test
                     </div>
                     <div class="card-content">
-                        <div style="margin-bottom: 1rem;">
-                            <textarea id="knowledge-prompt" class="form-input" placeholder="Enter a test prompt..." rows="3" style="width: 100%; margin-bottom: 0.5rem;">Create a simple cube with 10mm sides</textarea>
-                            <select id="knowledge-template" class="form-input" style="margin-right: 0.5rem;">
+            <div class="mb-1">
+              <textarea id="knowledge-prompt" class="form-input w-100 mb-05" placeholder="Enter a test prompt..." rows="3">Create a simple cube with 10mm sides</textarea>
+              <select id="knowledge-template" class="form-input mr-05">
                                 <option value="">All templates</option>
                                 <option value="general">General</option>
                                 <option value="mechanical">Mechanical</option>
@@ -414,13 +702,13 @@
                             </select>
                             <button onclick="runKnowledgeTest()" class="btn btn-primary btn-small">🧠 Run Test</button>
                         </div>
-                        <div id="knowledge-results" style="display: none;">
-                            <div id="learning-indicator-display" style="margin-bottom: 1rem;"></div>
-                            <div id="knowledge-examples" style="margin-bottom: 1rem;"></div>
-                            <div id="knowledge-assets" style="margin-bottom: 1rem;"></div>
+            <div id="knowledge-results" class="hidden">
+              <div id="learning-indicator-display" class="mb-1"></div>
+              <div id="knowledge-examples" class="mb-1"></div>
+              <div id="knowledge-assets" class="mb-1"></div>
                             <details id="knowledge-log">
                                 <summary>Debug Log</summary>
-                                <pre id="knowledge-log-content" style="font-size: 0.8rem; color: var(--text-secondary);"></pre>
+                                <pre id="knowledge-log-content" class="log-pre"></pre>
                             </details>
                         </div>
                     </div>
@@ -430,7 +718,7 @@
     </div>
 
     <!-- Feedback View Modal -->
-    <div id="feedback-modal" class="modal" style="display: none;">
+  <div id="feedback-modal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Feedback Details</h3>
@@ -467,6 +755,9 @@
 
   document.addEventListener('DOMContentLoaded', async () => {
     console.log('🔧 Initializing Admin Console...');
+    const statusEl = document.getElementById('admin-status');
+    statusEl.innerHTML = '<span class="loading-spinner"></span> Validating admin permissions...';
+
     try {
       await window.flexicadAuth.init();
 
@@ -476,22 +767,27 @@
         return;
       }
 
-      if (!(await window.flexicadAuth.checkAdminAccess())) {
-        showAdminError('Access denied. Admin privileges required.');
-        setTimeout(() => (window.location.href = '../ai.html'), 3000);
+      adminUser = window.flexicadAuth.user;
+      supabaseClient = window.flexicadAuth.getSupabaseClient();
+      if (!supabaseClient) {
+        throw new Error('Supabase client unavailable');
+      }
+
+      let healthSnapshot;
+      try {
+        healthSnapshot = await ensureAdminAccess();
+      } catch (error) {
+        console.error('Admin access validation failed:', error);
+        showAdminError('Access denied. Redirecting to AI Generator...');
+        setTimeout(() => (window.location.href = '../ai.html'), 2500);
         return;
       }
 
-      adminUser = window.flexicadAuth.user;
-      supabaseClient = window.flexicadAuth.getSupabaseClient();
-
-      document.getElementById('admin-status').innerHTML =
-        `<span style="color: var(--success-color);">✅ Admin access confirmed: ${adminUser.email}</span>`;
-
+      statusEl.innerHTML = `<span style="color: var(--success-color);">✅ Admin access confirmed: ${adminUser.email}</span>`;
       document.getElementById('admin-content').style.display = 'block';
 
       await Promise.all([
-        checkSystemHealth(),
+        checkSystemHealth(healthSnapshot),
         loadUserStats(),
         displayConfig(),
         loadFeedbackReview(),
@@ -516,8 +812,34 @@
       `<span style="color: var(--error-color);">❌ ${message}</span>`;
   }
 
+  async function ensureAdminAccess() {
+    const token = await window.flexicadAuth.getSessionToken();
+    if (!token) {
+      throw new Error('Authentication token unavailable');
+    }
+
+    const response = await fetch('/.netlify/functions/admin-health', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    let data = {};
+    try {
+      data = await response.json();
+    } catch (_) {
+      data = {};
+    }
+
+    if (!response.ok || data?.ok !== true) {
+      const error = new Error(data?.error || `Admin validation failed (${response.status})`);
+      error.status = response.status;
+      throw error;
+    }
+
+    return data;
+  }
+
   // ---------------- Health ----------------
-  async function checkSystemHealth() {
+  async function checkSystemHealth(prefetchedHealth) {
     const statusEl = document.getElementById('health-status');
     const detailsEl = document.getElementById('health-details');
 
@@ -525,15 +847,18 @@
     detailsEl.innerHTML = '<span class="loading-spinner"></span> Checking system health...';
 
     try {
-      const token = (await supabaseClient.auth.getSession()).data?.session?.access_token;
-      if (!token) throw new Error('No authentication token available');
+      let health = prefetchedHealth;
+      if (!health) {
+        const token = (await supabaseClient.auth.getSession()).data?.session?.access_token;
+        if (!token) throw new Error('No authentication token available');
 
-      const res = await fetch('/.netlify/functions/admin-health', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error(`Health check failed: ${res.status}`);
-      const health = await res.json();
-      if (!health.ok) throw new Error(health.error || 'Health check returned not ok');
+        const res = await fetch('/.netlify/functions/admin-health', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error(`Health check failed: ${res.status}`);
+        health = await res.json();
+        if (!health.ok) throw new Error(health.error || 'Health check returned not ok');
+      }
 
       const supabaseOk = !!health.supabase?.ok;
       const stripeOk   = !!health.stripe?.ok;
@@ -787,9 +1112,13 @@
       STRIPE_PUBLISHABLE_KEY: keysRevealed ? window.CONFIG.STRIPE_PUBLISHABLE_KEY : masked(window.CONFIG.STRIPE_PUBLISHABLE_KEY),
       NETLIFY_FUNCTIONS_BASE: window.CONFIG.NETLIFY_FUNCTIONS_BASE
     };
-    configEl.innerHTML = `<pre style="font-size:.8rem;background:var(--primary-bg);padding:1rem;border-radius:5px;overflow-x:auto;">${JSON.stringify(safe, null, 2)}</pre>`;
+    configEl.innerHTML = `<pre class="config-pre">${JSON.stringify(safe, null, 2)}</pre>`;
     const btn = document.getElementById('reveal-key-btn');
-    if (window.CONFIG.STRIPE_PUBLISHABLE_KEY) btn.style.display = 'inline-block';
+    if (window.CONFIG.STRIPE_PUBLISHABLE_KEY) {
+      btn.classList.remove('hidden');
+    } else {
+      btn.classList.add('hidden');
+    }
   }
   function toggleKeyVisibility() {
     keysRevealed = !keysRevealed;
@@ -806,66 +1135,141 @@
 
     statusEl.className = 'status-indicator status-unknown';
     listEl.innerHTML = '<span class="loading-spinner"></span> Loading feedback...';
+    feedbackCache.clear();
 
     try {
-      const token = (await supabaseClient.auth.getSession()).data?.session?.access_token;
+      const session = await supabaseClient.auth.getSession();
+      const token = session.data?.session?.access_token;
 
       const qs = new URLSearchParams({ status });
-      if (search.trim()) { qs.append('search', search.trim()); } // use 'search' param only
+      if (search.trim()) {
+        qs.append('search', search.trim());
+      }
 
-      const res = await fetch(`/.netlify/functions/admin-feedback-list?${qs}`, {
+      const res = await fetch(`/.netlify/functions/admin-feedback-list?${qs.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
 
-      if (!data.ok || !Array.isArray(data.items)) {
+      if (!res.ok || !data.ok || !Array.isArray(data.items)) {
         throw new Error(data.error || data.details || 'Failed to load feedback');
       }
 
       statusEl.className = 'status-indicator status-ok';
-      if (data.items.length === 0) { 
-        listEl.innerHTML = `<div>No ${status} feedback found.</div>`; 
-        return; 
+
+      if (data.items.length === 0) {
+        listEl.innerHTML = `<div class="empty-state">No ${escapeHtml(status)} feedback found.</div>`;
+        return;
       }
 
-      const rows = data.items.map(item => `
-        <div data-feedback-id="${item.id}" style="border:1px solid var(--border-color);padding:1rem;margin:.5rem 0;border-radius:5px;">
-          <div><strong>${item.user_email || 'Unknown'}</strong> • ${new Date(item.created_at).toLocaleDateString()} • ${item.quality_score ?? item.user_feedback}⭐ ${item.quality_label || ''}</div>
-          <div style="margin:.5rem 0;font-size:.9rem;"><strong>Prompt:</strong> ${(item.design_prompt || '').slice(0,150)}${(item.design_prompt || '').length>150?'...':''}</div>
-          <div style="margin:.5rem 0;font-size:.9rem;"><strong>Feedback:</strong> ${(item.feedback_text || 'No comment').slice(0,100)}${(item.feedback_text || '').length>100?'...':''}</div>
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div class="feedback-status">
-              ${
-                item.review_status === 'pending'
-                  ? '<span style="color: var(--warning-color); font-weight: bold;">PENDING</span>'
-                  : item.review_status === 'accepted'
-                    ? `<span style="color: var(--success-color); font-weight: bold;">ACCEPTED</span><div style="font-size:.8em;color:var(--text-secondary);">by ${item.reviewed_by || ''}</div>`
-                    : `<span style="color: var(--error-color); font-weight: bold;">REJECTED</span><div style="font-size:.8em;color:var(--text-secondary);">by ${item.reviewed_by || ''}</div>`
-              }
-            </div>
-            <div class="feedback-actions">
-              <button onclick="viewFeedback('${item.id}', '${encodeURIComponent(item.design_prompt || '')}', '${encodeURIComponent(item.feedback_text || '')}', '${encodeURIComponent(item.generated_code || '')}')" class="btn btn-secondary btn-small">👁️ View Feedback</button>
-              ${
-                item.review_status === 'pending'
-                  ? `<button onclick="decideFeedback('${item.id}','accept')" class="btn btn-primary btn-small">✅ Accept & Train</button>
-                     <button onclick="confirmRejectFeedback('${item.id}')"  class="btn btn-secondary btn-small">❌ Reject</button>`
-                  : `<span style="color: var(--text-secondary); font-size:.9em;">${item.review_status === 'accepted' ? '✅ Approved' : '❌ Rejected'}</span>`
-              }
-            </div>
-          </div>
-        </div>`).join('');
+      const total = typeof data.total === 'number' ? data.total : data.items.length;
+      const summary = document.createElement('div');
+      summary.className = 'feedback-summary';
+      summary.textContent = `Showing ${data.items.length} of ${total} feedback items`;
 
-      listEl.innerHTML = `<div><strong>Found ${data.total} items (Page ${data.page}/${data.totalPages})</strong></div>${rows}`;
-    } catch (e) {
+      const container = document.createElement('div');
+      container.className = 'feedback-list';
+
+      data.items.forEach(item => {
+        feedbackCache.set(item.id, item);
+
+        const card = document.createElement('article');
+        card.className = 'feedback-card';
+        card.dataset.feedbackId = item.id;
+
+        const header = document.createElement('div');
+        header.className = 'feedback-card-header';
+
+        const author = document.createElement('div');
+        author.className = 'feedback-author';
+        author.textContent = item.user_email || 'Unknown';
+        header.appendChild(author);
+
+        const timestamp = document.createElement('div');
+        timestamp.className = 'feedback-timestamp';
+        timestamp.textContent = item.created_at ? new Date(item.created_at).toLocaleString() : '—';
+        header.appendChild(timestamp);
+
+        const quality = document.createElement('div');
+        quality.className = 'feedback-quality';
+        if (typeof item.quality_score === 'number') {
+          const label = item.quality_label || (item.quality_score >= 4 ? 'High quality' : 'Needs review');
+          quality.textContent = `Quality: ${item.quality_score}★ (${label})`;
+        } else if (item.template) {
+          quality.textContent = `Template: ${item.template}`;
+        } else {
+          quality.textContent = 'Template: general';
+        }
+        header.appendChild(quality);
+
+        card.appendChild(header);
+
+        const promptSnippet = document.createElement('div');
+        promptSnippet.className = 'feedback-snippet';
+        promptSnippet.innerHTML = `<strong>Prompt:</strong> ${escapeHtml(truncateText(item.design_prompt || '—', 160))}`;
+        card.appendChild(promptSnippet);
+
+        const feedbackSnippet = document.createElement('div');
+        feedbackSnippet.className = 'feedback-snippet';
+        feedbackSnippet.innerHTML = `<strong>Feedback:</strong> ${escapeHtml(truncateText(item.feedback_text || 'No feedback provided', 160))}`;
+        card.appendChild(feedbackSnippet);
+
+        const footer = document.createElement('div');
+        footer.className = 'feedback-card-footer';
+
+        const statusContainer = document.createElement('div');
+        statusContainer.className = 'feedback-status';
+        renderFeedbackStatus(statusContainer, item.review_status, item.reviewed_by);
+        footer.appendChild(statusContainer);
+
+        const actions = document.createElement('div');
+        actions.className = 'feedback-actions';
+
+        const viewBtn = document.createElement('button');
+        viewBtn.className = 'btn btn-secondary btn-small';
+        viewBtn.textContent = '👁️ View Feedback';
+        viewBtn.addEventListener('click', () => viewFeedback(item.id));
+        actions.appendChild(viewBtn);
+
+        if ((item.review_status || 'pending') === 'pending') {
+          const acceptBtn = document.createElement('button');
+          acceptBtn.className = 'btn btn-primary btn-small feedback-accept';
+          acceptBtn.textContent = '✅ Accept & Train';
+          acceptBtn.addEventListener('click', () => decideFeedback(item.id, 'accept'));
+          actions.appendChild(acceptBtn);
+
+          const rejectBtn = document.createElement('button');
+          rejectBtn.className = 'btn btn-secondary btn-small feedback-reject';
+          rejectBtn.textContent = '❌ Reject';
+          rejectBtn.addEventListener('click', () => confirmRejectFeedback(item.id));
+          actions.appendChild(rejectBtn);
+        } else {
+          const statusLabel = document.createElement('span');
+          statusLabel.className = 'feedback-reviewer';
+          statusLabel.textContent = item.review_status === 'accepted' ? '✅ Approved' : '❌ Rejected';
+          actions.appendChild(statusLabel);
+        }
+
+        footer.appendChild(actions);
+        card.appendChild(footer);
+
+        container.appendChild(card);
+      });
+
+      listEl.innerHTML = '';
+      listEl.appendChild(summary);
+      listEl.appendChild(container);
+
+    } catch (error) {
       statusEl.className = 'status-indicator status-error';
-      listEl.innerHTML = `<span style="color: var(--error-color);">❌ Failed to load feedback: ${e.message}</span>`;
+      listEl.innerHTML = `<span class="error-text">❌ Failed to load feedback: ${escapeHtml(error.message)}</span>`;
     }
   }
 
   async function decideFeedback(feedbackId, decision) {
-    const row = document.querySelector(`[data-feedback-id="${feedbackId}"]`);
-    const acceptBtn = row?.querySelector('button[onclick*="accept"]');
-    const rejectBtn = row?.querySelector('button[onclick*="reject"]');
+  const row = document.querySelector(`[data-feedback-id="${feedbackId}"]`);
+  const acceptBtn = row?.querySelector('.feedback-accept');
+  const rejectBtn = row?.querySelector('.feedback-reject');
     
     // Disable buttons during request
     if (acceptBtn) acceptBtn.disabled = true;
@@ -893,21 +1297,21 @@
 
       // Update row UI in place (optimistic update)
       if (row) {
-        const statusCell = row.querySelector('.feedback-status');
+        const statusContainer = row.querySelector('.feedback-status');
         const actionsCell = row.querySelector('.feedback-actions');
         const newStatus = data.feedback?.review_status || (decision === 'accept' ? 'accepted' : 'rejected');
-        const color = newStatus === 'accepted' ? 'var(--success-color)' : 'var(--error-color)';
         const reviewedBy = data.feedback?.reviewed_by || 'admin';
 
-        if (statusCell) {
-          statusCell.innerHTML = `
-            <span style="color:${color};font-weight:bold;">${newStatus.toUpperCase()}</span>
-            <div style="font-size:.8em;color:var(--text-secondary);">by ${reviewedBy}</div>
-          `;
+        if (statusContainer) {
+          renderFeedbackStatus(statusContainer, newStatus, reviewedBy);
         }
         
         if (actionsCell) {
-          actionsCell.innerHTML = `<span style="color: var(--text-secondary); font-size:.9em;">${newStatus === 'accepted' ? '✅ Approved' : '❌ Rejected'}</span>`;
+          actionsCell.innerHTML = '';
+          const statusLabel = document.createElement('span');
+          statusLabel.className = 'feedback-reviewer';
+          statusLabel.textContent = newStatus === 'accepted' ? '✅ Approved' : '❌ Rejected';
+          actionsCell.appendChild(statusLabel);
         }
 
         // Remove row from pending view after update
@@ -916,6 +1320,14 @@
           row.style.transition = 'opacity .3s ease-out';
           row.style.opacity = '0.5';
           setTimeout(() => row.remove(), 300);
+        }
+
+        const cached = feedbackCache.get(feedbackId);
+        if (cached) {
+          cached.review_status = newStatus;
+          cached.reviewed_by = reviewedBy;
+          cached.reviewed_at = data.feedback?.reviewed_at || cached.reviewed_at;
+          feedbackCache.set(feedbackId, cached);
         }
       }
 
@@ -952,44 +1364,63 @@
   // ---------------- Feedback Modal ----------------
   let currentModalFeedbackId = null;
   
-  function viewFeedback(id, designPrompt, feedbackText, generatedCode) {
+  function viewFeedback(id) {
+    const feedback = feedbackCache.get(id);
+    if (!feedback) {
+      showToast('Feedback details unavailable. Please reload the list.', 'error');
+      return;
+    }
+
     currentModalFeedbackId = id;
-    
-    // Phase 4.6.1: Use new modal system with scrollable content
+
+    const qualityMeta = [];
+    if (typeof feedback.quality_score === 'number') {
+      qualityMeta.push(`Quality: ${feedback.quality_score}★`);
+    }
+    if (feedback.quality_label) {
+      qualityMeta.push(`Label: ${feedback.quality_label}`);
+    }
+    if (feedback.template) {
+      qualityMeta.push(`Template: ${feedback.template}`);
+    }
+
     const modalHTML = `
-      <div class="feedback-modal-content" style="max-width: 800px; max-height: 70vh;">
-        <h3>Feedback Review - ID: ${id}</h3>
-        
-        <div style="max-height: 60vh; overflow-y: auto; padding: 1rem; background: var(--bg-secondary); border-radius: 5px;">
-          <div style="margin-bottom: 1rem;">
-            <h4>Design Prompt:</h4>
-            <div style="padding: 0.5rem; background: var(--bg-tertiary); border-radius: 3px; font-family: monospace;">
-              ${decodeURIComponent(designPrompt)}
-            </div>
-          </div>
-          
-          <div style="margin-bottom: 1rem;">
-            <h4>User Feedback:</h4>
-            <div style="padding: 0.5rem; background: var(--bg-tertiary); border-radius: 3px;">
-              ${decodeURIComponent(feedbackText)}
-            </div>
-          </div>
-          
-          <div style="margin-bottom: 1rem;">
-            <h4>Generated Code:</h4>
-            <pre style="padding: 0.5rem; background: var(--bg-tertiary); border-radius: 3px; font-size: 0.8rem; overflow-x: auto;">${decodeURIComponent(generatedCode)}</pre>
-          </div>
+      <div class="feedback-modal-content">
+        <h3>Feedback Review - ID: ${escapeHtml(id)}</h3>
+        ${qualityMeta.length ? `<div class="feedback-quality">${qualityMeta.map(escapeHtml).join(' • ')}</div>` : ''}
+        <div class="feedback-modal-body">
+          <section class="modal-section">
+            <h4>Design Prompt</h4>
+            <pre class="modal-pre">${escapeHtml(feedback.design_prompt || '—')}</pre>
+          </section>
+          <section class="modal-section">
+            <h4>User Feedback</h4>
+            <pre class="modal-pre">${escapeHtml(feedback.feedback_text || 'No feedback provided')}</pre>
+          </section>
+          <section class="modal-section">
+            <h4>Generated Code</h4>
+            <pre class="modal-pre">${escapeHtml(feedback.generated_code || 'No code returned')}</pre>
+          </section>
         </div>
-        
-        <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
-          <button class="btn btn-secondary" onclick="hideModal()">Close</button>
-          <button class="btn btn-success" onclick="decideFeedback('${id}', 'accept'); hideModal();">✅ Accept</button>
-          <button class="btn btn-danger" onclick="confirmRejectFeedback('${id}')">❌ Reject</button>
+        <div class="modal-footer actions-right">
+          <button class="btn btn-secondary modal-close-btn">Close</button>
+          <button class="btn btn-success modal-accept-btn">✅ Accept</button>
+          <button class="btn btn-danger modal-reject-btn">❌ Reject</button>
         </div>
       </div>
     `;
-    
+
     showModal(modalHTML);
+
+    const modalRoot = document.getElementById('modal-root');
+    modalRoot.querySelector('.modal-close-btn')?.addEventListener('click', hideModal);
+    modalRoot.querySelector('.modal-accept-btn')?.addEventListener('click', () => {
+      decideFeedback(id, 'accept');
+      hideModal();
+    });
+    modalRoot.querySelector('.modal-reject-btn')?.addEventListener('click', () => {
+      confirmRejectFeedback(id);
+    });
   }
   
   function getCurrentModalFeedbackId() {
@@ -998,6 +1429,7 @@
   
   function confirmRejectFeedback(feedbackId) {
     if (confirm('Are you sure you want to reject this feedback?')) {
+      hideModal();
       decideFeedback(feedbackId, 'reject');
     }
   }
@@ -1089,44 +1521,207 @@
   }
 
   // ---------------- Training Assets ----------------
+  function escapeHtml(value = '') {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function formatBytes(bytes) {
+    if (typeof bytes !== 'number' || Number.isNaN(bytes)) return '—';
+    if (bytes === 0) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    const idx = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
+    const value = bytes / Math.pow(1024, idx);
+    const formatted = value >= 10 || idx === 0 ? value.toFixed(0) : value.toFixed(1);
+    return `${formatted} ${units[idx]}`;
+  }
+
+  function renderAssetTags(tags) {
+    if (!Array.isArray(tags) || !tags.length) {
+      return '<span class="tag-pill tag-pill-empty">No tags</span>';
+    }
+    return tags
+      .map(tag => `<span class="tag-pill">${escapeHtml(tag)}</span>`)
+      .join('');
+  }
+
+  const feedbackCache = new Map();
+
+  function truncateText(text = '', limit = 140) {
+    if (!text) return '';
+    return text.length > limit ? `${text.slice(0, limit)}…` : text;
+  }
+
+  function renderFeedbackStatus(container, status, reviewer) {
+    const normalized = (status || 'pending').toLowerCase();
+    container.innerHTML = '';
+
+    const badge = document.createElement('span');
+    badge.className = `status-badge ${normalized}`;
+    badge.textContent = normalized.toUpperCase();
+    container.appendChild(badge);
+
+    if (reviewer) {
+      const reviewerEl = document.createElement('div');
+      reviewerEl.className = 'feedback-reviewer';
+      reviewerEl.textContent = `by ${reviewer}`;
+      container.appendChild(reviewerEl);
+    }
+  }
+
   async function loadTrainingAssets() {
     const listEl = document.getElementById('training-assets-list');
+    if (!listEl) return;
+
     listEl.innerHTML = '<span class="loading-spinner"></span> Loading training assets...';
+
     try {
-      const token = (await supabaseClient.auth.getSession()).data?.session?.access_token;
+      const session = await supabaseClient.auth.getSession();
+      const token = session.data?.session?.access_token;
+      if (!token) throw new Error('Missing authentication token');
+
       const res = await fetch('/.netlify/functions/admin-list-training-assets', {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      if (!data.ok) throw new Error(data.error || 'Failed to load training assets');
+      if (!res.ok || !data.ok) {
+        const errorMsg = data.error || data.message || res.statusText || 'Failed to load training assets';
+        throw new Error(errorMsg);
+      }
 
-      // Accept either data.assets or legacy data.items
-      const rows = data.assets ?? data.items ?? [];
-      if (!rows.length) {
-        listEl.innerHTML = '<div>No training assets uploaded yet.</div>';
+      const assets = data.assets ?? data.items ?? [];
+      const totalCount = data.total ?? data.count ?? assets.length;
+
+      if (!assets.length) {
+        listEl.innerHTML = '<div class="empty-state">No training assets uploaded yet.</div>';
         return;
       }
 
-      listEl.innerHTML = rows.map(a => `
-        <div class="asset-row" data-asset-id="${a.id}" style="display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border-color);padding:10px;border-radius:6px;margin:.5rem 0;">
-          <div>
-            <div><strong>${a.filename}</strong> <small>(${a.asset_type})</small></div>
-            <div style="font-size:.8rem;color:var(--text-secondary);">
-              ${Math.round((a.size_bytes||0)/1024)} KB • ${new Date(a.created_at).toLocaleString()}
-              ${a.tags?.length ? ` • Tags: ${a.tags.join(', ')}` : ''}
-            </div>
-          </div>
-          <div class="admin-actions">
-            ${a.asset_type === 'jsonl'
-              ? `<button class="btn btn-secondary btn-small" onclick="previewJsonl('${encodeURIComponent(a.object_path)}')">🔎 Preview</button>`
-              : (a.url ? `<a class="btn btn-secondary btn-small" href="${a.url}" target="_blank" rel="noopener">👁️ View</a>` : '')
-            }
-            <button class="btn btn-secondary btn-small" onclick="deleteTrainingAsset('${a.id}')">🗑️ Delete</button>
-          </div>
-        </div>
-      `).join('');
-    } catch (e) {
-      listEl.innerHTML = `<span style="color: var(--error-color);">❌ Failed to load assets: ${e.message}</span>`;
+      const container = document.createElement('div');
+      container.className = 'training-assets-container';
+
+      const summary = document.createElement('div');
+      summary.className = 'training-assets-summary';
+      summary.textContent = `Showing ${assets.length} of ${totalCount} assets`;
+      const totalBytes = data.stats?.totalBytes ?? data.totalBytes;
+      if (typeof totalBytes === 'number') {
+        summary.textContent += ` • ${formatBytes(totalBytes)} total`;
+      }
+      container.appendChild(summary);
+
+      const table = document.createElement('table');
+      table.className = 'admin-table training-assets-table';
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th scope="col">File</th>
+            <th scope="col">Type</th>
+            <th scope="col">Size</th>
+            <th scope="col">Tags</th>
+            <th scope="col">Source</th>
+            <th scope="col">Created</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+      `;
+      const tbody = document.createElement('tbody');
+
+      assets.forEach(asset => {
+        const tr = document.createElement('tr');
+        const tags = Array.isArray(asset.tags) ? [...asset.tags] : [];
+        const isCurated = asset.source === 'curated' || tags.includes('origin:curated-feedback');
+        if (isCurated) {
+          tr.classList.add('curated-row');
+        }
+
+        const fileCell = document.createElement('td');
+        fileCell.innerHTML = `
+          <div class="asset-name">${escapeHtml(asset.filename || asset.object_path || 'Unnamed asset')}</div>
+          <div class="asset-path">${escapeHtml(asset.object_path || '')}</div>
+        `;
+
+        const typeCell = document.createElement('td');
+        const assetType = (asset.asset_type || asset.assetType || '').toString().toLowerCase();
+        typeCell.textContent = assetType ? assetType.toUpperCase() : '—';
+
+        const sizeCell = document.createElement('td');
+        sizeCell.textContent = formatBytes(asset.size_bytes ?? asset.size ?? 0);
+
+        const tagsCell = document.createElement('td');
+        tagsCell.innerHTML = renderAssetTags(tags);
+
+        const sourceCell = document.createElement('td');
+        const sourceLabel = isCurated ? 'Curated' : (asset.source || 'Admin Upload');
+        sourceCell.innerHTML = `<span class="status-badge ${isCurated ? 'status-primary' : 'status-neutral'}">${escapeHtml(sourceLabel)}</span>`;
+
+        const createdCell = document.createElement('td');
+        const createdAt = asset.created_at || asset.inserted_at || asset.updated_at;
+        createdCell.textContent = createdAt ? new Date(createdAt).toLocaleString() : '—';
+
+        const actionsCell = document.createElement('td');
+        actionsCell.className = 'asset-actions';
+
+        if (assetType === 'jsonl' || (asset.object_path || '').endsWith('.jsonl')) {
+          const previewBtn = document.createElement('button');
+          previewBtn.className = 'btn btn-secondary btn-small';
+          previewBtn.textContent = '🔎 Preview';
+          previewBtn.addEventListener('click', () => previewJsonl(asset.object_path));
+          actionsCell.appendChild(previewBtn);
+        } else if (asset.url) {
+          const viewLink = document.createElement('a');
+          viewLink.className = 'btn btn-secondary btn-small';
+          viewLink.textContent = '�️ View';
+          viewLink.href = asset.url;
+          viewLink.target = '_blank';
+          viewLink.rel = 'noopener';
+          actionsCell.appendChild(viewLink);
+        }
+
+        const downloadUrl = asset.download_url || asset.signed_url || asset.url;
+        if (downloadUrl) {
+          const downloadBtn = document.createElement('a');
+          downloadBtn.className = 'btn btn-secondary btn-small';
+          downloadBtn.textContent = '⬇️ Download';
+          downloadBtn.href = downloadUrl;
+          downloadBtn.target = '_blank';
+          downloadBtn.rel = 'noopener';
+          actionsCell.appendChild(downloadBtn);
+        }
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn btn-secondary btn-small';
+        deleteBtn.textContent = '🗑️ Delete';
+        if (isCurated || !asset.id) {
+          deleteBtn.disabled = true;
+          deleteBtn.title = 'Curated assets cannot be deleted from this panel';
+        } else {
+          deleteBtn.addEventListener('click', () => deleteTrainingAsset(asset.id, { filename: asset.filename }));
+        }
+        actionsCell.appendChild(deleteBtn);
+
+        tr.append(fileCell, typeCell, sizeCell, tagsCell, sourceCell, createdCell, actionsCell);
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+      container.appendChild(table);
+
+      if (data.nextCursor || data.pagination?.hasMore) {
+        const notice = document.createElement('div');
+        notice.className = 'training-assets-pagination';
+        notice.textContent = 'More assets are available; use Supabase pagination to explore further.';
+        container.appendChild(notice);
+      }
+
+      listEl.innerHTML = '';
+      listEl.appendChild(container);
+    } catch (error) {
+      console.error('Failed to load training assets', error);
+      listEl.innerHTML = `<span class="error-text">❌ Failed to load assets: ${escapeHtml(error.message)}</span>`;
     }
   }
 
@@ -1208,59 +1803,117 @@
   }
 
   async function previewJsonl(objectPath) {
+    if (!objectPath) {
+      showToast('Preview failed: missing object path.', 'error');
+      return;
+    }
+
     try {
       const session = await supabaseClient.auth.getSession();
       const token = session.data?.session?.access_token;
-      const r = await fetch(`/.netlify/functions/admin-jsonl-preview?object_path=${objectPath}&limit=20`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      if (!token) throw new Error('Missing authentication token');
+
+      const params = new URLSearchParams({ object_path: objectPath, limit: '25' });
+      const res = await fetch(`/.netlify/functions/admin-jsonl-preview?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-      const data = await r.json();
-      if (!data.ok) throw new Error(data.error || 'Preview failed');
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        if (data.code === 'invalid_jsonl') {
+          showToast(`JSONL validation failed: ${data.error}`, 'error');
+          return;
+        }
+        const reason = data.error || res.statusText || 'Preview failed';
+        throw new Error(reason);
+      }
 
       const lines = data.lines || [];
-      const html = lines.map(l => 
-        l.error 
-          ? `Line ${l.lineNumber}: <span style="color: var(--error-color);">ERROR - ${l.error}</span>`
-          : `Line ${l.lineNumber}: ${l.keys.join(', ')}`
-      ).join('<br>');
-      
-      // Phase 4.6.1: Use new modal system instead of toast
+      const metaParts = [
+        `<strong>Sample Size:</strong> ${formatBytes(data.sampleSizeBytes || 0)}`,
+        data.assetSizeBytes ? `<strong>Total Size:</strong> ${formatBytes(data.assetSizeBytes)}` : '',
+        data.truncated ? '<strong>Note:</strong> Preview truncated to first 64KB' : ''
+      ].filter(Boolean);
+
+      const previewHtml = lines.length
+        ? lines.map(entry => {
+            if (entry.error) {
+              return `
+                <div class="jsonl-line jsonl-line-error">
+                  <div class="jsonl-line-number">#${entry.lineNumber}</div>
+                  <div class="jsonl-line-content">
+                    <div class="jsonl-error-message">Parse error: ${escapeHtml(entry.error)}</div>
+                    <pre>${escapeHtml(entry.raw || '')}</pre>
+                  </div>
+                </div>
+              `;
+            }
+
+            const keys = Array.isArray(entry.keys) && entry.keys.length
+              ? `<div class="jsonl-keys">${entry.keys.map(key => `<span class="tag-pill">${escapeHtml(key)}</span>`).join('')}</div>`
+              : '';
+
+            const prettyJson = escapeHtml(JSON.stringify(entry.json, null, 2));
+            return `
+              <div class="jsonl-line">
+                <div class="jsonl-line-number">#${entry.lineNumber}</div>
+                <div class="jsonl-line-content">
+                  ${keys}
+                  <pre>${prettyJson}</pre>
+                </div>
+              </div>
+            `;
+          }).join('')
+        : '<div class="empty-state">No JSON lines found in preview.</div>';
+
       const modalHTML = `
         <div class="jsonl-preview-modal">
-          <h3>JSONL Preview: ${objectPath}</h3>
-          <div class="preview-info">
-            <p><strong>Sample Size:</strong> ${data.sampleSizeBytes} bytes</p>
-            <p><strong>Lines Preview:</strong> ${lines.length}</p>
-          </div>
-          <div class="preview-content" style="max-height: 400px; overflow-y: auto; background: var(--bg-secondary); padding: 1rem; border-radius: 5px; font-family: monospace; font-size: 0.9rem;">
-            ${html}
-          </div>
-          <div style="margin-top: 1rem; text-align: right;">
+          <h3>JSONL Preview</h3>
+          <div class="preview-meta">${metaParts.join(' • ') || 'No additional metadata available.'}</div>
+          <div class="preview-content">${previewHtml}</div>
+          <div class="modal-footer actions-right">
             <button class="btn btn-secondary" onclick="hideModal()">Close</button>
           </div>
         </div>
       `;
-      
+
       showModal(modalHTML);
-    } catch (e) {
-      showToast(`Preview failed: ${e.message}`, 'error');
+    } catch (error) {
+      console.error('JSONL preview failed:', error);
+      showToast(`Preview failed: ${error.message}`, 'error');
     }
   }
 
-  async function deleteTrainingAsset(id) {
-    if (!confirm('Delete this training asset?')) return;
+  async function deleteTrainingAsset(id, meta = {}) {
+    if (!id) {
+      showToast('Curated assets cannot be deleted from this panel.', 'info');
+      return;
+    }
+
+    const label = meta.filename ? ` "${meta.filename}"` : '';
+    if (!confirm(`Delete training asset${label}? This cannot be undone.`)) return;
+
     try {
-      const token = (await supabaseClient.auth.getSession()).data?.session?.access_token;
+      const session = await supabaseClient.auth.getSession();
+      const token = session.data?.session?.access_token;
+      if (!token) throw new Error('Missing authentication token');
+
       const res = await fetch('/.netlify/functions/admin-delete-training-asset', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
       });
       const data = await res.json();
-      if (!data.ok) throw new Error(data.error || 'Delete failed');
-      loadTrainingAssets();
-    } catch (e) {
-      alert(`Failed to delete asset: ${e.message}`);
+      if (!res.ok || !data.ok) {
+        const errorMsg = data.error || res.statusText || 'Delete failed';
+        throw new Error(errorMsg);
+      }
+
+      showToast('Training asset deleted.', 'success');
+      await loadTrainingAssets();
+    } catch (error) {
+      console.error('Delete training asset failed:', error);
+      showToast(`Failed to delete asset: ${error.message}`, 'error');
     }
   }
 
