@@ -29,6 +29,17 @@ To access the admin console:
 
 4. **Access Console** at [/admin/admin-controlpanel.html](/admin/admin-controlpanel.html)
 
+#### Optional: Admin Passphrase (Second Factor)
+
+For additional security, you can require a passphrase for admin access:
+
+1. **Set Environment Variable**: `ADMIN_PASSPHRASE=your-secret-passphrase`
+2. **Admin users** will be redirected to `/admin-login.html` to enter the passphrase
+3. **Passphrase is server-side only** - never exposed to client
+4. **Short-lived session flag** stored in `sessionStorage` for convenience
+
+Note: The passphrase is checked by the `admin-health` function when the `X-Admin-Passphrase` header is present.
+
 #### Admin Subpages:
 - **Access Control** - Manage admin permissions and user accounts
 - **Payment Management** - View subscriptions, webhooks, plan distribution
@@ -670,6 +681,17 @@ For support and questions:
   - Fixed template wizard modal initialization
   - Added AI generator 4-stage progress (10%/40%/80%/100%)
   - Improved error handling across all systems
+- **Phase 4.7.18** (2025-10-02): Align to Complete Functions & Buttons Reference
+  - **modals.js**: Dual-mode UMD with window globals (`showModal`, `closeModal`)
+  - **AI Generator**: Real SSE progress (5→25→40→50→60-90→95→100%), removed example prompts
+  - **Smart Suggestions**: Detail capture prompts, multi-select with confirmation flow
+  - **AI Sidebar**: Sticky positioning with proper overflow handling
+  - **My Designs**: Fixed modal/copy/download with clipboard API + fallback
+  - **Templates**: Navigation-based wizard opening, View Code/README modals
+  - **Admin**: Optional passphrase second-factor (`ADMIN_PASSPHRASE` env var)
+  - **CSS**: Modal z-index 10000+, progress bar smooth transitions (0.25s)
+  - **Tests**: sse-progress.smoke.mjs, admin-gate.smoke.mjs
+
 - **Phase 4.7.10** (2025-01-XX): Hotfix — UMD modals, Admin JWT, Smart Suggestions ✅
   - Converted modals.js to UMD+ESM dual-mode (fixed "export declarations" error)
   - Rewired admin panel to use flexicadAuth.getSupabaseClient() (no direct window.supabase)

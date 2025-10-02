@@ -102,7 +102,9 @@ export async function handler(event) {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
     'Connection': 'keep-alive',
-    ...corsHeaders
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
   };
 
   // Build SSE response body
@@ -112,8 +114,8 @@ export async function handler(event) {
   };
 
   try {
-    // Progress 1: Auth complete
-    addEvent('progress', { pct: 10, note: 'Authenticated' });
+    // Progress 1: Auth complete (5%)
+    addEvent('progress', { pct: 5, note: 'Authenticated' });
 
     // Initialize Supabase (skip if dev mode without real client)
     let examples = [];
@@ -123,16 +125,17 @@ export async function handler(event) {
         process.env.SUPABASE_SERVICE_ROLE_KEY
       );
 
-      // Progress 2: Start knowledge sampling
-      addEvent('progress', { pct: 20, note: 'Slicing knowledge base...' });
+      // Progress 2: Start knowledge sampling (10%)
+      addEvent('progress', { pct: 10, note: 'Loading knowledge base...' });
       
       examples = await sampleKnowledge(supabase, 50);
       
-      addEvent('progress', { pct: 40, note: `Loaded ${examples.length} examples` });
+      // Progress 3: Knowledge loaded (25%)
+      addEvent('progress', { pct: 25, note: `Loaded ${examples.length} examples` });
     } else {
       // Dev mode: skip knowledge sampling
-      addEvent('progress', { pct: 20, note: 'Slicing knowledge (dev mode)...' });
-      addEvent('progress', { pct: 40, note: 'Knowledge ready (dev mode)' });
+      addEvent('progress', { pct: 10, note: 'Loading knowledge (dev mode)...' });
+      addEvent('progress', { pct: 25, note: 'Knowledge ready (dev mode)' });
     }
 
     // Build system prompt
@@ -144,8 +147,8 @@ export async function handler(event) {
       userMessage += `\n\nContext tags: ${context.join(', ')}`;
     }
 
-    // Progress 3: Preparing AI model
-    addEvent('progress', { pct: 50, note: 'Model call started...' });
+    // Progress 4: Preparing AI model (40%)
+    addEvent('progress', { pct: 40, note: 'Initializing AI model...' });
 
     // Initialize OpenAI
     const openai = new OpenAI({
@@ -154,7 +157,7 @@ export async function handler(event) {
 
     const modelName = process.env.OPENAI_MODEL || 'gpt-4o-mini';
     
-    addEvent('progress', { pct: 60, note: `Streaming from ${modelName}...` });
+    addEvent('progress', { pct: 50, note: `Streaming from ${modelName}...` });
 
     // Create streaming completion
     const completion = await openai.chat.completions.create({
@@ -168,10 +171,10 @@ export async function handler(event) {
       max_tokens: 2000
     });
 
-    // Progress 4: Streaming tokens
+    // Progress 5: Streaming tokens (60-90%)
     let generatedCode = '';
     let tokenCount = 0;
-    let lastProgressPct = 60;
+    let lastProgressPct = 50;
 
     for await (const chunk of completion) {
       const delta = chunk.choices?.[0]?.delta?.content || '';
@@ -180,22 +183,22 @@ export async function handler(event) {
         generatedCode += delta;
         tokenCount++;
 
-        // Update progress incrementally (60 → 90)
-        // Send update every ~50 tokens to avoid spam
-        if (tokenCount % 50 === 0) {
-          const estimatedProgress = Math.min(90, 60 + Math.floor((tokenCount / 1000) * 30));
+        // Update progress incrementally (50 → 90)
+        // Send update every ~30 tokens for more granular feedback
+        if (tokenCount % 30 === 0) {
+          const estimatedProgress = Math.min(90, 50 + Math.floor((tokenCount / 800) * 40));
           if (estimatedProgress > lastProgressPct) {
-            addEvent('progress', { pct: estimatedProgress, note: `Generating... (${tokenCount} tokens)` });
+            addEvent('progress', { pct: estimatedProgress, note: `Generating code... (${tokenCount} tokens)` });
             lastProgressPct = estimatedProgress;
           }
         }
       }
     }
 
-    // Progress 5: Finalizing
-    addEvent('progress', { pct: 95, note: 'Finalizing...' });
+    // Progress 6: Finalizing (95%)
+    addEvent('progress', { pct: 95, note: 'Finalizing design...' });
 
-    // Progress 6: Complete
+    // Progress 7: Complete (100%)
     addEvent('progress', { pct: 100, note: 'Generation complete!' });
 
     // Send final result

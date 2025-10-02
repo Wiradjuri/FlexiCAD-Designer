@@ -104,6 +104,7 @@
     <script src="/js/secure-config-loader.js"></script>
     <script src="/js/flexicad-auth.js"></script>
     <script src="/js/navbar-manager.js"></script>
+    <script src="/js/modals.js"></script>
     <script src="/js/stl-exporter.js"></script>
     <script>
         // For My Designs page, we need both session check AND Supabase client for database operations
@@ -263,19 +264,72 @@
             const design = designs.find(d => d.id === designId);
             if (!design) return;
             
+            await copyToClipboard(design.code, event?.target);
+        }
+
+        async function copyModalCode() {
+            if (!currentDesign) return;
+            await copyToClipboard(currentDesign.code, event?.target);
+        }
+
+        async function copyToClipboard(text, buttonElement) {
             try {
-                await navigator.clipboard.writeText(design.code);
-                
-                // Visual feedback
-                const btn = event.target;
-                const originalText = btn.textContent;
-                btn.textContent = '✅ Copied!';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                }, 2000);
+                // Try modern Clipboard API first
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                    showCopyFeedback(buttonElement);
+                } else {
+                    // Fallback for HTTP or older browsers
+                    fallbackCopyToClipboard(text, buttonElement);
+                }
             } catch (error) {
                 console.error('Failed to copy code:', error);
-                alert('Failed to copy code to clipboard');
+                // Try fallback
+                fallbackCopyToClipboard(text, buttonElement);
+            }
+        }
+
+        function fallbackCopyToClipboard(text, buttonElement) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showCopyFeedback(buttonElement);
+                } else {
+                    throw new Error('execCommand failed');
+                }
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                if (window.FCModals && window.FCModals.toast) {
+                    window.FCModals.toast('Failed to copy. Please select and copy manually.', 'error');
+                } else {
+                    alert('Failed to copy code to clipboard');
+                }
+            } finally {
+                document.body.removeChild(textArea);
+            }
+        }
+
+        function showCopyFeedback(buttonElement) {
+            if (buttonElement) {
+                const originalText = buttonElement.textContent;
+                buttonElement.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    buttonElement.textContent = originalText;
+                }, 2000);
+            }
+            
+            // Toast notification
+            if (window.FCModals && window.FCModals.toast) {
+                window.FCModals.toast('Code copied to clipboard!', 'success');
             }
         }
 
@@ -284,7 +338,7 @@
             if (!design) return;
             
             const fileName = `${design.name.toLowerCase().replace(/\s+/g, '-')}.scad`;
-            const blob = new Blob([design.code], { type: 'text/plain' });
+            const blob = new Blob([design.code], { type: 'text/plain; charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -293,6 +347,12 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+        }
+
+        function downloadModalCode() {
+            if (currentDesign) {
+                downloadDesign(currentDesign.id);
+            }
         }
 
         function showDeleteConfirmation(designId) {
@@ -334,29 +394,6 @@
             if (currentDesign) {
                 closeModal('designModal');
                 showDeleteConfirmation(currentDesign.id);
-            }
-        }
-
-        function copyModalCode() {
-            if (!currentDesign) return;
-            
-            navigator.clipboard.writeText(currentDesign.code).then(() => {
-                // Visual feedback
-                const btn = event.target;
-                const originalText = btn.textContent;
-                btn.textContent = 'Copied!';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy code:', err);
-                alert('Failed to copy code to clipboard');
-            });
-        }
-
-        function downloadModalCode() {
-            if (currentDesign) {
-                downloadDesign(currentDesign.id);
             }
         }
 

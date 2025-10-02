@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlexiCAD Designer - Admin Login</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="/css/dark-theme.css">
+    <style>
+        .admin-login-container {
+            max-width: 480px;
+            margin: 4rem auto;
+            padding: 0 1rem;
+        }
+        
+        .admin-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .admin-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .admin-header h1 {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.75rem;
+        }
+        
+        .admin-header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .admin-status {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .admin-status.info {
+            background: rgba(88, 166, 255, 0.1);
+            border: 1px solid rgba(88, 166, 255, 0.3);
+            color: var(--text-accent);
+        }
+        
+        .admin-status.error {
+            background: rgba(218, 54, 51, 0.1);
+            border: 1px solid rgba(218, 54, 51, 0.3);
+            color: var(--error);
+        }
+        
+        .admin-status.success {
+            background: rgba(35, 134, 54, 0.1);
+            border: 1px solid rgba(35, 134, 54, 0.3);
+            color: var(--success);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation will be managed by navbar-manager.js -->
+
+    <div class="admin-login-container">
+        <div class="admin-card">
+            <div class="admin-header">
+                <h1>🔐 Admin Access</h1>
+                <p>Additional authentication required</p>
+            </div>
+            
+            <div id="statusMessage" class="admin-status info">
+                Checking authentication status...
+            </div>
+            
+            <form id="adminLoginForm" class="hidden">
+                <div class="form-group">
+                    <label for="passphrase" class="form-label">Admin Passphrase</label>
+                    <input 
+                        type="password" 
+                        id="passphrase" 
+                        class="form-input" 
+                        placeholder="Enter admin passphrase"
+                        required
+                        autocomplete="off"
+                    >
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-full" id="submitBtn">
+                    <span class="btn-text">🔓 Unlock Admin Panel</span>
+                    <div class="spinner hidden"></div>
+                </button>
+            </form>
+            
+            <div class="mt-3" style="text-align: center;">
+                <a href="index.html" class="text-secondary" style="font-size: 0.9rem;">← Back to Home</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2" defer></script>
+    <script src="/js/secure-config-loader.js" defer></script>
+    <script src="/js/flexicad-auth.js" defer></script>
+    <script src="/js/navbar-manager.js" defer></script>
+    <script src="/js/modals.js" defer></script>
+    <script>
+        let sessionToken = null;
+        
+        async function checkAuthStatus() {
+            const statusEl = document.getElementById('statusMessage');
+            const formEl = document.getElementById('adminLoginForm');
+            
+            try {
+                // Wait for auth system to initialize
+                if (window.flexicadAuth && window.flexicadAuth.init) {
+                    await window.flexicadAuth.init();
+                }
+                
+                // Get session token
+                if (window.flexicadAuth && window.flexicadAuth.getSessionToken) {
+                    sessionToken = await window.flexicadAuth.getSessionToken();
+                }
+                
+                if (!sessionToken) {
+                    statusEl.className = 'admin-status error';
+                    statusEl.textContent = 'You must be logged in first. Redirecting to login...';
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                    return;
+                }
+                
+                // Check if already admin (bypass passphrase if already validated)
+                const healthResponse = await fetch('/.netlify/functions/admin-health', {
+                    headers: {
+                        'Authorization': `Bearer ${sessionToken}`
+                    }
+                });
+                
+                if (healthResponse.ok) {
+                    const data = await healthResponse.json();
+                    if (data.ok && data.admin) {
+                        statusEl.className = 'admin-status success';
+                        statusEl.textContent = 'Admin access already verified. Redirecting...';
+                        setTimeout(() => {
+                            window.location.href = 'admin-controlpanel.html';
+                        }, 1500);
+                        return;
+                    }
+                }
+                
+                // Show passphrase form
+                statusEl.className = 'admin-status info';
+                statusEl.textContent = 'Please enter your admin passphrase to continue.';
+                formEl.classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                statusEl.className = 'admin-status error';
+                statusEl.textContent = 'Authentication error. Please try logging in again.';
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+            }
+        }
+        
+        async function handleAdminLogin(event) {
+            event.preventDefault();
+            
+            const passphrase = document.getElementById('passphrase').value.trim();
+            const statusEl = document.getElementById('statusMessage');
+            const submitBtn = document.getElementById('submitBtn');
+            const spinner = submitBtn.querySelector('.spinner');
+            const btnText = submitBtn.querySelector('.btn-text');
+            
+            if (!passphrase) {
+                statusEl.className = 'admin-status error';
+                statusEl.textContent = 'Please enter a passphrase.';
+                return;
+            }
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            spinner.classList.remove('hidden');
+            btnText.textContent = 'Verifying...';
+            statusEl.className = 'admin-status info';
+            statusEl.textContent = 'Verifying passphrase...';
+            
+            try {
+                // Call admin-verify function with passphrase in header
+                const response = await fetch('/.netlify/functions/admin-health', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${sessionToken}`,
+                        'X-Admin-Passphrase': passphrase,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.ok && data.admin) {
+                        // Store short-lived flag (defense in depth - server still validates)
+                        sessionStorage.setItem('admin-pass', `ok:${Date.now()}`);
+                        
+                        statusEl.className = 'admin-status success';
+                        statusEl.textContent = '✅ Access granted! Redirecting to admin panel...';
+                        
+                        setTimeout(() => {
+                            window.location.href = 'admin-controlpanel.html';
+                        }, 1500);
+                        return;
+                    }
+                }
+                
+                // Failed validation
+                statusEl.className = 'admin-status error';
+                statusEl.textContent = '❌ Invalid passphrase or insufficient permissions.';
+                
+                // Reset form
+                submitBtn.disabled = false;
+                spinner.classList.add('hidden');
+                btnText.textContent = '🔓 Unlock Admin Panel';
+                document.getElementById('passphrase').value = '';
+                document.getElementById('passphrase').focus();
+                
+            } catch (error) {
+                console.error('Admin login error:', error);
+                statusEl.className = 'admin-status error';
+                statusEl.textContent = 'Connection error. Please try again.';
+                
+                // Reset button
+                submitBtn.disabled = false;
+                spinner.classList.add('hidden');
+                btnText.textContent = '🔓 Unlock Admin Panel';
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuthStatus();
+            document.getElementById('adminLoginForm').addEventListener('submit', handleAdminLogin);
+        });
+    </script>
+</body>
+</html>

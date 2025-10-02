@@ -509,7 +509,7 @@ body {
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 10000;
 }
 
 .modal.active {
@@ -526,6 +526,7 @@ body {
   overflow-y: auto;
   position: relative;
   min-width: 500px;
+  z-index: 10001;
 }
 
 .modal-header {
@@ -2022,4 +2023,22 @@ pre.code-view {
   .preview-actions .btn {
     width: 100%;
   }
+}
+
+/* Phase 4.7.18: AI Sidebar - Sticky positioning */
+.ai-sidebar {
+  position: sticky;
+  top: var(--nav-height, 64px);
+  z-index: 10;
+  max-height: calc(100vh - var(--nav-height, 64px) - 16px);
+  overflow: auto;
+}
+
+/* FC Modal system z-index */
+.fc-modal-overlay {
+  z-index: 10000 !important;
+}
+
+.fc-modal-content {
+  z-index: 10001 !important;
 }

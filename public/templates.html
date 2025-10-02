@@ -192,12 +192,8 @@
 
         function openTemplateWizard(templateId) {
             const id = (templateId || '').toString();
-            if (window.templateWizards?.showCreateWizard) {
-                window.templateWizards.showCreateWizard(id);
-            } else {
-                console.error('Template wizard unavailable for', id);
-                alert('Template wizard not available. Please refresh the page and try again.');
-            }
+            // Navigate to template-wizard.html with template ID
+            window.location.href = 'template-wizard.html?id=' + encodeURIComponent(id);
         }
 
         window.openTemplateWizard = openTemplateWizard;
@@ -228,11 +224,24 @@
                 document.getElementById('codeFileName').textContent = `${templateId}.scad`;
                 document.getElementById('codeContent').textContent = code;
                 
-                showModal('codeModal');
+                // Use showModal from modals.js (window global)
+                if (window.showModal) {
+                    window.showModal('codeModal');
+                } else {
+                    // Fallback
+                    document.getElementById('codeModal').classList.add('active');
+                }
                 
             } catch (error) {
                 console.error('Error loading template code:', error);
-                alert('Failed to load template code. The template file may not exist or there was a network error.');
+                if (window.FCModals && window.FCModals.show) {
+                    window.FCModals.show({
+                        title: 'Error',
+                        body: 'Failed to load template code. The template file may not exist or there was a network error.'
+                    });
+                } else {
+                    alert('Failed to load template code. The template file may not exist or there was a network error.');
+                }
             }
         }
 
@@ -257,16 +266,42 @@
                     throw new Error('README not available for this template');
                 }
                 
-                const html = marked.parse(markdown);
+                // Parse markdown with marked if available
+                let html;
+                if (window.marked && window.marked.parse) {
+                    html = window.marked.parse(markdown);
+                } else {
+                    // Fallback: basic markdown-to-html conversion
+                    html = markdown
+                        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                        .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+                        .replace(/\*(.*)\*/gim, '<em>$1</em>')
+                        .replace(/\n/gim, '<br>');
+                }
                 
                 document.getElementById('readmeModalTitle').textContent = `${template.name} - Guide`;
                 document.getElementById('readmeContent').innerHTML = html;
                 
-                showModal('readmeModal');
+                // Use showModal from modals.js (window global)
+                if (window.showModal) {
+                    window.showModal('readmeModal');
+                } else {
+                    // Fallback
+                    document.getElementById('readmeModal').classList.add('active');
+                }
                 
             } catch (error) {
                 console.error('Error loading README:', error);
-                alert('README guide not available for this template.');
+                if (window.FCModals && window.FCModals.show) {
+                    window.FCModals.show({
+                        title: 'README Not Available',
+                        body: 'README guide not available for this template.'
+                    });
+                } else {
+                    alert('README guide not available for this template.');
+                }
             }
         }
 
@@ -318,7 +353,11 @@
             const codeContent = document.getElementById('codeContent').textContent;
             
             if (!codeContent || codeContent.trim() === '') {
-                alert('No code content to copy');
+                if (window.FCModals && window.FCModals.toast) {
+                    window.FCModals.toast('No code content to copy', 'error');
+                } else {
+                    alert('No code content to copy');
+                }
                 return;
             }
             
@@ -355,7 +394,11 @@
                 }
             } catch (err) {
                 console.error('Fallback copy failed:', err);
-                alert('Failed to copy code to clipboard. Please manually select and copy the code.');
+                if (window.FCModals && window.FCModals.toast) {
+                    window.FCModals.toast('Failed to copy. Please manually select and copy the code.', 'error');
+                } else {
+                    alert('Failed to copy code to clipboard. Please manually select and copy the code.');
+                }
             } finally {
                 document.body.removeChild(textArea);
             }
@@ -366,12 +409,17 @@
             const btn = document.querySelector('#codeModal .code-header button');
             if (btn) {
                 const originalText = btn.textContent;
-                btn.textContent = 'Copied!';
+                btn.textContent = '✅ Copied!';
                 btn.style.backgroundColor = '#10b981';
                 setTimeout(() => {
                     btn.textContent = originalText;
                     btn.style.backgroundColor = '';
                 }, 2000);
+            }
+            
+            // Toast notification
+            if (window.FCModals && window.FCModals.toast) {
+                window.FCModals.toast('Code copied to clipboard!', 'success');
             }
         }
 
