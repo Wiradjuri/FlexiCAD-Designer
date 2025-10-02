@@ -87,6 +87,8 @@ export async function handler(event) {
     return json(auth.status, { ok: false, error: auth.error });
   }
 
+  console.log('[SSE] Authenticated:', auth.requesterEmail, auth.isDev ? '(dev mode)' : '');
+
   // Parse request body
   let body;
   try {
@@ -95,133 +97,140 @@ export async function handler(event) {
     return json(400, { ok: false, error: 'Invalid JSON body' });
   }
 
-  const { prompt: userPrompt, designName, context = [] } = body;
+  const { prompt: userPrompt, design_name: designName, context = [] } = body;
 
   if (!userPrompt || userPrompt.trim().length === 0) {
     return json(400, { ok: false, error: 'Prompt is required' });
   }
 
-  // Create SSE stream
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream({
-    async start(controller) {
-      const send = (type, data) => {
-        const payload = JSON.stringify(data);
-        controller.enqueue(encoder.encode(`event: ${type}\ndata: ${payload}\n\n`));
-      };
+  // Create SSE stream with Response (Netlify Functions support)
+  const headers = {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    ...corsHeaders
+  };
 
-      const flush = () => {
-        controller.enqueue(encoder.encode(': keepalive\n\n'));
-      };
+  // Build SSE response body
+  let sseBody = '';
+  const addEvent = (type, data) => {
+    sseBody += `event: ${type}\ndata: ${JSON.stringify(data)}\n\n`;
+  };
 
-      try {
-        // Progress 1: Auth complete
-        send('progress', { pct: 10, note: 'Authenticated' });
+  try {
+    // Progress 1: Auth complete
+    addEvent('progress', { pct: 10, note: 'Authenticated' });
 
-        // Initialize Supabase
-        const supabase = createClient(
-          process.env.SUPABASE_URL,
-          process.env.SUPABASE_SERVICE_ROLE_KEY
-        );
+    // Initialize Supabase (skip if dev mode without real client)
+    let examples = [];
+    if (!auth.isDev || auth.supabase) {
+      const supabase = auth.supabase || createClient(
+        process.env.SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY
+      );
 
-        // Progress 2: Start knowledge sampling
-        send('progress', { pct: 20, note: 'Sampling knowledge base...' });
-        
-        const examples = await sampleKnowledge(supabase, 50);
-        
-        send('progress', { pct: 40, note: `Loaded ${examples.length} examples` });
+      // Progress 2: Start knowledge sampling
+      addEvent('progress', { pct: 20, note: 'Slicing knowledge base...' });
+      
+      examples = await sampleKnowledge(supabase, 50);
+      
+      addEvent('progress', { pct: 40, note: `Loaded ${examples.length} examples` });
+    } else {
+      // Dev mode: skip knowledge sampling
+      addEvent('progress', { pct: 20, note: 'Slicing knowledge (dev mode)...' });
+      addEvent('progress', { pct: 40, note: 'Knowledge ready (dev mode)' });
+    }
 
-        // Build system prompt
-        const systemPrompt = buildSystemPrompt(examples);
+    // Build system prompt
+    const systemPrompt = buildSystemPrompt(examples);
 
-        // Build user message with context
-        let userMessage = userPrompt;
-        if (context.length > 0) {
-          userMessage += `\n\nContext tags: ${context.join(', ')}`;
-        }
+    // Build user message with context
+    let userMessage = userPrompt;
+    if (context.length > 0) {
+      userMessage += `\n\nContext tags: ${context.join(', ')}`;
+    }
 
-        // Progress 3: Preparing AI model
-        send('progress', { pct: 50, note: 'Initializing AI model...' });
+    // Progress 3: Preparing AI model
+    addEvent('progress', { pct: 50, note: 'Model call started...' });
 
-        // Initialize OpenAI
-        const openai = new OpenAI({
-          apiKey: process.env.OPENAI_API_KEY
-        });
+    // Initialize OpenAI
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+    });
 
-        const modelName = process.env.OPENAI_MODEL || 'gpt-4o-mini';
-        
-        send('progress', { pct: 60, note: `Streaming from ${modelName}...` });
+    const modelName = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+    
+    addEvent('progress', { pct: 60, note: `Streaming from ${modelName}...` });
 
-        // Create streaming completion
-        const completion = await openai.chat.completions.create({
-          model: modelName,
-          stream: true,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userMessage }
-          ],
-          temperature: 0.7,
-          max_tokens: 2000
-        });
+    // Create streaming completion
+    const completion = await openai.chat.completions.create({
+      model: modelName,
+      stream: true,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage }
+      ],
+      temperature: 0.7,
+      max_tokens: 2000
+    });
 
-        // Progress 4: Streaming tokens
-        let generatedCode = '';
-        let tokenCount = 0;
+    // Progress 4: Streaming tokens
+    let generatedCode = '';
+    let tokenCount = 0;
+    let lastProgressPct = 60;
 
-        for await (const chunk of completion) {
-          const delta = chunk.choices?.[0]?.delta?.content || '';
-          
-          if (delta) {
-            generatedCode += delta;
-            tokenCount++;
+    for await (const chunk of completion) {
+      const delta = chunk.choices?.[0]?.delta?.content || '';
+      
+      if (delta) {
+        generatedCode += delta;
+        tokenCount++;
 
-            // Update progress based on estimated completion
-            // Assuming ~1500 tokens total, map to 60-95%
-            const estimatedProgress = Math.min(95, 60 + Math.floor((tokenCount / 1500) * 35));
-            send('progress', { pct: estimatedProgress, note: 'Generating code...' });
+        // Update progress incrementally (60 → 90)
+        // Send update every ~50 tokens to avoid spam
+        if (tokenCount % 50 === 0) {
+          const estimatedProgress = Math.min(90, 60 + Math.floor((tokenCount / 1000) * 30));
+          if (estimatedProgress > lastProgressPct) {
+            addEvent('progress', { pct: estimatedProgress, note: `Generating... (${tokenCount} tokens)` });
+            lastProgressPct = estimatedProgress;
           }
-
-          // Send keepalive every few chunks
-          if (tokenCount % 10 === 0) {
-            flush();
-          }
         }
-
-        // Progress 5: Complete
-        send('progress', { pct: 100, note: 'Generation complete!' });
-
-        // Send final result
-        send('result', {
-          ok: true,
-          code: generatedCode,
-          openscad_code: generatedCode,
-          designName: designName || 'Generated Design',
-          tokensUsed: tokenCount,
-          examplesUsed: examples.length
-        });
-
-        // Close stream
-        controller.close();
-
-      } catch (err) {
-        console.error('[SSE] Stream error:', err);
-        send('error', {
-          ok: false,
-          error: err.message || 'Generation failed'
-        });
-        controller.close();
       }
     }
-  });
 
-  // Return SSE response
-  return new Response(stream, {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
-      ...corsHeaders
-    }
-  });
+    // Progress 5: Finalizing
+    addEvent('progress', { pct: 95, note: 'Finalizing...' });
+
+    // Progress 6: Complete
+    addEvent('progress', { pct: 100, note: 'Generation complete!' });
+
+    // Send final result
+    addEvent('result', {
+      ok: true,
+      code: generatedCode,
+      openscad_code: generatedCode,
+      design_name: designName || 'Generated Design',
+      tokensUsed: tokenCount,
+      examplesUsed: examples.length
+    });
+
+    // Return SSE response
+    return {
+      statusCode: 200,
+      headers,
+      body: sseBody
+    };
+
+  } catch (err) {
+    console.error('[SSE] Generation error:', err);
+    addEvent('error', {
+      ok: false,
+      error: err.message || 'Generation failed'
+    });
+    return {
+      statusCode: 200,
+      headers,
+      body: sseBody
+    };
+  }
 }

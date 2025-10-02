@@ -25,6 +25,23 @@ export async function requireAuth(event) {
       return { ok: false, status: 401, code: 'auth_required', error: 'Missing Authorization bearer token' };
     }
 
+    // DEV SUPPORT: Allow test token in development environment only
+    const isDev = process.env.APP_ENV === 'development';
+    const devToken = process.env.DEV_BEARER_TOKEN;
+    if (isDev && devToken && jwt === devToken) {
+      console.log('[require-auth] DEV token accepted (APP_ENV=development)');
+      // Return mock user with first admin email
+      const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
+      const mockEmail = adminEmails[0] || 'dev@example.com';
+      return {
+        ok: true,
+        supabase: null, // Dev mode: no real Supabase client
+        requesterId: 'dev-user-id',
+        requesterEmail: mockEmail,
+        isDev: true
+      };
+    }
+
     const supabase = createClient(
       process.env.SUPABASE_URL,
       process.env.SUPABASE_ANON_KEY,

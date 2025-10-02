@@ -242,28 +242,6 @@
                         <span class="context-tag" data-context="replacement-part">Replacement Part</span>
                     </div>
                 </div>
-
-                <!-- Example Prompts -->
-                <div class="card">
-                    <div class="card-title">💡 Example Prompts</div>
-                    <div class="card-description">
-                        Try these example prompts to get started:
-                    </div>
-                    <div class="card-actions mt-2">
-                        <button class="btn btn-secondary btn-small" onclick="useExamplePrompt('Create a parametric box with rounded corners, 100mm long, 60mm wide, 40mm tall, with a removable lid')">
-                            Parametric Box
-                        </button>
-                        <button class="btn btn-secondary btn-small" onclick="useExamplePrompt('Design a desk phone stand with adjustable angle, suitable for smartphones between 4-7 inches')">
-                            Phone Stand
-                        </button>
-                        <button class="btn btn-secondary btn-small" onclick="useExamplePrompt('Make a wall-mounted key holder with 4 hooks and a small shelf for mail')">
-                            Key Holder
-                        </button>
-                        <button class="btn btn-secondary btn-small" onclick="useExamplePrompt('Create a cable management tray that mounts under a desk, 300mm long with multiple cable slots')">
-                            Cable Tray
-                        </button>
-                    </div>
-                </div>
             </section>
 
             <!-- Right Column: Smart Suggestions -->
@@ -462,7 +440,11 @@
             }
         }
         
-        // Suggestions management - Phase 4.8: Interactive with detail prompts
+        // Suggestions management - Phase 4.7.16: Multi-select with confirmation
+        const selectedSuggestions = new Set();
+        const pendingFragments = [];
+        let hasAskedToAddMore = false;
+
         async function handleSuggestionClick(item) {
             const text = item.dataset.text;
             const needsDetail = item.dataset.needsDetail === 'true';
@@ -474,10 +456,16 @@
                 // Remove suggestion
                 item.classList.remove('active');
                 item.querySelector('.suggestion-icon').textContent = '+';
+                selectedSuggestions.delete(text);
+                
+                // Remove from pending fragments
+                const index = pendingFragments.findIndex(f => f.includes(text));
+                if (index !== -1) {
+                    pendingFragments.splice(index, 1);
+                }
                 
                 // Remove from prompt
                 let currentText = prompt.value;
-                // Remove the suggestion text and any custom details that follow
                 const suggestionRegex = new RegExp(`\\s*${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^,\\.]*`, 'gi');
                 currentText = currentText.replace(suggestionRegex, '');
                 prompt.value = currentText.replace(/\s+/g, ' ').replace(/^\s*,\s*/, '').trim();
@@ -494,6 +482,8 @@
                 // Add suggestion
                 item.classList.add('active');
                 item.querySelector('.suggestion-icon').textContent = '−';
+                selectedSuggestions.add(text);
+                pendingFragments.push(textToAdd);
                 
                 // Add to prompt
                 let currentText = prompt.value.trim();
@@ -504,6 +494,26 @@
                 }
                 currentText += textToAdd;
                 prompt.value = currentText;
+                
+                // After first selection, ask if they want to add more
+                if (!hasAskedToAddMore && selectedSuggestions.size === 1) {
+                    hasAskedToAddMore = true;
+                    setTimeout(async () => {
+                        if (window.confirmModal) {
+                            const wantMore = await window.confirmModal(
+                                'Would you like to add more suggestions to enhance your design?',
+                                'Add More Suggestions?'
+                            );
+                            if (!wantMore) {
+                                // User done selecting, scroll to generate button
+                                document.getElementById('generateForm').scrollIntoView({ 
+                                    behavior: 'smooth', 
+                                    block: 'nearest'
+                                });
+                            }
+                        }
+                    }, 300);
+                }
             }
         }
         
@@ -707,11 +717,6 @@
         function addEnhancement(enhancement) {
             const prompt = document.getElementById('designPrompt');
             prompt.value += (prompt.value.trim() ? ', ' : '') + enhancement;
-        }
-        
-        // Example prompts
-        function useExamplePrompt(text) {
-            document.getElementById('designPrompt').value = text;
         }
         
         // Context tags
