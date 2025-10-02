@@ -507,7 +507,7 @@
             }
         }
         
-        // Form submission
+        // Form submission - Phase 4.7.10: Real SSE progress
         async function generateDesign(event) {
             event?.preventDefault();
             
@@ -533,19 +533,7 @@
             setTimeout(scrollToOutput, 100);
             
             try {
-                // Stage 1: Knowledge slicing (10%)
-                updateProgress(10);
-                
-                // Simulate progress during generation
-                let progressStage = 10;
-                const progressInterval = setInterval(() => {
-                    if (progressStage < 40) {
-                        progressStage += 2;
-                        updateProgress(progressStage);
-                    }
-                }, 150);
-                
-                // Retrieve authentication token for paid users
+                // Retrieve authentication token
                 const auth = window.flexicadAuth;
                 let accessToken = null;
 
@@ -561,55 +549,126 @@
                     throw new Error('Please sign in to generate designs');
                 }
 
-                // Stage 2: Model call (40-80%)
-                updateProgress(40);
-                
-                // Call the AI generation function
-                const response = await fetch('/.netlify/functions/generate-template', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${accessToken}`
-                    },
-                    body: JSON.stringify({
-                        prompt,
-                        designName,
-                        context: getSelectedContexts()
-                    })
-                });
-                
-                clearInterval(progressInterval);
-                
-                // Stage 3: Processing response (80%)
-                updateProgress(80);
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Generation failed');
-                }
-                
-                const result = await response.json();
-                
-                // Stage 4: Rendering output (100%)
-                updateProgress(95);
-                
-                // Complete progress
-                updateProgress(100);
-                
-                // Display generated code
-                document.getElementById('outputCode').textContent = result.code || result.openscad_code;
-                
-                // Hide progress after a short delay
-                setTimeout(() => {
-                    hideProgress();
-                    relocateSuggestions();
-                }, 1000);
+                // Use SSE for real-time progress
+                await generateWithSSE(accessToken, prompt, designName);
                 
             } catch (error) {
                 console.error('Generation error:', error);
                 updateProgress(0);
                 hideProgress();
                 alert('Failed to generate design: ' + error.message);
+            }
+        }
+
+        /**
+         * Generate design using Server-Sent Events for real-time progress
+         * Fallback to non-streaming if SSE fails
+         */
+        async function generateWithSSE(accessToken, prompt, designName) {
+            const requestBody = JSON.stringify({
+                prompt,
+                designName,
+                context: getSelectedContexts()
+            });
+
+            try {
+                // Try SSE endpoint first
+                const response = await fetch('/.netlify/functions/generate-design-stream', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: requestBody
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                // Check if SSE is supported
+                if (!response.body) {
+                    throw new Error('SSE not supported');
+                }
+
+                // Parse SSE stream
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+                    for (const line of lines) {
+                        if (line.startsWith('event:')) {
+                            const eventType = line.substring(6).trim();
+                            continue;
+                        }
+
+                        if (line.startsWith('data:')) {
+                            const data = JSON.parse(line.substring(5).trim());
+
+                            if (data.pct !== undefined) {
+                                // Progress event
+                                updateProgress(data.pct);
+                                console.log(`[SSE Progress] ${data.pct}% - ${data.note || ''}`);
+                            }
+
+                            if (data.ok === true && data.code) {
+                                // Result event
+                                document.getElementById('outputCode').textContent = data.code || data.openscad_code;
+                                
+                                setTimeout(() => {
+                                    hideProgress();
+                                    relocateSuggestions();
+                                }, 1000);
+                            }
+
+                            if (data.ok === false) {
+                                // Error event
+                                throw new Error(data.error || 'Generation failed');
+                            }
+                        }
+                    }
+                }
+
+            } catch (sseError) {
+                console.warn('[SSE] Streaming failed, falling back to non-streaming:', sseError);
+                
+                // Fallback to non-streaming endpoint
+                updateProgress(10);
+                
+                const fallbackResponse = await fetch('/.netlify/functions/generate-template', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: requestBody
+                });
+
+                updateProgress(60);
+
+                if (!fallbackResponse.ok) {
+                    const errorData = await fallbackResponse.json();
+                    throw new Error(errorData.error || 'Generation failed');
+                }
+
+                const result = await fallbackResponse.json();
+                updateProgress(100);
+
+                document.getElementById('outputCode').textContent = result.code || result.openscad_code;
+                
+                setTimeout(() => {
+                    hideProgress();
+                    relocateSuggestions();
+                }, 1000);
             }
         }
         
