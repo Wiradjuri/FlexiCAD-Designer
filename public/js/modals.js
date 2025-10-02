@@ -141,16 +141,34 @@
     console.log(`[toast:${type}]`, msg);
   }
 
-  const api = { show, hide, confirm, prompt, toast };
+  // Simple helpers for traditional modal elements (ID-based)
+  function showModalById(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('active');
+    document.body.classList.add('no-scroll');
+  }
+
+  function closeModalById(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('active');
+    document.body.classList.remove('no-scroll');
+  }
+
+  const api = { show, hide, confirm, prompt, toast, showModalById, closeModalById };
   
   // Attach convenience globals for backward compatibility
   if (typeof window !== 'undefined') {
     window.FCModals = api;
-    window.showModal = api.show;
+    // UMD modal system (new)
+    window.showHtmlModal = api.show;
     window.hideModal = api.hide;
-    window.showHtmlModal = (title, html) => api.show({ title, body: html });
     window.confirmModal = api.confirm;
     window.promptModal = api.prompt;
+    // Traditional ID-based modals (for existing pages)
+    window.showModal = showModalById;
+    window.closeModal = closeModalById;
   }
   
   return api;

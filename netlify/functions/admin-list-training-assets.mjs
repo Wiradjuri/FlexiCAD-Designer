@@ -1,5 +1,5 @@
 // netlify/functions/admin-list-training-assets.mjs
-import { requireAdmin, json, corsHeaders } from '../lib/require-admin.mjs';
+import { requireAuth, requireAdmin, json, corsHeaders } from '../lib/require-auth.mjs';
 
 const BUCKET = process.env.SUPABASE_STORAGE_BUCKET_TRAINING || 'training-assets';
 const CURATED_GLOBAL_PATH = process.env.CURATED_GLOBAL_PATH || 'curated/global/approved.jsonl';

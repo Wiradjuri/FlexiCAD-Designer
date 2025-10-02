@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { requireAdmin, corsHeaders, json } from '../lib/require-admin.mjs';
+import { requireAuth, requireAdmin, json, corsHeaders } from '../lib/require-auth.mjs';
 
 // Admin endpoint to list user feedback for review - Fixed for production reliability
 export const handler = async (event, context) => {

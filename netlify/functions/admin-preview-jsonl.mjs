@@ -6,8 +6,7 @@
  * Phase 4.4.3 Implementation - Training Assets Viewer
  */
 
-import { requireAdmin } from '../lib/require-admin.mjs';
-
+import { requireAuth, requireAdmin, json, corsHeaders } from '../lib/require-auth.mjs';
 export const handler = async (event, context) => {
   // CORS preflight
   if (event.httpMethod === 'OPTIONS') {

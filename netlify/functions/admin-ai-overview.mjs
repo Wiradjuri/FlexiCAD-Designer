@@ -1,5 +1,5 @@
 // netlify/functions/admin-ai-overview.mjs - AI system overview
-import { requireAdmin, json, corsHeaders } from '../lib/require-admin.mjs';
+import { requireAuth, requireAdmin, json, corsHeaders } from '../lib/require-auth.mjs';
 
 const withTimestamp = (message) => `[${new Date().toISOString()}] ${message}`;
 const CURATED_GLOBAL_PATH = 'curated/global.jsonl';

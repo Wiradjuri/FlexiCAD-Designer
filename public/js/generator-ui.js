@@ -1,24 +1,29 @@
-// Generator UI Controller - Phase 4.7.9
-// Handles progress tracking and layout management for AI generator
+// Generator UI Controller - Phase 4.7.18
+// Handles smart suggestions with detail capture for AI generator
 
 console.log('[Generator UI] Controller loaded');
 
-// Progress tracking system already implemented inline in ai.html
-// This file exists for future enhancements and organization
-
 /**
  * Initialize Smart Suggestions click handlers
- * Makes suggestion chips interactive - clicking appends text to prompt
+ * Makes suggestion chips interactive - clicking toggles selection
+ * and may prompt for details if needed
  */
 function initSmartSuggestions() {
     const suggestionItems = document.querySelectorAll('.suggestion-item[data-text]');
-    const promptTextarea = document.getElementById('promptInput');
+    const promptTextarea = document.getElementById('designPrompt') || document.getElementById('promptInput');
     
     if (!suggestionItems.length || !promptTextarea) {
         console.warn('[Generator UI] Smart Suggestions or prompt textarea not found');
         return;
     }
     
+    // Ensure handleSuggestionClick is available globally (defined in ai.html main script)
+    if (typeof window.handleSuggestionClick === 'function') {
+        console.log(`[Generator UI] Using global handleSuggestionClick for ${suggestionItems.length} suggestions`);
+        return; // Already wired up
+    }
+    
+    // Fallback: simple click handler (no detail capture)
     suggestionItems.forEach(item => {
         item.addEventListener('click', () => {
             const suggestionText = item.getAttribute('data-text');
@@ -34,8 +39,7 @@ function initSmartSuggestions() {
             }
             
             // Visual feedback
-            item.classList.add('active');
-            setTimeout(() => item.classList.remove('active'), 300);
+            item.classList.toggle('active');
             
             // Focus textarea
             promptTextarea.focus();
@@ -47,7 +51,7 @@ function initSmartSuggestions() {
         });
     });
     
-    console.log(`[Generator UI] Initialized ${suggestionItems.length} smart suggestions`);
+    console.log(`[Generator UI] Initialized ${suggestionItems.length} smart suggestions (fallback mode)`);
 }
 
 // Auto-initialize when DOM ready

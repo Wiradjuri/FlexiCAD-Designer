@@ -1,5 +1,5 @@
 // netlify/functions/admin-payments-overview.mjs - Payment system overview
-import { requireAdmin, json, corsHeaders } from '../lib/require-admin.mjs';
+import { requireAuth, requireAdmin, json, corsHeaders } from '../lib/require-auth.mjs';
 
 const withTimestamp = (message) => `[${new Date().toISOString()}] ${message}`;
 

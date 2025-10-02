@@ -1,5 +1,5 @@
 // netlify/functions/admin-system-tools.mjs - System tools and maintenance
-import { requireAdmin, json, corsHeaders } from '../lib/require-admin.mjs';
+import { requireAuth, requireAdmin, json, corsHeaders } from '../lib/require-auth.mjs';
 
 const withTimestamp = (message) => `[${new Date().toISOString()}] ${message}`;
 
