@@ -19,13 +19,13 @@ import http from 'http';
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:8888';
 const ENDPOINT = '/.netlify/functions/generate-design-stream';
 
-// Mock user token (replace with real token for actual testing)
-const ACCESS_TOKEN = process.env.TEST_ACCESS_TOKEN || 'test-token-123';
+// Use dev token from environment
+const ACCESS_TOKEN = process.env.DEV_BEARER_TOKEN || 'test-token-123';
 
 async function testSSEProgress() {
   console.log('🧪 SSE Progress Smoke Test\n');
   console.log(`Target: ${BASE_URL}${ENDPOINT}`);
-  console.log(`Token: ${ACCESS_TOKEN.substring(0, 20)}...\n`);
+  console.log(`Token: ${ACCESS_TOKEN.substring(0, 30)}...\n`);
 
   const progressEvents = [];
   let finalResult = null;

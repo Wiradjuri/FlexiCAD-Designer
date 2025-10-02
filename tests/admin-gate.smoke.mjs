@@ -12,18 +12,18 @@
  */
 
 import https from 'https';
-import http from 'http';
+import http, { get } from 'http';
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:8888';
 const ENDPOINT = '/.netlify/functions/admin-health';
 
-// Mock admin token (replace with real admin token for actual testing)
-const ADMIN_TOKEN = process.env.TEST_ADMIN_TOKEN || 'admin-token-123';
+// Use dev admin token from environment IVE SET IT IN THE .ENV FILE? 
+const ADMIN_TOKEN = process.env.DEV_ADMIN_TOKEN;
 
 async function testAdminGate() {
   console.log('🧪 Admin Gate Smoke Test\n');
   console.log(`Target: ${BASE_URL}${ENDPOINT}`);
-  console.log(`Token: ${ADMIN_TOKEN.substring(0, 20)}...\n`);
+  console.log(`Token: ${ADMIN_TOKEN.substring(0, 30)}...\n`);
 
   return new Promise((resolve, reject) => {
     const url = new URL(ENDPOINT, BASE_URL);

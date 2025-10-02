@@ -12,6 +12,8 @@
     "test": "node tests/integration-test.js",
     "test:dev": "TEST_BASE_URL=http://localhost:8888 node tests/integration-test.js",
     "test:prod": "TEST_BASE_URL=https://flexicad.com.au node tests/integration-test.js",
+    "test:dev:sse": "node tests/sse-progress.smoke.mjs",
+    "test:dev:admin": "node tests/admin-gate.smoke.mjs",
     "audit:paths": "node scripts/inventory.mjs > scripts/inventory.json",
     "fix:paths": "node scripts/fix-paths.mjs --write && npm run audit:paths",
     "test:paths": "node tests/path-consistency.test.mjs"

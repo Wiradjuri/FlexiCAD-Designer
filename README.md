@@ -229,7 +229,73 @@ netlify dev
 
 The app will be available at `http://localhost:8888`
 
-### 7. Testing
+### 7. Local Dev Tokens (Phase 4.7.16)
+
+For local development testing of protected endpoints (SSE, admin health), use dev tokens to bypass Supabase JWT validation:
+
+#### Get a Fresh Supabase JWT
+
+Open DevTools console on any authenticated page:
+
+```javascript
+await window.flexicadAuth.init();
+const { data: { session } } = await window.flexicadAuth.getSupabaseClient().auth.getSession();
+console.log(session.access_token);
+```
+
+#### Set Environment Variables
+
+```bash
+# Set dev environment
+netlify env:set APP_ENV development
+
+# Set admin emails
+netlify env:set ADMIN_EMAILS "your-email@gmail.com"
+
+# Set dev bearer token (paste JWT from above)
+netlify env:set DEV_BEARER_TOKEN "eyJhbGc..."
+
+# Set dev admin token (same JWT if you're an admin)
+netlify env:set DEV_ADMIN_TOKEN "eyJhbGc..."
+```
+
+Or add to `.env` file:
+
+```properties
+APP_ENV=development
+ADMIN_EMAILS=your-email@gmail.com
+DEV_BEARER_TOKEN=eyJhbGc...
+DEV_ADMIN_TOKEN=eyJhbGc...
+```
+
+#### Restart Dev Server
+
+```bash
+netlify dev --force
+```
+
+#### Run Smoke Tests
+
+```bash
+# Test SSE endpoint
+npm run test:dev:sse
+
+# Test admin health endpoint
+npm run test:dev:admin
+```
+
+**Expected Results:**
+- ✅ SSE endpoint: 200 OK (not 401)
+- ✅ Admin health: 200 OK or 403 (not 401)
+- Console logs show: `[require-auth] dev bearer accepted` or `[require-admin] dev admin accepted`
+
+**⚠️ Security Notes:**
+- Dev tokens only work when `APP_ENV=development`
+- Never commit `.env` file with tokens to git
+- Remove `DEV_*_TOKEN` vars before production deploy
+- Tokens expire after 1 hour (exp claim in JWT)
+
+### 8. Testing
 
 ```bash
 # Run integration tests against local dev server

@@ -292,6 +292,40 @@ class FlexiCADNavbar {
     }
 }
 
+// Standalone function to verify admin status and toggle badge visibility
+async function verifyAdminAndToggleBadge() {
+    try {
+        await window.flexicadAuth.init();
+        const supa = window.flexicadAuth.getSupabaseClient();
+        const { data: { session } } = await supa.auth.getSession();
+        const token = session?.access_token;
+        const badge = document.querySelector('[data-admin-badge]') || document.getElementById('admin-badge');
+
+        if (!token) {
+            if (badge) badge.style.display = 'none';
+            return;
+        }
+
+        const res = await fetch('/.netlify/functions/admin-health', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+            if (badge) badge.style.display = '';
+        } else {
+            if (badge) badge.style.display = 'none';
+        }
+    } catch (e) {
+        console.warn('Admin validation failed:', e);
+        const badge = document.querySelector('[data-admin-badge]') || document.getElementById('admin-badge');
+        if (badge) badge.style.display = 'none';
+    }
+}
+
+// Run after DOM is ready / after auth init finishes
+document.addEventListener('DOMContentLoaded', verifyAdminAndToggleBadge);
+
 // Global instance
 window.navbarManager = new FlexiCADNavbar();
 

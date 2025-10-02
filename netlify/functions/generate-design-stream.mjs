@@ -69,22 +69,16 @@ Key guidelines:
 }
 
 export async function handler(event) {
-  // Handle OPTIONS for CORS
   if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers: corsHeaders
-    };
+    return { statusCode: 200, headers: corsHeaders };
   }
-
   if (event.httpMethod !== 'POST') {
     return json(405, { ok: false, error: 'Method not allowed' });
   }
 
-  // Authenticate user
   const auth = await requireAuth(event);
   if (!auth.ok) {
-    return json(auth.status, { ok: false, error: auth.error });
+    return json(auth.status ?? 401, { ok: false, code: 'auth_required', error: auth.error || 'Unauthorized' });
   }
 
   console.log('[SSE] Authenticated:', auth.requesterEmail, auth.isDev ? '(dev mode)' : '');
