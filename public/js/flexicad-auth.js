@@ -1,13 +1,13 @@
+// Phase: 4.7.21 - Auth bootstrap and payment-first authentication system
 // FlexiCAD Payment-First Authentication System
-// Phase: 4.7.18 - Race-proof Supabase UMD init for dev (wait for window.supabase)
 // Users must pay before account creation - no free accounts allowed
 
-// Phase: 4.7.18 - Do not canonicalize /index.html to /
+// Phase: 4.7.21 - Do not canonicalize /index.html to /
 function isLoginPathname(pn) {
     return pn === '/' || pn.endsWith('/index.html');
 }
 
-// Phase: 4.7.18 - Race-proof Supabase UMD init for dev (wait for window.supabase)
+// Phase: 4.7.21 - Guard against UMD race: wait for window.supabase
 (function attachWaitForSupabase() {
   async function waitForSupabaseUMD(maxMs = 5000, stepMs = 100) {
     if (window.supabase?.createClient) return true;
@@ -32,6 +32,37 @@ class FlexiCADAuth {
         this.isInitializing = false;
         this._initPromise = null;
         this.adminCheckCache = { value: null, expiresAt: 0 };
+    }
+
+    // Phase: 4.7.21 - One-shot redirect helpers
+    alreadyDidLoginRedirect() { 
+        return sessionStorage.getItem('didLoginRedirect') === '1'; 
+    }
+    
+    markLoginRedirect() { 
+        sessionStorage.setItem('didLoginRedirect', '1'); 
+    }
+
+    // Phase: 4.7.21 - Check if on login page and already authenticated
+    async maybeRedirectFromLoginWhenAuthed() {
+        const pn = (window.location.pathname.replace(/\/+$/, '') || '/');
+        const onLogin = (pn === '/' || pn.endsWith('/index.html'));
+        
+        if (!onLogin) return; // Not on login page
+        
+        try {
+            const { data: { session } } = await this.supabaseClient.auth.getSession();
+            if (session && !this.alreadyDidLoginRedirect()) {
+                // Verify paid status
+                const paid = await this.checkPaymentStatus(session.user.id);
+                if (paid?.hasPaid) {
+                    this.markLoginRedirect();
+                    location.replace('home.html');
+                }
+            }
+        } catch (e) {
+            console.warn('[auth] maybeRedirectFromLoginWhenAuthed error:', e);
+        }
     }
 
     // Initialize authentication system
@@ -74,11 +105,11 @@ class FlexiCADAuth {
                     // Check if user has paid access
                     await this.checkPaymentStatus();
                     
-                    // If user is not paid, redirect to register for payment
+                    // Phase: 4.7.21 - If user is not paid, redirect to register for payment (relative path)
                     if (!this.paymentStatus?.hasPaid) {
                         console.log('⚠️ User found but no payment - redirecting to register');
                         await this.logout(); // Clear invalid session
-                        window.location.href = '/register.html?payment=required';
+                        window.location.href = 'register.html?payment=required';
                         return false;
                     }
                     
@@ -289,10 +320,10 @@ class FlexiCADAuth {
             return;
         }
         
-        // Redirect to login for protected pages
+        // Phase: 4.7.21 - Redirect to login for protected pages (no canonicalization)
         if (currentPath !== '/' && currentPath !== '/index.html') {
             console.log('🔄 Redirecting to login from protected page:', currentPath);
-            window.location.href = '/';
+            window.location.href = 'index.html';
         }
     }
 
@@ -365,8 +396,8 @@ class FlexiCADAuth {
             return;
         }
         
-        // Otherwise, redirect to homepage (not AI page)
-        const dashboardPath = '/home.html';
+        // Phase: 4.7.21 - Redirect to homepage (relative path)
+        const dashboardPath = 'home.html';
         console.log(`📍 Current path: ${currentPath}, redirecting to: ${dashboardPath}`);
         window.location.href = dashboardPath;
     }
@@ -379,7 +410,8 @@ class FlexiCADAuth {
             sessionStorage.setItem('payment_message', message);
         }
         
-        const registerPath = '/register.html?payment=required';
+        // Phase: 4.7.21 - Use relative path
+        const registerPath = 'register.html?payment=required';
         
         if (window.location.pathname !== '/register.html') {
             console.log(`📍 Current path: ${window.location.pathname}, redirecting to: ${registerPath}`);
@@ -517,8 +549,8 @@ class FlexiCADAuth {
         return true;
     }
 
-    // Login - only for users who have already paid
-    async login(email, password) {
+    // Phase: 4.7.21 - Login with optional admin flag
+    async login(email, password, options = {}) {
         try {
             console.log('🔄 Starting login process for:', email);
             
@@ -549,18 +581,32 @@ class FlexiCADAuth {
                 if (!this.paymentStatus.hasPaid) {
                     console.log('⚠️ User logged in but no valid payment');
                     await this.logout();
-                    throw new Error('Account requires payment. Go to http://localhost:8888/fix-payment.html to fix your payment status, then try logging in again.');
+                    throw new Error('Account requires payment. Please complete your subscription.');
                 }
                 
                 console.log('✅ Payment verified - user has access');
                 sessionStorage.setItem('flexicad_user', JSON.stringify(this.user));
+                
+                // Phase: 4.7.21 - Admin login handling
+                if (options.adminLoginRequested) {
+                    console.log('🔐 Admin login requested, checking admin status...');
+                    const isAdmin = await this.checkAdminAccess();
+                    if (isAdmin) {
+                        console.log('✅ Admin access verified, redirecting to admin panel');
+                        window.location.href = 'admin-controlpanel.html';
+                        return { success: true, user: data.user, isAdmin: true };
+                    } else {
+                        console.log('❌ Not an admin account');
+                        throw new Error('Not an admin account');
+                    }
+                }
                 
                 // Small delay to ensure auth state is settled
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
                 // Redirect to homepage after successful login and payment verification
                 console.log('🚀 Redirecting to homepage after successful login');
-                window.location.href = '/home.html';
+                window.location.href = 'home.html';
                 
                 return { success: true, user: data.user };
             } else {

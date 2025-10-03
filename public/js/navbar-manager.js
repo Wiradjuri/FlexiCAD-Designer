@@ -1,8 +1,8 @@
-// Unified Navbar Manager for FlexiCAD Designer - Phase 4.7.1
+// Phase: 4.7.21 - Normalize route detection without URL canonicalization
+// Unified Navbar Manager for FlexiCAD Designer
 // Exact 5 items with consistent highlight and sizing
 // Phase 4.7.18+: Robust admin badge check with retry, timeout, single-fire
 
-// Phase: 4.7.18 - Normalize route detection; keep index.html URL stable
 function isLoginPathname(pn) {
     return pn === '/' || pn.endsWith('/index.html');
 }
@@ -24,7 +24,7 @@ class FlexiCADNavbar {
         this.initializeNavbar();
     }
 
-    // Phase: 4.7.18 - Normalize route detection
+    // Phase: 4.7.21 - Normalize route detection without URL canonicalization
     getCurrentPage() {
         const pn = window.location.pathname.replace(/\/+$/, '') || '/';
         if (isHomePathname(pn)) return 'home';
@@ -33,7 +33,7 @@ class FlexiCADNavbar {
         if (pn.includes('my-designs.html')) return 'my-designs';
         if (pn.includes('about.html')) return 'about';
         if (pn.includes('admin/') || pn.includes('admin-controlpanel.html')) return 'admin';
-        if (isLoginPathname(pn)) return 'home'; // same highlight as before
+        if (isLoginPathname(pn)) return 'home'; // treat "/" and "/index.html" as same for highlighting
         return 'other';
     }
 

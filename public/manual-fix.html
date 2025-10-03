@@ -63,7 +63,8 @@ INSERT INTO profiles (
                 <a href="https://supabase.com/dashboard" target="_blank" rel="noopener" class="button">
                     Open Supabase Dashboard
                 </a>
-                <button onclick="window.location.href='/'" class="button" type="button">
+                <!-- Phase: 4.7.21 - Use relative path -->
+                <button onclick="window.location.href='index.html'" class="button" type="button">
                     Back to Login
                 </button>
             </div>
@@ -123,8 +124,9 @@ INSERT INTO profiles (
                 if (data && data.length > 0) {
                     showStatus('✅ Payment status fixed successfully! You can now login.', 'success');
                     
+                    // Phase: 4.7.21 - Use relative path
                     setTimeout(() => {
-                        window.location.href = '/';
+                        window.location.href = 'index.html';
                     }, 3000);
                 } else {
                     showStatus('⚠️ No profile found. Use the manual SQL method below.', 'warning');

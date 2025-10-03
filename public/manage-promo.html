@@ -425,8 +425,9 @@
                 if (!window.flexicadAuth.user) {
                     console.log('❌ User not logged in');
                     showMessage('error', 'Admin access required. Please log in first.');
+                    // Phase: 4.7.21 - Use relative path
                     setTimeout(() => {
-                        window.location.href = '/login.html';
+                        window.location.href = 'index.html';
                     }, 2000);
                     return false;
                 }
@@ -449,8 +450,9 @@
                 if (!isAdminUser) {
                     console.log('❌ User is not admin');
                     showMessage('error', 'Admin access denied. This feature is restricted to administrators only.');
+                    // Phase: 4.7.21 - Use relative path
                     setTimeout(() => {
-                        window.location.href = '/ai.html';
+                        window.location.href = 'ai.html';
                     }, 3000);
                     return false;
                 }

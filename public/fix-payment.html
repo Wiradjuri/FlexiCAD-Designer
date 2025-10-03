@@ -25,7 +25,8 @@
             <div id="status" style="margin-top: 20px; padding: 15px; border-radius: 6px; display: none;"></div>
             
             <div class="actions" style="margin-top: 20px;">
-                <button onclick="window.location.href='/'" class="button">
+                <!-- Phase: 4.7.21 - Use relative path -->
+                <button onclick="window.location.href='index.html'" class="button">
                     Back to Login
                 </button>
             </div>
@@ -60,9 +61,9 @@
                 if (result.success) {
                     showStatus('✅ Payment status fixed successfully! You can now login.', 'success');
                     
-                    // Auto redirect after 3 seconds
+                    // Phase: 4.7.21 - Auto redirect after 3 seconds (relative path)
                     setTimeout(() => {
-                        window.location.href = '/';
+                        window.location.href = 'index.html';
                     }, 3000);
                 } else {
                     showStatus('❌ Error: ' + (result.error || 'Unknown error'), 'error');

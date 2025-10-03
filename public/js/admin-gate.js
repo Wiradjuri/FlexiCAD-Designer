@@ -1,7 +1,8 @@
-// public/js/admin-gate.js
-// Phase: 4.7.18 - Client-side guard for admin pages
+// Phase: 4.7.21 - Client admin guard with payment check
+// Client-side guard for admin pages
 // - Waits for Supabase UMD to be ready
 // - Gets session token
+// - Checks payment status
 // - Calls /.netlify/functions/admin-health with Authorization header
 // - Unlocks the page on success; otherwise shows a message & redirects
 
@@ -19,7 +20,7 @@
     const { data: { session } } = await supa.auth.getSession();
     const token = session?.access_token;
     if (!token) throw new Error('No session token');
-    return token;
+    return { token, session };
   }
 
   async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) {
@@ -44,20 +45,45 @@
 
   async function deny(reason) {
     console.warn('[admin-gate] denied:', reason);
+    // Phase: 4.7.21 - Redirect to appropriate page based on reason
+    let redirectTo = 'home.html';
+    if (reason && String(reason).includes('Payment required')) {
+      redirectTo = 'register.html?payment=required';
+    } else if (reason && String(reason).includes('No session token')) {
+      redirectTo = 'index.html';
+    }
+    
     // If a modal system exists, show a brief message, then redirect
     if (typeof window.FCModals?.alert === 'function') {
       try { window.FCModals.alert('Access denied', (reason || 'Not authorized').toString()); } catch(_) {}
       await sleep(1200);
     }
-    window.location.href = 'home.html';
+    window.location.href = redirectTo;
   }
 
   async function verifyAdmin() {
-    // Get token (retry a bit for UMD load)
-    let token;
+    // Phase: 4.7.21 - Get token and session (retry a bit for UMD load)
+    let token, session;
     for (let i = 0; i < MAX_RETRIES; i++) {
-      try { token = await getToken(); break; }
+      try { 
+        const result = await getToken();
+        token = result.token;
+        session = result.session;
+        break; 
+      }
       catch(e){ if (i === MAX_RETRIES - 1) throw e; await sleep(400 * (i + 1)); }
+    }
+
+    // Phase: 4.7.21 - Check payment status
+    if (session?.user?.id) {
+      try {
+        const paid = await window.flexicadAuth.checkPaymentStatus(session.user.id);
+        if (!paid?.hasPaid) {
+          return { ok: false, status: 402, body: 'Payment required' };
+        }
+      } catch (e) {
+        console.warn('[admin-gate] Payment check failed:', e);
+      }
     }
 
     // Call admin-health with Authorization (retry on network/timeout)
@@ -100,6 +126,29 @@
       await deny(e?.message || String(e));
     }
   }
+
+  // Phase: 4.7.21 - Expose helpers for admin-controlpanel.js
+  window.AdminGate = {
+    requireAdminOrRedirect: async () => {
+      try {
+        const result = await verifyAdmin();
+        return result.ok;
+      } catch (e) {
+        await deny(e?.message || String(e));
+        return false;
+      }
+    },
+    fetchWithAuth: async (url, options = {}) => {
+      const { token } = await getToken();
+      return fetch(url, {
+        ...options,
+        headers: {
+          ...options.headers,
+          'Authorization': `Bearer ${token}`
+        }
+      });
+    }
+  };
 
   document.addEventListener('DOMContentLoaded', run);
 })();

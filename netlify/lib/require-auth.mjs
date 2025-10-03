@@ -1,5 +1,5 @@
+// Phase: 4.7.21 - Admin allow-list helpers and authentication utilities
 // netlify/lib/require-auth.mjs
-// Phase: 4.7.18 - Admin Login + Race-Proof Supabase UMD Init
 // Single gate for all functions: CORS, json helper, requireAuth, requireAdmin.
 // CSP-safe, no client secrets, logs are bannered.
 
@@ -9,7 +9,7 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
   .map(s => s.trim().toLowerCase())
   .filter(Boolean);
 
-// Phase: 4.7.18 - Add explicit admin email gate
+// Phase: 4.7.21 - Explicit admin email gate
 export function isAdminEmail(email) {
   const raw = process.env.ADMIN_EMAILS || '';
   const list = raw.split(/[,;\s]+/).map(s => s.trim().toLowerCase()).filter(Boolean);
@@ -98,7 +98,7 @@ export async function requireAuth(event) {
   return { ok: true, status: 200, user: r.user };
 }
 
-// Phase: 4.7.18 - Admin-only guard using Supabase JWT or dev token
+// Phase: 4.7.21 - Admin-only guard using Supabase JWT or dev token
 export async function requireAdmin(event, { allowDevToken = true } = {}) {
   banner('=== REQUIRE-ADMIN START ===');
 

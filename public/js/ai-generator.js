@@ -1,3 +1,4 @@
+// Phase: 4.7.21 - Event delegation for suggestion items
 // AI Generator - Parametric Template Support
 // Handles "Create" suggestion clicks that open parameter modals
 
@@ -65,19 +66,25 @@
     box.value = (box.value ? box.value.trim() + '\n' : '') + snippet;
   }
 
+  // Phase: 4.7.21 - Event delegation to ensure all items clickable
   panel.addEventListener('click', (e)=>{
-    const item = e.target.closest('.suggestion-item'); if(!item) return;
+    const item = e.target.closest('.suggestion-item'); 
+    if(!item) return;
+    
     const action = item.getAttribute('data-action') || '';
     if (action === 'create-template'){
       const tid = item.getAttribute('data-template-id') || 'rounded-box';
       openParamModal(tid);
       return;
     }
-    // default: toggle selection adds plain text to prompt
+    
+    // Phase: 4.7.21 - Default: toggle selection adds text to prompt
     const txt = item.getAttribute('data-text') || item.textContent.trim();
     const box = getPromptBox(); if(!box) return;
-    if (!box.value.includes(txt)) box.value = (box.value ? box.value + ', ' : '') + txt;
+    if (!box.value.includes(txt)) {
+      box.value = (box.value ? box.value + ', ' : '') + txt;
+    }
   });
 
-  console.log('[ai-generator] Parametric template handler loaded');
+  console.log('[ai-generator] Parametric template handler with event delegation loaded');
 })();
