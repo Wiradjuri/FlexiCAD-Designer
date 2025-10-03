@@ -1,5 +1,20 @@
 // FlexiCAD Payment-First Authentication System
+// Phase: 4.7.18 - Race-proof Supabase UMD init for dev (wait for window.supabase)
 // Users must pay before account creation - no free accounts allowed
+
+// Phase: 4.7.18 - Race-proof Supabase UMD init for dev (wait for window.supabase)
+(function attachWaitForSupabase() {
+  async function waitForSupabaseUMD(maxMs = 5000, stepMs = 100) {
+    if (window.supabase?.createClient) return true;
+    const start = Date.now();
+    while ((Date.now() - start) < maxMs) {
+      if (window.supabase?.createClient) return true;
+      await new Promise(r => setTimeout(r, stepMs));
+    }
+    return false;
+  }
+  window.__FC_WAIT_SUPA__ = waitForSupabaseUMD;
+})();
 
 class FlexiCADAuth {
     constructor() {
@@ -92,6 +107,12 @@ class FlexiCADAuth {
         try {
             console.log('🔧 Initializing Supabase client...');
             
+            // Phase: 4.7.18 - Wait for UMD before creating client to fix dev race
+            const ready = await (window.__FC_WAIT_SUPA__ ? window.__FC_WAIT_SUPA__(5000, 100) : Promise.resolve(!!(window.supabase && window.supabase.createClient)));
+            if (!ready || !window.supabase?.createClient) {
+                throw new Error('Supabase client library not available');
+            }
+            
             // CRITICAL: Wait for CONFIG to be loaded before creating client
             if (!window.CONFIG) {
                 console.log('⏳ Waiting for CONFIG to load...');
@@ -119,10 +140,6 @@ class FlexiCADAuth {
                 console.log('♻️ Using existing shared Supabase client');
                 this.supabaseClient = window._flexicadSupabaseClient;
                 return this.supabaseClient;
-            }
-            
-            if (!window.supabase) {
-                throw new Error('Supabase client library not available');
             }
 
             // Create Supabase client with secure config and store globally
@@ -812,6 +829,9 @@ class FlexiCADAuth {
 
 // Global instance
 window.flexicadAuth = new FlexiCADAuth();
+
+// Phase: 4.7.18 - Expose UMD waiter
+window.flexicadAuth.waitForSupabaseUMD = window.__FC_WAIT_SUPA__;
 
 // Also create the FlexiAuth alias for backward compatibility with enhanced methods
 window.FlexiAuth = {

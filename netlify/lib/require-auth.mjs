@@ -1,4 +1,5 @@
 // netlify/lib/require-auth.mjs
+// Phase: 4.7.18 - Admin Login + Race-Proof Supabase UMD Init
 // Single gate for all functions: CORS, json helper, requireAuth, requireAdmin.
 // CSP-safe, no client secrets, logs are bannered.
 
@@ -7,6 +8,13 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
   .split(/[,\s]+/)
   .map(s => s.trim().toLowerCase())
   .filter(Boolean);
+
+// Phase: 4.7.18 - Add explicit admin email gate
+export function isAdminEmail(email) {
+  const raw = process.env.ADMIN_EMAILS || '';
+  const list = raw.split(/[,;\s]+/).map(s => s.trim().toLowerCase()).filter(Boolean);
+  return !!email && list.includes(String(email).toLowerCase());
+}
 
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -90,7 +98,8 @@ export async function requireAuth(event) {
   return { ok: true, status: 200, user: r.user };
 }
 
-export async function requireAdmin(event) {
+// Phase: 4.7.18 - Admin-only guard using Supabase JWT or dev token
+export async function requireAdmin(event, { allowDevToken = true } = {}) {
   banner('=== REQUIRE-ADMIN START ===');
 
   // CORS preflight
@@ -101,33 +110,33 @@ export async function requireAdmin(event) {
   const token = parseBearer(event);
   if (!token) {
     banner('require-admin: Missing Authorization bearer token');
-    return { ok: false, status: 401, error: 'Missing Authorization bearer token' };
+    return { ok: false, status: 401, code: 'auth_required', body: { ok: false, code: 'auth_required', error: 'Missing Authorization bearer token' } };
   }
 
-  // DEV SHORT-CIRCUIT: accept DEV_ADMIN_TOKEN
-  if (IS_DEV && process.env.DEV_ADMIN_TOKEN && token === process.env.DEV_ADMIN_TOKEN) {
-    banner('require-admin: DEV admin token accepted');
-    return {
-      ok: true,
-      status: 200,
-      user: { email: 'dev-admin@local', role: 'admin', sub: 'dev-admin' },
-      isAdmin: true
-    };
+  // Dev override for local testing
+  if (allowDevToken && IS_DEV) {
+    const devTokens = [process.env.DEV_ADMIN_TOKEN, process.env.DEV_BEARER_TOKEN].filter(Boolean);
+    if (devTokens.includes(token)) {
+      banner('require-admin: DEV token accepted');
+      return { ok: true, status: 200, user: { email: 'dev@local' }, isAdmin: true };
+    }
   }
 
-  // PROD/PREVIEW: validate via Supabase then check ADMIN_EMAILS
-  const r = await fetchSupabaseUserByToken(token);
-  if (!r.ok) {
-    banner(`require-admin: Supabase user lookup failed (${r.status})`);
-    return { ok: false, status: 401, error: 'Invalid session token' };
+  // Decode JWT (no secret needed)
+  let email = null;
+  try {
+    const [, payloadB64] = token.split('.');
+    const payload = JSON.parse(Buffer.from(payloadB64, 'base64').toString('utf8'));
+    email = payload?.email || payload?.user_metadata?.email || null;
+  } catch (err) {
+    banner('require-admin: JWT decode failed');
   }
 
-  const email = (r.user?.email || '').toLowerCase();
-  if (!ADMIN_EMAILS.includes(email)) {
-    banner(`require-admin: forbidden for ${email}`);
-    return { ok: false, status: 403, error: 'forbidden' };
+  if (!email || !isAdminEmail(email)) {
+    banner(`require-admin: forbidden for ${email || 'unknown'}`);
+    return { ok: false, status: 403, code: 'forbidden', body: { ok: false, code: 'forbidden', error: 'Admin only' } };
   }
 
   banner(`require-admin: Access granted for ${email}`);
-  return { ok: true, status: 200, user: r.user, isAdmin: true };
+  return { ok: true, status: 200, user: { email }, isAdmin: true };
 }

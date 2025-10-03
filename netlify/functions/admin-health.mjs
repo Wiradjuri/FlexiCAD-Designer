@@ -1,4 +1,5 @@
 // netlify/functions/admin-health.mjs
+// Phase: 4.7.18 - Protect admin-health with requireAdmin
 import { requireAdmin, json, corsHeaders } from '../lib/require-auth.mjs';
 
 export async function handler(event) {
@@ -11,9 +12,9 @@ export async function handler(event) {
     return json(405, { ok: false, error: 'Method not allowed' });
   }
 
-  const admin = await requireAdmin(event);
-  if (!admin.ok) {
-    return json(admin.status ?? 401, { ok: false, code: admin.code || 'auth_required', error: admin.error || 'Unauthorized' });
+  const gate = await requireAdmin(event);
+  if (!gate.ok) {
+    return json(gate.status ?? 401, gate.body || { ok: false, code: gate.code || 'auth_required', error: gate.error || 'Unauthorized' });
   }
 
   // Optional: Check admin passphrase (second factor) if provided
@@ -23,17 +24,17 @@ export async function handler(event) {
   if (configuredPassphrase && passphrase) {
     // Passphrase is set and user provided one - validate it
     if (passphrase !== configuredPassphrase) {
-      console.log('[admin-health] Invalid passphrase attempt for', admin.user?.email);
+      console.log('[admin-health] Invalid passphrase attempt for', gate.user?.email);
       return json(403, { ok: false, admin: false, error: 'Invalid passphrase' });
     }
-    console.log('[admin-health] Passphrase validated for', admin.user?.email);
+    console.log('[admin-health] Passphrase validated for', gate.user?.email);
   }
 
   return json(200, {
     ok: true,
     admin: true,
     now: new Date().toISOString(),
-    user: { email: admin.user?.email },
+    user: { email: gate.user?.email },
     isAdmin: true
   });
 }

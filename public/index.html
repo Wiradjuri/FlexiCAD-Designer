@@ -43,6 +43,9 @@
                             <span class="btn-text">Sign In</span>
                             <div class="spinner hidden"></div>
                         </button>
+                        <!-- Phase: 4.7.18 - Admin login entry point -->
+                        <button id="adminLoginBtn" type="button" class="btn btn-outline w-full" style="margin-top: 0.5rem;">Admin Login</button>
+                        <div id="adminLoginMsg" class="form-hint" style="display:none;margin-top:6px;"></div>
                     </form>
 
                     <!-- Register Form -->
@@ -155,11 +158,17 @@
             </div>
         </div>
     </div>
-
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="/js/secure-config-loader.js"></script>
-    <script src="/js/flexicad-auth.js"></script>
+    <script src="js/secure-config-loader.js" defer></script>
+    <script src="js/flexicad-auth.js" defer></script>
     <script src="/js/navbar-manager.js"></script>
+    <script src="js/modals.js" defer></script>
+    <!-- Phase: 4.7.18 - Admin login handler -->
+    <script src="js/index-auth.js" defer></script>
+    <script src="js/admin-gate.js?v=4718" defer></script>
+    <script src="js/admin-controlpanel.js?v=4718" defer></script>
+
+    
     <script>
         // Initialize authentication
         let currentPlan = 'monthly';

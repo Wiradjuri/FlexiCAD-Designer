@@ -1,6 +1,15 @@
 # Local Netlify folder
 .netlify
 
+# Unecessary markdown files
+
+PHASE_*.md
+ADMIN_*.md
+MANUAL_*.md
+QUICK_*.md
+MIGRATION_*.md
+
+
 # Dependencies
 node_modules/
 npm-debug.log*

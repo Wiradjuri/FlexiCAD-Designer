@@ -7,6 +7,15 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="/css/dark-theme.css">
     <style>
+
+        
+        /* Keep the page inert until admin verified */
+        .admin-locked body, body.admin-locked { overflow: hidden; }
+        .admin-locked main, .admin-locked .container, .admin-locked .admin-main { 
+            filter: blur(2px); 
+            pointer-events: none; 
+        }
+        
         .admin-container {
             max-width: 1200px;
             margin: 2rem auto;
@@ -116,7 +125,7 @@
                 <span class="stat-label">Total Designs</span>
             </div>
             <div class="stat-card">
-                <span class="stat-number" id="systemStatus">
+                <span class="stat-number" id="systemStatus" data-system-status>
                     <span class="status-indicator status-online"></span>Online
                 </span>
                 <span class="stat-label">System Status</span>
@@ -127,13 +136,13 @@
             <div class="admin-card">
                 <h3>🔐 Access Control</h3>
                 <div class="admin-actions">
-                    <button class="btn btn-secondary" id="btn-manage-users">
+                    <button class="btn btn-secondary" id="btn-manage-users" data-admin-action="manage-users">
                         👥 Manage Users
                     </button>
-                    <button class="btn btn-secondary" id="btn-audit-log">
+                    <button class="btn btn-secondary" id="btn-audit-log" data-admin-action="system-logs">
                         📋 View Audit Log
                     </button>
-                    <button class="btn btn-secondary" id="btn-permissions">
+                    <button class="btn btn-secondary" id="btn-permissions" data-admin-action="permissions">
                         🛡️ Permissions
                     </button>
                 </div>
@@ -142,13 +151,13 @@
             <div class="admin-card">
                 <h3>💳 Payment Management</h3>
                 <div class="admin-actions">
-                    <button class="btn btn-secondary" id="btn-view-subscriptions">
+                    <button class="btn btn-secondary" id="btn-view-subscriptions" data-admin-action="view-subscriptions">
                         💰 View Subscriptions
                     </button>
-                    <button class="btn btn-secondary" id="btn-promo-codes">
+                    <button class="btn btn-secondary" id="btn-promo-codes" data-admin-action="promo-codes">
                         🎫 Promo Codes
                     </button>
-                    <button class="btn btn-secondary" id="btn-billing">
+                    <button class="btn btn-secondary" id="btn-billing" data-admin-action="billing-reports">
                         📊 Billing Reports
                     </button>
                 </div>
@@ -157,13 +166,13 @@
             <div class="admin-card">
                 <h3>🤖 AI Management</h3>
                 <div class="admin-actions">
-                    <button class="btn btn-secondary" id="btn-ai-stats">
+                    <button class="btn btn-secondary" id="btn-ai-stats" data-admin-action="ai-usage">
                         📈 AI Usage Stats
                     </button>
-                    <button class="btn btn-secondary" id="btn-learning">
+                    <button class="btn btn-secondary" id="btn-learning" data-admin-action="learning-data">
                         🧠 Learning Data
                     </button>
-                    <button class="btn btn-secondary" id="btn-feedback">
+                    <button class="btn btn-secondary" id="btn-feedback" data-admin-action="user-feedback">
                         💬 User Feedback
                     </button>
                 </div>
@@ -172,13 +181,13 @@
             <div class="admin-card">
                 <h3>⚙️ System Tools</h3>
                 <div class="admin-actions">
-                    <button class="btn btn-secondary" id="btn-system-logs">
+                    <button class="btn btn-secondary" id="btn-system-logs" data-admin-action="system-logs">
                         📄 System Logs
                     </button>
-                    <button class="btn btn-secondary" id="btn-health">
+                    <button class="btn btn-secondary" id="btn-health" data-admin-action="health-check">
                         ❤️ Health Check
                     </button>
-                    <button class="btn btn-secondary" id="btn-backups">
+                    <button class="btn btn-secondary" id="btn-backups" data-admin-action="backups">
                         💾 Backups
                     </button>
                 </div>
@@ -194,15 +203,12 @@
     </div>
 
     <!-- Core Scripts - Proper order for CSP-safe loading -->
+    <!-- Phase: 4.7.18 - Prefer UMD first to reduce dev wait -->
     <script src="https://unpkg.com/@supabase/supabase-js@2.58.0/dist/umd/supabase.js" defer></script>
-    <script src="/js/secure-config-loader.js" defer></script>
-    <script src="/js/flexicad-auth.js" defer></script>
-    <script src="/js/navbar-manager.js" defer></script>
-    <script src="/js/modals.js" defer></script>
-    <script src="/js/admin-controlpanel.js" defer></script>
-</body>
-</html>
-        });
-    </script>
+    <script src="js/secure-config-loader.js" defer></script>
+    <script src="js/flexicad-auth.js" defer></script>
+    <script src="js/modals.js" defer></script>
+    <script src="js/admin-gate.js?v=4720" defer></script>
+    <script src="js/admin-controlpanel.js?v=4720" defer></script>
 </body>
 </html>

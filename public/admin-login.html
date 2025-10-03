@@ -66,6 +66,18 @@
 <body>
     <!-- Navigation will be managed by navbar-manager.js -->
 
+     window.onerror = function(message, source, lineno, colno, error) {
+      console.error("Logged Error:", { message, source, lineno, colno, error });
+      fetch("/log-error", { // send it to your server if you want
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, source, lineno, colno, stack: error?.stack })
+      });
+    };
+
+    window.addEventListener("unhandledrejection", function(event) {
+      console.error("Unhandled Promise Rejection:", event.reason);
+    });
     <div class="admin-login-container">
         <div class="admin-card">
             <div class="admin-header">
@@ -109,7 +121,18 @@
     <script src="/js/modals.js" defer></script>
     <script>
         let sessionToken = null;
-        
+         window.onerror = function(message, source, lineno, colno, error) {
+      console.error("Logged Error:", { message, source, lineno, colno, error });
+      fetch("/log-error", { // send it to your server if you want
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, source, lineno, colno, stack: error?.stack })
+      });
+    };
+
+    window.addEventListener("unhandledrejection", function(event) {
+      console.error("Unhandled Promise Rejection:", event.reason);
+    });
         async function checkAuthStatus() {
             const statusEl = document.getElementById('statusMessage');
             const formEl = document.getElementById('adminLoginForm');
