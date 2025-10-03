@@ -136,6 +136,49 @@ class FlexiCADNavbar {
         if (mobileToggle) {
             mobileToggle.addEventListener('click', () => this.toggleMobileMenu());
         }
+        
+        // Phase: 4.7.21+ - Guard navbar navigation for unauthenticated users
+        this.setupNavigationGuard();
+    }
+
+    // Phase: 4.7.21+ - Guard protected navigation links from unauthenticated access
+    setupNavigationGuard() {
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('a.nav-link');
+            if (!link) return;
+            
+            const href = (link.getAttribute('href') || '').trim();
+            if (!href) return;
+            
+            // Always allow About page
+            if (href.endsWith('about.html')) return;
+            
+            // Check if user is authenticated using cached session
+            const session = window.__lastSession || null;
+            if (!session) {
+                e.preventDefault();
+                this.showLoginRequiredMessage();
+            }
+        });
+    }
+
+    // Phase: 4.7.21+ - Show non-blocking notice for unauthenticated navigation
+    showLoginRequiredMessage() {
+        if (window.FCModals?.open) {
+            window.FCModals.open({
+                title: 'Login Required',
+                content: '<p>Please log in to access this feature.</p>',
+                buttons: [
+                    { text: 'Cancel', role: 'close' },
+                    { text: 'Login', role: 'confirm', variant: 'primary', onClick: () => {
+                        window.location.href = 'index.html';
+                    }}
+                ]
+            });
+        } else {
+            alert('Please log in first');
+            window.location.href = 'index.html';
+        }
     }
 
     updateActiveStates() {
@@ -243,6 +286,7 @@ class FlexiCADNavbar {
     badge.setAttribute('aria-hidden', isAdmin ? 'false' : 'true');
   }
 
+  // Phase: 4.7.21 - Quietly no-op admin badge when no session/token
   async function verifyAdminAndToggleBadge(options = {}) {
     const now = Date.now();
 
@@ -257,10 +301,26 @@ class FlexiCADNavbar {
     STATE.fired = true;
 
     try {
-      // Phase: 4.7.18 - Ensure robust init (waits for UMD) before session fetch
-      try { await window.flexicadAuth?.init?.(); } catch (e) { console.warn('[navbar] init failed:', e?.message || e); }
+      // Phase: 4.7.21 - Ensure robust init (waits for UMD) before session fetch
+      try { await window.flexicadAuth?.init?.(); } catch (e) { 
+        console.info('[navbar] init not ready:', e?.message || e); 
+        toggleAdminBadge(false);
+        STATE.lastResult = { ok: false, status: 0, isAdmin: false };
+        STATE.cacheAt = Date.now();
+        return STATE.lastResult;
+      }
       
-      const token = await getSessionTokenWithRetry();
+      // Phase: 4.7.21 - Get token, but no-op quietly if none exists
+      let token;
+      try {
+        token = await getSessionTokenWithRetry();
+      } catch (e) {
+        console.info('[navbar] No session token, hiding admin badge');
+        toggleAdminBadge(false);
+        STATE.lastResult = { ok: false, status: 0, isAdmin: false };
+        STATE.cacheAt = Date.now();
+        return STATE.lastResult;
+      }
 
       let attempt = 0;
       let lastErr = null;
@@ -274,7 +334,7 @@ class FlexiCADNavbar {
           if (!res.ok) {
             // HTTP error – not a network error
             const text = await res.text().catch(() => '');
-            console.warn('[navbar] admin-health HTTP error', res.status, text);
+            console.info('[navbar] admin-health returned', res.status, '- hiding badge');
             toggleAdminBadge(false);
             STATE.lastResult = { ok: false, status: res.status, isAdmin: false };
             STATE.cacheAt = Date.now();
@@ -286,12 +346,13 @@ class FlexiCADNavbar {
           toggleAdminBadge(isAdmin);
           STATE.lastResult = { ok: true, status: 200, isAdmin, user: json.user || null };
           STATE.cacheAt = Date.now();
+          console.info('[navbar] Admin badge:', isAdmin ? 'shown' : 'hidden');
           return STATE.lastResult;
 
         } catch (err) {
           // Network/Abort – retry with backoff
           lastErr = err;
-          console.warn('[navbar] admin-health network error (attempt ' + (attempt + 1) + '):', err?.message || err);
+          console.info('[navbar] admin-health network error (attempt ' + (attempt + 1) + '):', err?.message || err);
           await sleep(RETRY_DELAY_MS * (attempt + 1));
           attempt++;
         }
@@ -301,6 +362,7 @@ class FlexiCADNavbar {
       toggleAdminBadge(false);
       STATE.lastResult = { ok: false, status: 0, isAdmin: false, error: (lastErr && (lastErr.message || String(lastErr))) };
       STATE.cacheAt = Date.now();
+      console.info('[navbar] Admin badge hidden after retries');
       return STATE.lastResult;
 
     } finally {
@@ -314,9 +376,9 @@ class FlexiCADNavbar {
 
   // single fire after DOM is ready
   document.addEventListener('DOMContentLoaded', () => {
-    // Defer a tick so secure-config + supabase UMD have time to attach
+    // Phase: 4.7.21 - Defer a tick so secure-config + supabase UMD have time to attach
     setTimeout(() => verifyAdminAndToggleBadge().catch(err => {
-      console.warn('Admin validation failed (init):', err?.message || err);
+      console.info('[navbar] Admin validation skipped (init):', err?.message || err);
       toggleAdminBadge(false);
     }), 0);
   });

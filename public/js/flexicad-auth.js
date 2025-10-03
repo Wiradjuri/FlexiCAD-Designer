@@ -1,10 +1,20 @@
-// Phase: 4.7.21 - Auth bootstrap and payment-first authentication system
+// Phase: 4.7.21+ - Auth bootstrap and payment-first authentication system with non-destructive runtime checks
 // FlexiCAD Payment-First Authentication System
 // Users must pay before account creation - no free accounts allowed
 
-// Phase: 4.7.21 - Do not canonicalize /index.html to /
+// Phase: 4.7.21+ - Route classification helpers
 function isLoginPathname(pn) {
     return pn === '/' || pn.endsWith('/index.html');
+}
+function isPublicPathname(pn) {
+    return isLoginPathname(pn) || pn.endsWith('/about.html');
+}
+function isAdminPathname(pn) {
+    return pn.includes('/admin/') || pn.endsWith('/admin-controlpanel.html');
+}
+function isProtectedPathname(pn) {
+    return pn.endsWith('/home.html') || pn.endsWith('/templates.html') ||
+           pn.endsWith('/ai.html') || pn.endsWith('/my-designs.html') || isAdminPathname(pn);
 }
 
 // Phase: 4.7.21 - Guard against UMD race: wait for window.supabase
@@ -102,15 +112,19 @@ class FlexiCADAuth {
                     console.log('✅ Found existing Supabase session');
                     this.user = session.user;
                     
-                    // Check if user has paid access
+                    // Phase: 4.7.21+ - Check payment but don't redirect on protected pages during init
+                    const pn = (window.location.pathname.replace(/\/+$/, '') || '/');
                     await this.checkPaymentStatus();
                     
-                    // Phase: 4.7.21 - If user is not paid, redirect to register for payment (relative path)
-                    if (!this.paymentStatus?.hasPaid) {
-                        console.log('⚠️ User found but no payment - redirecting to register');
-                        await this.logout(); // Clear invalid session
-                        window.location.href = 'register.html?payment=required';
-                        return false;
+                    // Phase: 4.7.21+ - Only redirect if unpaid AND on a protected page
+                    if (this.paymentStatus?.hasPaid === false) {
+                        if (isProtectedPathname(pn)) {
+                            console.log('⚠️ Unpaid user on protected page - redirecting to payment');
+                            window.location.href = 'register.html?payment=required';
+                            return false;
+                        } else {
+                            console.log('ℹ️ Unpaid user on public/login page - allowing access');
+                        }
                     }
                     
                     sessionStorage.setItem('flexicad_user', JSON.stringify(this.user));
@@ -208,6 +222,9 @@ class FlexiCADAuth {
 
         this.authStateChangeListener = this.supabaseClient.auth.onAuthStateChange(
             async (event, session) => {
+                // Phase: 4.7.21+ - Cache session for navbar guard
+                window.__lastSession = session;
+                
                 console.log(`🔄 Auth state change: ${event}`, {
                     event,
                     hasSession: !!session,
@@ -287,6 +304,7 @@ class FlexiCADAuth {
             
             console.log('💳 Payment status result:', this.paymentStatus);
             
+            // Phase: 4.7.21+ - Only redirect from login page, don't logout on runtime navigation
             if (this.paymentStatus?.hasPaid) {
                 console.log('✅ User has paid access');
                 // Only redirect if on login/index page, otherwise let user stay on current page
@@ -297,13 +315,16 @@ class FlexiCADAuth {
                 } else {
                     console.log('📍 User already on valid page, no redirect needed');
                 }
-            } else {
-                console.log('❌ User needs to complete payment, redirecting to register...');
-                this.redirectToPayment('Payment required to access FlexiCAD Designer');
+            } else if (this.paymentStatus?.hasPaid === false) {
+                // User explicitly has no payment - only redirect, don't logout
+                const currentPath = window.location.pathname;
+                if (isProtectedPathname(currentPath)) {
+                    console.log('⚠️ Unpaid user on protected page - redirecting to payment (no logout)');
+                    window.location.href = 'register.html?payment=required';
+                }
             }
         } catch (error) {
             console.error('❌ Error checking existing session:', error);
-            this.redirectToPayment('Unable to verify payment status. Please register or contact support.');
         }
     }
 
@@ -578,9 +599,12 @@ class FlexiCADAuth {
                 // Check payment status
                 await this.checkPaymentStatus();
                 
-                if (!this.paymentStatus.hasPaid) {
-                    console.log('⚠️ User logged in but no valid payment');
-                    await this.logout();
+                // Phase: 4.7.21+ - Only logout on explicit unpaid after login, not during runtime
+                if (this.paymentStatus.hasPaid === false) {
+                    console.log('⚠️ User logged in but no valid payment - logging out');
+                    await this.supabaseClient.auth.signOut().catch(() => {});
+                    this.user = null;
+                    this.paymentStatus = null;
                     throw new Error('Account requires payment. Please complete your subscription.');
                 }
                 

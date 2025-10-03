@@ -1,3 +1,4 @@
+// Phase: 4.7.21 - Admin panel with metrics and new serverless endpoints
 (function () {
   const Q = (s, r=document)=>r.querySelector(s);
   const $$ = (s, r=document)=>[...r.querySelectorAll(s)];
@@ -18,6 +19,25 @@
     return json;
   }
 
+  async function loadMetrics(){
+    try {
+      const data = await callJson('/.netlify/functions/admin-metrics', {method:'GET'});
+      if (data?.ok && data?.totals) {
+        const totalUsers = Q('[data-metric="total-users"]');
+        const activeToday = Q('[data-metric="active-today"]');
+        const totalDesigns = Q('[data-metric="total-designs"]');
+        
+        if (totalUsers) totalUsers.textContent = data.totals.totalSubscribers ?? 0;
+        if (activeToday) activeToday.textContent = data.totals.activeToday ?? 0;
+        if (totalDesigns) totalDesigns.textContent = data.totals.totalDesigns ?? 0;
+        
+        console.log('[admin-panel] Metrics loaded:', data.totals);
+      }
+    } catch (err) {
+      console.error('[admin-panel] Failed to load metrics:', err);
+    }
+  }
+
   const actions = {
     async health(){ showJSON('System Health', await callJson('/.netlify/functions/admin-health',{method:'GET'})); },
     async 'manage-users'(){ showJSON('Users', await callJson('/.netlify/functions/admin-list-users',{method:'GET'})); },
@@ -25,13 +45,14 @@
       try{ showJSON('Subscriptions / Dashboard Stats', await callJson('/.netlify/functions/admin-dashboard-stats',{method:'GET'})); }
       catch{ showJSON('Payments Overview', await callJson('/.netlify/functions/admin-payments-overview',{method:'GET'})); }
     },
-    async 'promo-codes'(){ showJSON('Promo Codes', await callJson('/.netlify/functions/manage-promo-codes?action=list',{method:'GET'})); },
-    async 'billing-reports'(){ showJSON('Billing Reports', await callJson('/.netlify/functions/admin-payments-overview',{method:'GET'})); },
-    async 'ai-usage'(){ showJSON('AI Usage Stats', await callJson('/.netlify/functions/admin-ai-overview',{method:'GET'})); },
-    async 'learning-data'(){ showJSON('Learning Data', await callJson('/.netlify/functions/admin-list-training-assets',{method:'GET'})); },
+    async 'promo-codes'(){ showJSON('Promo Codes', await callJson('/.netlify/functions/admin-promos?op=list',{method:'GET'})); },
+    async 'billing-reports'(){ showJSON('Billing Reports', await callJson('/.netlify/functions/admin-billing-reports',{method:'GET'})); },
+    async 'ai-usage'(){ showJSON('AI Usage Stats', await callJson('/.netlify/functions/admin-usage-stats',{method:'GET'})); },
+    async 'learning-data'(){ showJSON('Learning Data', await callJson('/.netlify/functions/admin-learning-data',{method:'GET'})); },
     async 'user-feedback'(){ showJSON('User Feedback', await callJson('/.netlify/functions/admin-feedback-list',{method:'GET'})); },
-    async 'system-logs'(){ showJSON('System Logs', await callJson('/.netlify/functions/admin-system-tools?action=logs',{method:'GET'})); },
-    async 'health-check'(){ showJSON('Health Check', await callJson('/.netlify/functions/check-database?type=payment_first_validation',{method:'POST'})); },
+    async 'system-logs'(){ showJSON('System Logs', await callJson('/.netlify/functions/admin-logs',{method:'GET'})); },
+    async 'health-check'(){ showJSON('Health Check', await callJson('/.netlify/functions/admin-health',{method:'GET'})); },
+    async 'permissions'(){ showJSON('Permissions', await callJson('/.netlify/functions/admin-permissions',{method:'GET'})); },
     async 'backups'(){ showJSON('Backups', await callJson('/.netlify/functions/admin-system-tools?action=backups',{method:'GET'})); },
     async __smoke(){
       const seq=['health','manage-users','view-subscriptions','promo-codes','billing-reports','ai-usage','learning-data','user-feedback','system-logs'];
@@ -48,12 +69,21 @@
       if(!actions[key]) return console.warn('No action for', key);
       actions[key]().catch(err=>{ console.error('Admin action error', key, err); showJSON(`Error: ${key}`, err?.body ?? {error:err?.message||String(err)}); });
     });
+    
+    // Back button handler
+    const backBtn = Q('#adminBackBtn');
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        window.location.href = 'home.html';
+      });
+    }
   }
 
   async function init(){
     ensureModalLib();
     const ok = await window.AdminGate.requireAdminOrRedirect(); if(!ok) return;
     bindClicks();
+    await loadMetrics();
     const status = Q('[data-system-status]'); if(status) status.textContent='Online';
     window.AdminPanel = { actions };     // ← global export
     console.log('[admin-panel] ready');

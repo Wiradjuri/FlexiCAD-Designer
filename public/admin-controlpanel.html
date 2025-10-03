@@ -102,11 +102,16 @@
             color: var(--text-secondary);
             font-size: 0.9rem;
         }
+        
+        #adminBackBtn {
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
     <div class="admin-container">
         <div class="admin-header">
+            <button id="adminBackBtn" class="btn btn-secondary">← Back to Home</button>
             <h1>🔧 FlexiCAD Admin Control Panel</h1>
             <p>System administration and monitoring dashboard</p>
         </div>
@@ -203,12 +208,12 @@
     </div>
 
     <!-- Core Scripts - Proper order for CSP-safe loading -->
-    <!-- Phase: 4.7.18 - Prefer UMD first to reduce dev wait -->
+    <!-- Phase: 4.7.21 - Admin scripts only on admin pages -->
     <script src="https://unpkg.com/@supabase/supabase-js@2.58.0/dist/umd/supabase.js" defer></script>
     <script src="js/secure-config-loader.js" defer></script>
     <script src="js/flexicad-auth.js" defer></script>
     <script src="js/modals.js" defer></script>
-    <script src="js/admin-gate.js?v=4720" defer></script>
-    <script src="js/admin-controlpanel.js?v=4720" defer></script>
+    <script src="js/admin-gate.js?v=4721" defer></script>
+    <script src="js/admin-controlpanel.js?v=4721" defer></script>
 </body>
 </html>

@@ -3,7 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlexiCAD Designer - Templates</title>
+    <title>FlexiCAD Des                    <div class="card-actions">
+                        <button class="btn btn-primary btn-small template-create" 
+                                data-template-create
+                                data-template-id="${template.id}"
+                                onclick="openTemplateWizard('${template.id}')">
+                            🎨 Create
+                        </button>
+                        <button class="btn btn-secondary btn-small" 
+                                onclick="viewCode('${template.id}')">
+                            👁️ View Code
+                        </button>
+                        <button class="btn btn-secondary btn-small" 
+                                onclick="downloadTemplate('${template.id}')">
+                            ⬇️ Download
+                        </button>
+                    </div>es</title>
     <link rel="stylesheet" href="/css/dark-theme.css">
 </head>
 <body>
@@ -191,6 +206,27 @@
         }
 
         function openTemplateWizard(templateId) {
+            // Phase: 4.7.21+ - Guard template creation for authenticated users only
+            const session = window.__lastSession || null;
+            if (!session) {
+                if (window.FCModals?.open) {
+                    window.FCModals.open({
+                        title: 'Login Required',
+                        content: '<p>Please log in to create designs from templates.</p>',
+                        buttons: [
+                            { text: 'Cancel', role: 'close' },
+                            { text: 'Login', role: 'confirm', variant: 'primary', onClick: () => {
+                                window.location.href = 'index.html';
+                            }}
+                        ]
+                    });
+                } else {
+                    alert('Please log in first');
+                    window.location.href = 'index.html';
+                }
+                return;
+            }
+            
             const id = (templateId || '').toString();
             // Navigate to template-wizard.html with template ID
             window.location.href = 'template-wizard.html?id=' + encodeURIComponent(id);

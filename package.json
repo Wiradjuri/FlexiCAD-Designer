@@ -24,11 +24,11 @@
     "openai": "^4.0.0",
     "postgres": "^3.4.7",
     "stripe": "^14.21.0",
-    "stripe-cli": "^0.1.0"
+    "stripe-cli": "^0.0.1"
   },
   "devDependencies": {
     "dotenv": "^16.6.1",
-    "netlify-cli": "^17.15.4",
+    "netlify-cli": "^23.9.1",
     "node-fetch": "^2.7.0"
   },
   "keywords": [

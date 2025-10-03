@@ -359,6 +359,7 @@
                     <div class="code-header">
                         <span id="outputFileName">generated-design.scad</span>
                         <div class="code-actions">
+                            <button class="btn btn-small btn-primary" id="saveDesignBtn" onclick="saveDesign()" disabled>💾 Save Design</button>
                             <button class="btn btn-small btn-secondary" onclick="copyOutputCode()">Copy Code</button>
                             <button class="btn btn-small btn-secondary" onclick="downloadSCAD()">Download .scad</button>
                         </div>
@@ -402,21 +403,89 @@
     <script src="/js/ai-generator.js" defer></script>
     <script src="/js/enhanced-ai-generator-clean.js" defer></script>
     <script>
-        // Phase 4.7.2 AI Generator JavaScript
+        // Phase 4.7.21 - AI Generator with progress animation and save design
         
-        // Progress management
+        // Progress management with smooth animation
         let currentProgress = 0;
+        let targetProgress = 0;
+        let progressTimer = null;
+        let isDone = false;
+        
+        function animateProgress() {
+            if (isDone) return;
+            
+            // Ease towards target, but cap at 95% until complete
+            const maxProgress = targetProgress >= 100 ? 100 : Math.min(95, targetProgress);
+            
+            if (currentProgress < maxProgress) {
+                // Smooth easing
+                currentProgress += (maxProgress - currentProgress) * 0.1 + 0.5;
+                currentProgress = Math.min(maxProgress, currentProgress);
+                
+                const progressFill = document.getElementById('progressFill');
+                const progressText = document.getElementById('progressText');
+                
+                if (progressFill) {
+                    progressFill.style.width = currentProgress + '%';
+                }
+                if (progressText) {
+                    progressText.textContent = Math.round(currentProgress) + '%';
+                }
+            }
+            
+            if (currentProgress < maxProgress || targetProgress < 100) {
+                progressTimer = setTimeout(animateProgress, 120);
+            }
+        }
         
         function updateProgress(percent) {
-            currentProgress = Math.min(100, Math.max(0, percent));
+            targetProgress = Math.min(100, Math.max(0, percent));
+            
+            if (!progressTimer && !isDone) {
+                animateProgress();
+            }
+        }
+        
+        function completeProgress() {
+            isDone = true;
+            targetProgress = 100;
+            currentProgress = 100;
+            
+            if (progressTimer) {
+                clearTimeout(progressTimer);
+                progressTimer = null;
+            }
+            
             const progressFill = document.getElementById('progressFill');
             const progressText = document.getElementById('progressText');
             
             if (progressFill) {
-                progressFill.style.width = currentProgress + '%';
+                progressFill.style.width = '100%';
             }
             if (progressText) {
-                progressText.textContent = Math.round(currentProgress) + '%';
+                progressText.textContent = '100% Complete';
+            }
+            
+            // Enable save button
+            const saveBtn = document.getElementById('saveDesignBtn');
+            if (saveBtn) {
+                saveBtn.disabled = false;
+            }
+        }
+        
+        function resetProgress() {
+            isDone = false;
+            currentProgress = 0;
+            targetProgress = 0;
+            if (progressTimer) {
+                clearTimeout(progressTimer);
+                progressTimer = null;
+            }
+            
+            // Disable save button
+            const saveBtn = document.getElementById('saveDesignBtn');
+            if (saveBtn) {
+                saveBtn.disabled = true;
             }
         }
         
@@ -530,7 +599,7 @@
             }
         }
         
-        // Form submission - Phase 4.7.10: Real SSE progress
+        // Form submission - Phase 4.7.21: Enhanced progress and save
         async function generateDesign(event) {
             event?.preventDefault();
             
@@ -546,6 +615,7 @@
             const outputPanel = document.getElementById('aiOutputPanel');
             outputPanel.classList.remove('hidden');
             showProgress();
+            resetProgress();
             updateProgress(0);
             
             // Update title
@@ -652,8 +722,11 @@
                             }
 
                             if (data.ok === true && data.code) {
-                                // Result event
+                                // Result event - Phase 4.7.21: Complete progress animation
                                 document.getElementById('outputCode').textContent = data.code || data.openscad_code;
+                                
+                                // Snap progress to 100%
+                                completeProgress();
                                 
                                 // Final scroll to output
                                 scrollToOutput();
@@ -777,6 +850,69 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+        }
+        
+        // Phase 4.7.21 - Save design to database
+        async function saveDesign() {
+            const btn = document.getElementById('saveDesignBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+            
+            try {
+                const auth = window.flexicadAuth;
+                let accessToken = null;
+
+                if (auth?.getSessionToken) {
+                    accessToken = await auth.getSessionToken();
+                }
+
+                if (!accessToken) {
+                    alert('Please sign in to save designs');
+                    if (auth?.requireAuth) {
+                        await auth.requireAuth();
+                    }
+                    return;
+                }
+                
+                const payload = {
+                    name: document.getElementById('designName')?.value || 'Untitled Design',
+                    prompt: document.getElementById('designPrompt')?.value || '',
+                    description: document.getElementById('designName')?.value || '',
+                    code: document.getElementById('outputCode')?.textContent || '',
+                    source: 'ai_generated'
+                };
+                
+                const res = await fetch('/.netlify/functions/save-design', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!res.ok) {
+                    const error = await res.text();
+                    throw new Error(error || 'Save failed');
+                }
+                
+                const result = await res.json();
+                btn.textContent = '✅ Saved!';
+                
+                console.log('[Save Design] Success:', result);
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }, 2000);
+                
+            } catch (err) {
+                console.error('[Save Design] Error:', err);
+                alert('❌ Error saving design: ' + err.message);
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
         }
         
         function showSTLExportModal() {

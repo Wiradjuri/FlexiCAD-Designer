@@ -1,4 +1,6 @@
+// Phase: 4.7.21 - Fix admin client usage
 import { requireAuth, requireAdmin, json, corsHeaders } from '../lib/require-auth.mjs';
+import { getAdminClient } from './lib/supabase-admin.mjs';
 
 const withTimestamp = (message) => `[${new Date().toISOString()}] ${message}`;
 
@@ -18,7 +20,7 @@ export async function handler(event) {
     return json(status, { ok: false, code, error });
   }
 
-  const { supabase } = gate;
+  const supabase = getAdminClient();
 
   try {
     const { data, error } = await supabase
