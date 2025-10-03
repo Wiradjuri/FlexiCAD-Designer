@@ -8,7 +8,9 @@ ADMIN_*.md
 MANUAL_*.md
 QUICK_*.md
 MIGRATION_*.md
-
+SECURITY_*.md
+SECURE_*.md
+SUPABASE_*.md
 
 # Dependencies
 node_modules/

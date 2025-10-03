@@ -2,6 +2,14 @@
 // Exact 5 items with consistent highlight and sizing
 // Phase 4.7.18+: Robust admin badge check with retry, timeout, single-fire
 
+// Phase: 4.7.18 - Normalize route detection; keep index.html URL stable
+function isLoginPathname(pn) {
+    return pn === '/' || pn.endsWith('/index.html');
+}
+function isHomePathname(pn) {
+    return pn.endsWith('/home.html');
+}
+
 class FlexiCADNavbar {
     constructor() {
         this.navItems = [
@@ -16,14 +24,16 @@ class FlexiCADNavbar {
         this.initializeNavbar();
     }
 
+    // Phase: 4.7.18 - Normalize route detection
     getCurrentPage() {
-        const path = window.location.pathname.replace(/\/+$/, '');
-        if (path.includes('home.html') || path === '' || path === '/') return 'home';
-        if (path.includes('templates.html')) return 'templates';
-        if (path.includes('ai.html')) return 'ai';
-        if (path.includes('my-designs.html')) return 'my-designs';
-        if (path.includes('about.html')) return 'about';
-        if (path.includes('admin/') || path.includes('admin-controlpanel.html')) return 'admin';
+        const pn = window.location.pathname.replace(/\/+$/, '') || '/';
+        if (isHomePathname(pn)) return 'home';
+        if (pn.includes('templates.html')) return 'templates';
+        if (pn.includes('ai.html')) return 'ai';
+        if (pn.includes('my-designs.html')) return 'my-designs';
+        if (pn.includes('about.html')) return 'about';
+        if (pn.includes('admin/') || pn.includes('admin-controlpanel.html')) return 'admin';
+        if (isLoginPathname(pn)) return 'home'; // same highlight as before
         return 'other';
     }
 

@@ -2,6 +2,11 @@
 // Phase: 4.7.18 - Race-proof Supabase UMD init for dev (wait for window.supabase)
 // Users must pay before account creation - no free accounts allowed
 
+// Phase: 4.7.18 - Do not canonicalize /index.html to /
+function isLoginPathname(pn) {
+    return pn === '/' || pn.endsWith('/index.html');
+}
+
 // Phase: 4.7.18 - Race-proof Supabase UMD init for dev (wait for window.supabase)
 (function attachWaitForSupabase() {
   async function waitForSupabaseUMD(maxMs = 5000, stepMs = 100) {
@@ -335,9 +340,9 @@ class FlexiCADAuth {
         localStorage.removeItem('flexicad_user');
         sessionStorage.clear();
         
-        // Redirect to login
-        if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
-            window.location.href = '/';
+        // Phase: 4.7.18 - Redirect to login page, keep URL stable (no canonicalization)
+        if (!isLoginPathname(window.location.pathname)) {
+            window.location.href = 'index.html';
         }
     }
 
@@ -702,8 +707,8 @@ class FlexiCADAuth {
 
             console.log('✅ Logout successful');
             
-            // Redirect to index page
-            window.location.href = '/index.html';
+            // Phase: 4.7.18 - Redirect to login page, keep URL stable (no / canonicalization)
+            window.location.href = 'index.html';
         } catch (error) {
             console.error('❌ Logout error:', error);
             throw error;
